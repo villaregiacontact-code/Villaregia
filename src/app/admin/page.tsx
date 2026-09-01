@@ -1,0 +1,2108 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useAuth, INITIAL_STAFF_ACCOUNTS } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { INITIAL_PROPERTIES, INITIAL_ARTICLES } from '@/data/properties';
+import {
+  Property,
+  Lead,
+  BookingRequest,
+  BlogPost,
+  UserAccount,
+  UserRole,
+  UniverseType,
+  PropertyCategory,
+  PropertyStatus,
+} from '@/types';
+import {
+  Building2,
+  Users,
+  Calendar,
+  TrendingUp,
+  Plus,
+  Search,
+  Eye,
+  Edit,
+  Trash2,
+  Lock,
+  Sparkles,
+  UserCheck,
+  Copy,
+  MessageCircle,
+  X,
+  Key,
+  LogOut,
+  ArrowRight,
+  ShieldCheck,
+  FileText,
+  Mail,
+  Phone,
+  ExternalLink,
+  Star,
+  UserPlus,
+  CheckCircle,
+  Filter,
+  Check,
+  UploadCloud,
+  FileCheck,
+} from 'lucide-react';
+
+export interface OwnerSubmission {
+  id: string;
+  refCode: string;
+  propertyType: PropertyCategory;
+  objective: UniverseType;
+  surfaceM2: number;
+  bedrooms: number;
+  estimatedPrice: number;
+  city: string;
+  district: string;
+  ownerName: string;
+  ownerPhone: string;
+  ownerEmail: string;
+  details?: string;
+  photos?: string[];
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+}
+
+const INITIAL_SUBMISSIONS: OwnerSubmission[] = [
+  {
+    id: 'sub-101',
+    refCode: 'DOS-2026-9120',
+    propertyType: 'Villa',
+    objective: 'VENTE',
+    surfaceM2: 550,
+    bedrooms: 5,
+    estimatedPrice: 1950000,
+    city: 'Sfax',
+    district: 'Route de Thyna Km 4',
+    ownerName: 'M. Habib Ben Salah',
+    ownerPhone: '+216 98 444 555',
+    ownerEmail: 'h.bensalah@topnet.tn',
+    details: 'Demeure contemporaine neuve avec titre foncier individuel et piscine à débordement.',
+    status: 'PENDING',
+    createdAt: '2026-08-31',
+  },
+  {
+    id: 'sub-102',
+    refCode: 'DOS-2026-4401',
+    propertyType: 'Penthouse',
+    objective: 'RESIDENCE',
+    surfaceM2: 320,
+    bedrooms: 3,
+    estimatedPrice: 1200000,
+    city: 'Sfax',
+    district: 'Route de la Soukra',
+    ownerName: 'Mme. Cyrine Karray',
+    ownerPhone: '+216 22 888 999',
+    ownerEmail: 'cyrine.karray@gmail.com',
+    details: 'Dernier étage haut standing meublé avec terrasse panoramique 80m2.',
+    status: 'PENDING',
+    createdAt: '2026-08-30',
+  },
+];
+
+const INITIAL_RESERVATIONS: BookingRequest[] = [
+  {
+    id: 'res-101',
+    propertyId: 'vr-soukra-01',
+    propertyTitle: 'Domaine de la Soukra — Villa de Maître',
+    guestName: 'Mme. Sarah Louati',
+    guestEmail: 'sarah.l@yahoo.fr',
+    guestPhone: '+216 22 456 789',
+    checkIn: '2026-09-10',
+    checkOut: '2026-09-14',
+    guestsCount: 4,
+    totalNights: 4,
+    pricePerNight: 1450,
+    totalAmount: 5800,
+    depositAmount: 1740,
+    status: 'CONFIRMED',
+    createdAt: '2026-08-30 14:20',
+  },
+  {
+    id: 'res-102',
+    propertyId: 'vr-gammarth-06',
+    propertyTitle: 'Villa Riviera Gold — Gammarth',
+    guestName: 'M. Karim Ben Salah',
+    guestEmail: 'k.bensalah@invest.tn',
+    guestPhone: '+216 98 111 222',
+    checkIn: '2026-09-20',
+    checkOut: '2026-09-25',
+    guestsCount: 6,
+    totalNights: 5,
+    pricePerNight: 2100,
+    totalAmount: 10500,
+    depositAmount: 3150,
+    status: 'PENDING',
+    createdAt: '2026-08-31 09:10',
+  },
+];
+
+const INITIAL_LEADS: Lead[] = [
+  {
+    id: 'lead-01',
+    name: 'M. Slim Ben Ayed',
+    phone: '+216 98 123 456',
+    email: 'slim.ay@gmail.com',
+    source: 'Soumission Propriétaire',
+    universe: 'VENTE',
+    propertyTitle: 'Palais El Maamoura Thyna',
+    status: 'Visite',
+    assignedAgent: 'Amine Karray',
+    notes: 'Visite programmée pour le samedi à 11h. Intéressé par le patio central.',
+    createdAt: '2026-08-30',
+  },
+  {
+    id: 'lead-02',
+    name: 'Mme. Sarah Louati',
+    phone: '+216 22 456 789',
+    email: 'sarah.l@yahoo.fr',
+    source: 'Formulaire Contact',
+    universe: 'LUXE',
+    propertyTitle: 'Domaine de la Soukra',
+    status: 'Nouveau',
+    assignedAgent: 'Yassine Triki',
+    notes: 'Demande d’information sur la disponibilité du chef cuisinier.',
+    createdAt: '2026-08-31',
+  },
+];
+
+export default function AdminDashboardPage() {
+  const router = useRouter();
+  const { user, is2FAVerified, logout, hasPermission, logAction, auditLogs } = useAuth();
+  const { language } = useLanguage();
+
+  // Active Tab State
+  const [activeTab, setActiveTab] = useState<'kpi' | 'properties' | 'submissions' | 'crm' | 'reservations' | 'articles' | 'users' | 'audit'>('kpi');
+
+  // Functional Data States
+  const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES);
+  const [submissions, setSubmissions] = useState<OwnerSubmission[]>(INITIAL_SUBMISSIONS);
+  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
+  const [reservations, setReservations] = useState<BookingRequest[]>(INITIAL_RESERVATIONS);
+  const [articles, setArticles] = useState<BlogPost[]>(INITIAL_ARTICLES);
+  const [staffUsers, setStaffUsers] = useState<UserAccount[]>(INITIAL_STAFF_ACCOUNTS);
+  const [dbStats, setDbStats] = useState<any>(null);
+
+  // Sync data from live APIs & LocalStorage
+  useEffect(() => {
+    async function loadAdminData() {
+      try {
+        const [statsRes, propsRes, bookingsRes, crmRes] = await Promise.all([
+          fetch('/api/admin/stats').then(r => r.json()).catch(() => null),
+          fetch('/api/properties').then(r => r.json()).catch(() => null),
+          fetch('/api/bookings').then(r => r.json()).catch(() => null),
+          fetch('/api/admin/crm').then(r => r.json()).catch(() => null),
+        ]);
+
+        if (statsRes?.success) setDbStats(statsRes.stats);
+        if (propsRes?.success && Array.isArray(propsRes.properties)) setProperties(propsRes.properties);
+        if (bookingsRes?.success && Array.isArray(bookingsRes.bookings)) setReservations(bookingsRes.bookings);
+        if (crmRes?.success && Array.isArray(crmRes.leads)) setLeads(crmRes.leads);
+      } catch (err) {
+        console.warn('Admin API load fallback:', err);
+      }
+    }
+    loadAdminData();
+  }, []);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('vr_owner_submissions');
+      if (stored) {
+        const parsed: OwnerSubmission[] = JSON.parse(stored);
+        if (parsed.length > 0) {
+          setSubmissions((prev) => {
+            const ids = new Set(prev.map((s) => s.id));
+            const fresh = parsed.filter((s) => !ids.has(s.id));
+            return [...fresh, ...prev];
+          });
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  // Status Handlers with API Sync
+  const handleUpdatePropertyStatus = async (propId: string, newStatus: PropertyStatus) => {
+    setProperties((prev) =>
+      prev.map((p) => (p.id === propId ? { ...p, status: newStatus } : p))
+    );
+    try {
+      await fetch(`/api/properties/${propId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch (e) {
+      console.warn('Property status update API fallback:', e);
+    }
+  };
+
+  const handleUpdateLeadStatus = async (leadId: string, newStatus: Lead['status']) => {
+    setLeads((prev) =>
+      prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
+    );
+    try {
+      await fetch('/api/admin/crm', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: leadId, status: newStatus }),
+      });
+    } catch (e) {
+      console.warn('Lead status update API fallback:', e);
+    }
+  };
+
+  const handleUpdateBookingStatus = async (bookingId: string, newStatus: 'PENDING' | 'CONFIRMED' | 'CANCELLED') => {
+    setReservations((prev) =>
+      prev.map((r) => (r.id === bookingId ? { ...r, status: newStatus } : r))
+    );
+    try {
+      await fetch(`/api/bookings/${bookingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch (e) {
+      console.warn('Booking status update API fallback:', e);
+    }
+  };
+
+  // Search & Filter States
+  const [propertySearch, setPropertySearch] = useState('');
+  const [universeFilter, setUniverseFilter] = useState<string>('ALL');
+
+  // Modal States
+  const [propertyModalOpen, setPropertyModalOpen] = useState(false);
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+
+  const [leadModalOpen, setLeadModalOpen] = useState(false);
+  const [activeLead, setActiveLead] = useState<Lead | null>(null);
+  const [leadNoteInput, setLeadNoteInput] = useState('');
+  const [leadStatusInput, setLeadStatusInput] = useState<Lead['status']>('Nouveau');
+  const [leadAgentInput, setLeadAgentInput] = useState('');
+
+  const [newLeadModalOpen, setNewLeadModalOpen] = useState(false);
+  const [newLeadName, setNewLeadName] = useState('');
+  const [newLeadPhone, setNewLeadPhone] = useState('');
+  const [newLeadEmail, setNewLeadEmail] = useState('');
+  const [newLeadUniverse, setNewLeadUniverse] = useState<UniverseType>('VENTE');
+  const [newLeadPropTitle, setNewLeadPropTitle] = useState('');
+
+  const [articleModalOpen, setArticleModalOpen] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<BlogPost | null>(null);
+  const [artTitle, setArtTitle] = useState('');
+  const [artCategory, setArtCategory] = useState<BlogPost['category']>('Architecture');
+  const [artExcerpt, setArtExcerpt] = useState('');
+  const [artContent, setArtContent] = useState('');
+  const [artReadTime, setArtReadTime] = useState('4 min');
+  const [artCoverImage, setArtCoverImage] = useState('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');
+
+  const [userModalOpen, setUserModalOpen] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('AGENT');
+
+  // Property Form State
+  const [propTitle, setPropTitle] = useState('');
+  const [propUniverse, setPropUniverse] = useState<UniverseType>('VENTE');
+  const [propCategory, setPropCategory] = useState<PropertyCategory>('Villa');
+  const [propPrice, setPropPrice] = useState(1500000);
+  const [propSurface, setPropSurface] = useState(450);
+  const [propBedrooms, setPropBedrooms] = useState(4);
+  const [propCity, setPropCity] = useState('Sfax');
+  const [propDistrict, setPropDistrict] = useState('Route de la Soukra');
+  const [propImageUrl, setPropImageUrl] = useState('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85');
+  const [propDesc, setPropDesc] = useState('');
+
+  // --------------------------------------------------------------------------
+  // OWNER SUBMISSION APPROVAL & CONVERSION
+  // --------------------------------------------------------------------------
+  const handleApproveSubmission = (sub: OwnerSubmission) => {
+    const imagesList = sub.photos && sub.photos.length > 0
+      ? sub.photos.map((url, idx) => ({ url, alt: `${sub.propertyType} Photo ${idx + 1}`, isCover: idx === 0 }))
+      : [{ url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85', alt: sub.propertyType, isCover: true }];
+
+    const newProp: Property = {
+      id: `vr-prop-${Date.now()}`,
+      title: { fr: `${sub.propertyType} High Standing — ${sub.district}`, ar: `${sub.propertyType} — ${sub.district}`, en: `${sub.propertyType} — ${sub.district}` },
+      universe: sub.objective,
+      category: sub.propertyType,
+      price: { amount: sub.estimatedPrice, currency: 'TND', period: 'total' },
+      location: { city: sub.city, district: sub.district, country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
+      specs: { surfaceM2: sub.surfaceM2, bedrooms: sub.bedrooms, pool: true, garden: true },
+      images: imagesList,
+      description: { fr: sub.details || 'Prestigieuse demeure soumise par son propriétaire et vérifiée par l’équipe Villa Regia.', ar: sub.details || '', en: sub.details || '' },
+      amenities: ['Climatisation centralisée', 'Titre foncier individuel', 'Parking sécurisé', 'Marbre noble'],
+      status: 'DISPONIBLE',
+      isFeatured: true,
+      isNew: true,
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+    };
+
+    setProperties((prev) => [newProp, ...prev]);
+    setSubmissions((prev) => prev.map((s) => (s.id === sub.id ? { ...s, status: 'APPROVED' } : s)));
+    logAction('Approbation dossier propriétaire', sub.refCode);
+    setActiveTab('properties');
+  };
+
+  const handleRejectSubmission = (subId: string, refCode: string) => {
+    setSubmissions((prev) => prev.map((s) => (s.id === subId ? { ...s, status: 'REJECTED' } : s)));
+    logAction('Refus dossier propriétaire', refCode);
+  };
+
+  // --------------------------------------------------------------------------
+  // PROPERTY CRUD FUNCTIONS
+  // --------------------------------------------------------------------------
+  const openAddPropertyModal = () => {
+    setEditingProperty(null);
+    setPropTitle('');
+    setPropUniverse('VENTE');
+    setPropCategory('Villa');
+    setPropPrice(1500000);
+    setPropSurface(450);
+    setPropBedrooms(4);
+    setPropCity('Sfax');
+    setPropDistrict('Route de la Soukra');
+    setPropImageUrl('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85');
+    setPropDesc('Spacieuse demeure contemporaine avec prestations haut de gamme à Sfax.');
+    setPropertyModalOpen(true);
+  };
+
+  const openEditPropertyModal = (p: Property) => {
+    setEditingProperty(p);
+    setPropTitle(p.title.fr);
+    setPropUniverse(p.universe);
+    setPropCategory(p.category);
+    setPropPrice(p.price.amount);
+    setPropSurface(p.specs.surfaceM2);
+    setPropBedrooms(p.specs.bedrooms || 4);
+    setPropCity(p.location.city);
+    setPropDistrict(p.location.district);
+    setPropImageUrl(p.images[0]?.url || '');
+    setPropDesc(p.description.fr);
+    setPropertyModalOpen(true);
+  };
+
+  const handleSaveProperty = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hasPermission('properties.update') && !hasPermission('properties.create')) {
+      alert('Permission refusée');
+      return;
+    }
+
+    if (editingProperty) {
+      setProperties((prev) =>
+        prev.map((item) =>
+          item.id === editingProperty.id
+            ? {
+                ...item,
+                title: { fr: propTitle, ar: propTitle, en: propTitle },
+                universe: propUniverse,
+                category: propCategory,
+                price: { ...item.price, amount: Number(propPrice) },
+                location: { ...item.location, city: propCity, district: propDistrict },
+                specs: { ...item.specs, surfaceM2: Number(propSurface), bedrooms: Number(propBedrooms) },
+                description: { fr: propDesc, ar: propDesc, en: propDesc },
+                images: [{ url: propImageUrl, alt: propTitle, isCover: true }],
+                updatedAt: new Date().toISOString().split('T')[0],
+              }
+            : item
+        )
+      );
+      logAction('Modification propriété', propTitle);
+    } else {
+      const newProp: Property = {
+        id: `vr-prop-${Date.now()}`,
+        title: { fr: propTitle || 'Nouvelle Propriété Sfax', ar: propTitle, en: propTitle },
+        universe: propUniverse,
+        category: propCategory,
+        price: { amount: Number(propPrice), currency: 'TND', period: propUniverse === 'LUXE' ? 'nuit' : 'total' },
+        location: { city: propCity, district: propDistrict, country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
+        specs: { surfaceM2: Number(propSurface), bedrooms: Number(propBedrooms), pool: true, garden: true },
+        images: [{ url: propImageUrl, alt: propTitle, isCover: true }],
+        description: { fr: propDesc, ar: propDesc, en: propDesc },
+        amenities: ['Climatisation centralisée', 'Piscine privée', 'Parking sécurisé', 'Marbre noble'],
+        status: 'DISPONIBLE',
+        isFeatured: true,
+        isNew: true,
+        createdAt: new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString().split('T')[0],
+      };
+      setProperties((prev) => [newProp, ...prev]);
+      logAction('Création nouvelle propriété', propTitle);
+    }
+
+    setPropertyModalOpen(false);
+  };
+
+  const handleDeleteProperty = (id: string, title: string) => {
+    if (!hasPermission('properties.delete')) {
+      alert('Permission refusée');
+      return;
+    }
+    if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement la propriété "${title}" ?`)) {
+      setProperties((prev) => prev.filter((p) => p.id !== id));
+      logAction('Suppression propriété', title);
+    }
+  };
+
+  const handleToggleStatus = (id: string, currentStatus: PropertyStatus, title: string) => {
+    if (!hasPermission('properties.publish')) {
+      alert('Permission refusée');
+      return;
+    }
+    const nextStatus: PropertyStatus = currentStatus === 'DISPONIBLE' ? 'RÉSERVÉ' : 'DISPONIBLE';
+    setProperties((prev) => prev.map((p) => (p.id === id ? { ...p, status: nextStatus } : p)));
+    logAction(`Statut modifié (${nextStatus})`, title);
+  };
+
+  const handleToggleFeatured = (id: string, isFeatured: boolean, title: string) => {
+    setProperties((prev) => prev.map((p) => (p.id === id ? { ...p, isFeatured: !isFeatured } : p)));
+    logAction(`Mis en Une (${!isFeatured})`, title);
+  };
+
+  const handleDuplicateProperty = (p: Property) => {
+    const dup: Property = {
+      ...p,
+      id: `vr-prop-dup-${Date.now()}`,
+      title: { fr: `${p.title.fr} (Copie)`, ar: p.title.ar, en: p.title.en },
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setProperties((prev) => [dup, ...prev]);
+    logAction('Duplication propriété', p.title.fr);
+  };
+
+  const handleCreateLeadFromProperty = (p: Property) => {
+    const newLead: Lead = {
+      id: `lead-${Date.now()}`,
+      name: 'Client Inconnu',
+      phone: '+216 -- --- ---',
+      email: 'client@villaregia.tn',
+      source: 'Formulaire Contact',
+      universe: p.universe,
+      propertyTitle: p.title.fr,
+      status: 'Nouveau',
+      assignedAgent: user?.name || 'Agent Villa Regia',
+      notes: `Lead initié depuis la fiche administrative du bien ${p.title.fr}.`,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setLeads((prev) => [newLead, ...prev]);
+    logAction('Création Lead depuis Bien', p.title.fr);
+    setActiveTab('crm');
+  };
+
+  // --------------------------------------------------------------------------
+  // CRM LEAD FUNCTIONS
+  // --------------------------------------------------------------------------
+  const openLeadModal = (lead: Lead) => {
+    setActiveLead(lead);
+    setLeadNoteInput(lead.notes || '');
+    setLeadStatusInput(lead.status);
+    setLeadAgentInput(lead.assignedAgent || user?.name || 'Agent Villa Regia');
+    setLeadModalOpen(true);
+  };
+
+  const handleSaveLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeLead) return;
+
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === activeLead.id
+          ? {
+              ...l,
+              status: leadStatusInput,
+              notes: leadNoteInput,
+              assignedAgent: leadAgentInput,
+            }
+          : l
+      )
+    );
+    logAction(`Mise à jour Lead (${leadStatusInput})`, activeLead.name);
+    setLeadModalOpen(false);
+  };
+
+  const handleCreateNewLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    const created: Lead = {
+      id: `lead-${Date.now()}`,
+      name: newLeadName || 'Nouveau Client',
+      phone: newLeadPhone || '+216 98 000 000',
+      email: newLeadEmail || 'client@villaregia.tn',
+      source: 'Formulaire Contact',
+      universe: newLeadUniverse,
+      propertyTitle: newLeadPropTitle || 'Demande Générale',
+      status: 'Nouveau',
+      assignedAgent: user?.name || 'Agent Villa Regia',
+      notes: 'Lead ajouté par le conseiller staff.',
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setLeads((prev) => [created, ...prev]);
+    logAction('Nouveau Lead CRM créé', created.name);
+    setNewLeadModalOpen(false);
+    setNewLeadName('');
+    setNewLeadPhone('');
+    setNewLeadEmail('');
+    setNewLeadPropTitle('');
+  };
+
+  const handleDeleteLead = (id: string, name: string) => {
+    if (confirm(`Supprimer le lead commercial de ${name} ?`)) {
+      setLeads((prev) => prev.filter((l) => l.id !== id));
+      logAction('Suppression lead', name);
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // RESERVATION FUNCTIONS
+  // --------------------------------------------------------------------------
+  const handleUpdateReservationStatus = (id: string, status: 'CONFIRMED' | 'CANCELLED' | 'PENDING') => {
+    setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    logAction(`Statut réservation (${status})`, id);
+  };
+
+  // --------------------------------------------------------------------------
+  // CMS ARTICLE FUNCTIONS
+  // --------------------------------------------------------------------------
+  const openAddArticleModal = () => {
+    setEditingArticle(null);
+    setArtTitle('');
+    setArtCategory('Architecture');
+    setArtExcerpt('');
+    setArtContent('');
+    setArtReadTime('4 min');
+    setArtCoverImage('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');
+    setArticleModalOpen(true);
+  };
+
+  const openEditArticleModal = (art: BlogPost) => {
+    setEditingArticle(art);
+    setArtTitle(typeof art.title === 'string' ? art.title : art.title.fr);
+    setArtCategory(art.category);
+    setArtExcerpt(typeof art.excerpt === 'string' ? art.excerpt : art.excerpt.fr);
+    const contentText = typeof art.content === 'string' ? art.content : art.content?.fr || (typeof art.excerpt === 'string' ? art.excerpt : art.excerpt.fr);
+    setArtContent(contentText);
+    setArtReadTime(art.readTime);
+    setArtCoverImage(art.coverImage);
+    setArticleModalOpen(true);
+  };
+
+  const handleSaveArticle = (e: React.FormEvent) => {
+    e.preventDefault();
+    const titleObj = { fr: artTitle, ar: artTitle, en: artTitle };
+    const excerptObj = { fr: artExcerpt, ar: artExcerpt, en: artExcerpt };
+    const contentObj = { fr: artContent, ar: artContent, en: artContent };
+
+    if (editingArticle) {
+      setArticles((prev) =>
+        prev.map((a) =>
+          a.id === editingArticle.id
+            ? {
+                ...a,
+                title: titleObj,
+                category: artCategory,
+                excerpt: excerptObj,
+                content: contentObj,
+                readTime: artReadTime,
+                coverImage: artCoverImage,
+              }
+            : a
+        )
+      );
+      logAction('Modification article', artTitle);
+    } else {
+      const newArt: BlogPost = {
+        id: `art-${Date.now()}`,
+        slug: artTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        title: titleObj,
+        category: artCategory,
+        excerpt: excerptObj,
+        content: contentObj,
+        publishedAt: new Date().toISOString().split('T')[0],
+        readTime: artReadTime,
+        coverImage: artCoverImage,
+        author: user?.name ? `${user.name} — Conseiller Villa Regia` : 'Rédaction Villa Regia',
+      };
+      setArticles((prev) => [newArt, ...prev]);
+      logAction('Création article journal', artTitle);
+    }
+    setArticleModalOpen(false);
+  };
+
+  const handleDeleteArticle = (id: string, title: string) => {
+    if (confirm(`Supprimer l'article "${title}" ?`)) {
+      setArticles((prev) => prev.filter((a) => a.id !== id));
+      logAction('Suppression article', title);
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // STAFF USER MANAGEMENT FUNCTIONS
+  // --------------------------------------------------------------------------
+  const handleAddStaffUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newUser: UserAccount = {
+      id: `usr-${Date.now()}`,
+      email: newUserEmail,
+      name: newUserName,
+      role: newUserRole,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setStaffUsers((prev) => [...prev, newUser]);
+    logAction('Ajout utilisateur staff', `${newUserName} (${newUserRole})`);
+    setUserModalOpen(false);
+    setNewUserName('');
+    setNewUserEmail('');
+  };
+
+  const handleChangeStaffRole = (userId: string, newRole: UserRole, userName: string) => {
+    setStaffUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+    logAction(`Rôle modifié (${newRole})`, userName);
+  };
+
+  const handleDeleteStaffUser = (userId: string, userName: string) => {
+    if (confirm(`Révoquer le compte de ${userName} ?`)) {
+      setStaffUsers((prev) => prev.filter((u) => u.id !== userId));
+      logAction('Révocation compte staff', userName);
+    }
+  };
+
+  const isAuthorizedStaff = user && is2FAVerified && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role);
+
+  // --------------------------------------------------------------------------
+  // AUTHENTICATION GUARD SCREEN
+  // --------------------------------------------------------------------------
+  if (!isAuthorizedStaff) {
+    return (
+      <div className="pt-28 pb-24 bg-brand-navy min-h-screen text-slate-100 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-brand-gold/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 glass-navy p-10 rounded-2xl max-w-xl w-full border border-brand-gold/30 shadow-2xl space-y-8">
+          
+          <div className="text-center space-y-4">
+            <div className="relative w-44 h-12 mx-auto">
+              <Image src="/images/logo-light.png" alt="Villa Regia" fill className="object-contain" />
+            </div>
+
+            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-brand-gold bg-brand-gold/10 px-3.5 py-1.5 rounded border border-brand-gold/20 inline-block">
+              Accès Réservé à l’Administration & CRM
+            </span>
+
+            <h1 className="font-editorial text-3xl font-light text-brand-travertine">
+              Espace Gestionnaire Villa Regia
+            </h1>
+
+            <p className="text-xs text-brand-travertine/70 leading-relaxed max-w-md mx-auto font-light">
+              Les visiteurs peuvent librement naviguer et réserver sur le site public. La connexion avec un rôle habilité est requise pour accéder au tableau de bord.
+            </p>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t border-white/10 text-center">
+            <span className="text-[10px] font-mono uppercase text-brand-gold block font-bold tracking-wider">
+              Authentification Sécurisée Staff (Validation 2FA par Email)
+            </span>
+            <p className="text-xs text-brand-travertine/70 max-w-sm mx-auto">
+              Veuillez vous connecter avec vos identifiants staff pour recevoir votre code 2FA à 6 chiffres par email.
+            </p>
+          </div>
+
+          <div className="text-center pt-2">
+            <Link href="/" className="inline-flex items-center gap-2 text-xs text-brand-travertine/60 hover:text-brand-gold transition-colors">
+              <span>← Retourner au site public Villa Regia</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const filteredProperties = properties.filter((p) => {
+    if (universeFilter !== 'ALL' && p.universe !== universeFilter) return false;
+    if (propertySearch && !p.title.fr.toLowerCase().includes(propertySearch.toLowerCase()) && !p.location.district.toLowerCase().includes(propertySearch.toLowerCase())) return false;
+    return true;
+  });
+
+  return (
+    <div className="pt-24 pb-24 bg-brand-navy-dark min-h-screen text-brand-travertine">
+      
+      {/* Top Executive Header Bar */}
+      <div className="glass-navy border-b border-brand-gold/20 py-5 px-6 mb-8 shadow-2xl">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          
+          {/* Brand + User Info */}
+          <div className="flex items-center gap-4">
+            <div className="relative w-36 h-9">
+              <Image src="/images/logo-light.png" alt="Villa Regia" fill className="object-contain" />
+            </div>
+            <div className="h-8 w-px bg-white/15 hidden sm:block" />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono uppercase bg-brand-gold text-brand-navy font-bold px-2.5 py-0.5 rounded shadow">
+                  {user.role}
+                </span>
+                <span className="text-xs text-brand-travertine/60 font-mono">{user.email}</span>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 inline-flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                  <span>2FA Sécurisé</span>
+                </span>
+              </div>
+              <h1 className="text-sm font-bold text-brand-travertine mt-0.5">
+                {user.name}
+              </h1>
+            </div>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex gap-1 bg-brand-navy p-1.5 rounded-lg border border-white/10">
+              <button
+                onClick={() => setActiveTab('kpi')}
+                className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
+                  activeTab === 'kpi' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                }`}
+              >
+                Tableau de Bord
+              </button>
+
+              {hasPermission('properties.read') && (
+                <button
+                  onClick={() => setActiveTab('properties')}
+                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
+                    activeTab === 'properties' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  Biens ({properties.length})
+                </button>
+              )}
+
+              {hasPermission('properties.read') && (
+                <button
+                  onClick={() => setActiveTab('submissions')}
+                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                    activeTab === 'submissions' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  <FileCheck className="w-3.5 h-3.5" />
+                  <span>Soumissions ({submissions.filter(s => s.status === 'PENDING').length})</span>
+                </button>
+              )}
+
+              {hasPermission('leads.read') && (
+                <button
+                  onClick={() => setActiveTab('crm')}
+                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
+                    activeTab === 'crm' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  Pipeline CRM ({leads.length})
+                </button>
+              )}
+
+              {hasPermission('reservations.read') && (
+                <button
+                  onClick={() => setActiveTab('reservations')}
+                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
+                    activeTab === 'reservations' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  Réservations ({reservations.length})
+                </button>
+              )}
+
+              {hasPermission('content.manage') && (
+                <button
+                  onClick={() => setActiveTab('articles')}
+                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
+                    activeTab === 'articles' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  Journal ({articles.length})
+                </button>
+              )}
+
+              {hasPermission('users.manage') && (
+                <button
+                  onClick={() => setActiveTab('users')}
+                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
+                    activeTab === 'users' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  Utilisateurs Staff ({staffUsers.length})
+                </button>
+              )}
+
+              {hasPermission('users.manage') && (
+                <button
+                  onClick={() => setActiveTab('audit')}
+                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
+                    activeTab === 'audit' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  Audit Logs
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={logout}
+              className="p-2.5 rounded bg-brand-navy hover:bg-red-500/20 text-brand-travertine/60 hover:text-red-400 border border-white/10 transition-colors"
+              title="Se déconnecter"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Main Admin Content Workspace */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        {/* TAB 1: KPI OVERVIEW */}
+        {activeTab === 'kpi' && (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-2">
+                <span className="text-xs font-mono text-brand-travertine/60 uppercase block">Portfolio Actif</span>
+                <div className="text-3xl font-bold text-brand-travertine flex items-center justify-between font-editorial">
+                  <span>{properties.length}</span>
+                  <Building2 className="w-6 h-6 text-brand-gold" />
+                </div>
+                <span className="text-[11px] text-emerald-400 font-mono">
+                  {properties.filter(p => p.status === 'DISPONIBLE').length} Disponibles immédiatement
+                </span>
+              </div>
+
+              <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-2">
+                <span className="text-xs font-mono text-brand-travertine/60 uppercase block">Dossiers Propriétaires</span>
+                <div className="text-3xl font-bold text-brand-travertine flex items-center justify-between font-editorial">
+                  <span>{submissions.length}</span>
+                  <FileCheck className="w-6 h-6 text-brand-gold" />
+                </div>
+                <span className="text-[11px] text-brand-gold font-mono">
+                  {submissions.filter(s => s.status === 'PENDING').length} En attente d'approbation
+                </span>
+              </div>
+
+              <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-2">
+                <span className="text-xs font-mono text-brand-travertine/60 uppercase block">Opportunités CRM</span>
+                <div className="text-3xl font-bold text-brand-travertine flex items-center justify-between font-editorial">
+                  <span>{leads.length}</span>
+                  <Users className="w-6 h-6 text-emerald-400" />
+                </div>
+                <span className="text-[11px] text-emerald-400 font-mono">
+                  {leads.filter(l => l.status === 'Visite' || l.status === 'Offre').length} En négociation avancée
+                </span>
+              </div>
+
+              <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-2">
+                <span className="text-xs font-mono text-brand-travertine/60 uppercase block">Valeur Portfolio</span>
+                <div className="text-3xl font-bold text-brand-gold flex items-center justify-between font-editorial">
+                  <span>{(properties.reduce((sum, p) => sum + (p.price.amount > 100000 ? p.price.amount : 0), 0) / 1000000).toFixed(1)}M TND</span>
+                  <TrendingUp className="w-6 h-6 text-brand-gold" />
+                </div>
+                <span className="text-[11px] text-brand-travertine/60 font-mono">Sfax & Tunis Riviera</span>
+              </div>
+            </div>
+
+            {/* Quick Actions Panel */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="glass-navy p-6 rounded-xl border border-brand-gold/20 space-y-4">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Biens & Soumissions
+                </h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setActiveTab('submissions')}
+                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
+                  >
+                    <span>Revoir les Soumissions Propriétaires ({submissions.filter(s => s.status === 'PENDING').length})</span>
+                    <FileCheck className="w-4 h-4 text-brand-gold" />
+                  </button>
+                  <button
+                    onClick={openAddPropertyModal}
+                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
+                  >
+                    <span>Saisir Directement une Propriété</span>
+                    <Plus className="w-4 h-4 text-brand-gold" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="glass-navy p-6 rounded-xl border border-brand-gold/20 space-y-4">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Actions Rapides CRM
+                </h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setNewLeadModalOpen(true)}
+                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
+                  >
+                    <span>Saisir un Nouveau Lead Client</span>
+                    <UserPlus className="w-4 h-4 text-emerald-400" />
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('crm')}
+                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
+                  >
+                    <span>Ouvrir le Pipeline Kanban</span>
+                    <ArrowRight className="w-4 h-4 text-emerald-400" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="glass-navy p-6 rounded-xl border border-brand-gold/20 space-y-4">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Éditorial & CMS
+                </h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={openAddArticleModal}
+                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
+                  >
+                    <span>Rédiger un Article de Journal</span>
+                    <Plus className="w-4 h-4 text-sky-400" />
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('articles')}
+                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
+                  >
+                    <span>Gérer les Publications ({articles.length})</span>
+                    <ArrowRight className="w-4 h-4 text-sky-400" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Audit Log Stream */}
+            <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-4">
+              <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">Journal d'Activité Récente</h2>
+                <span className="text-xs font-mono text-brand-travertine/50">{auditLogs.length} événements</span>
+              </div>
+              <div className="divide-y divide-white/5 text-xs">
+                {auditLogs.slice(0, 5).map((log) => (
+                  <div key={log.id} className="py-3 flex items-center justify-between font-mono text-[11px]">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px]">{log.role}</span>
+                      <span className="text-white font-bold">{log.userName}:</span>
+                      <span className="text-brand-travertine/80">{log.action} ({log.target})</span>
+                    </div>
+                    <span className="text-brand-travertine/40">{log.timestamp}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: OWNER SUBMISSIONS ("PROPOSER UN BIEN") */}
+        {activeTab === 'submissions' && hasPermission('properties.read') && (
+          <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                  Dossiers de Soumissions Propriétaires ("Proposer un bien")
+                </h2>
+                <p className="text-xs text-brand-travertine/60 font-light mt-0.5">
+                  Examinez les propositions soumises par les propriétaires et convertissez-les en 1-click au catalogue public.
+                </p>
+              </div>
+
+              <Link
+                href="/proposer-un-bien"
+                target="_blank"
+                className="bg-white/10 hover:bg-white/20 text-brand-travertine px-3.5 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border border-white/10"
+              >
+                <span>Ouvrir Formulaire Public</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-brand-travertine/80">
+                <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
+                  <tr>
+                    <th className="p-3">Réf Dossier</th>
+                    <th className="p-3">Propriétaire</th>
+                    <th className="p-3">Bien Proposé</th>
+                    <th className="p-3">Univers</th>
+                    <th className="p-3">Localisation</th>
+                    <th className="p-3">Surface / Pièces</th>
+                    <th className="p-3">Prix Estimé</th>
+                    <th className="p-3">Statut</th>
+                    <th className="p-3 text-right">Actions Staff</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {submissions.map((sub) => (
+                    <tr key={sub.id} className="hover:bg-white/5 transition-colors">
+                      <td className="p-3 font-mono font-bold text-brand-gold">{sub.refCode}</td>
+                      <td className="p-3">
+                        <span className="font-semibold text-white">{sub.ownerName}</span>
+                        <div className="text-[10px] text-brand-travertine/50 font-mono">{sub.ownerPhone}</div>
+                      </td>
+                      <td className="p-3">
+                        <span className="font-semibold text-white">{sub.propertyType}</span>
+                        {sub.photos && sub.photos.length > 0 ? (
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <div className="relative w-8 h-8 rounded overflow-hidden border border-brand-gold/40 shrink-0">
+                              <img src={sub.photos[0]} alt="Miniature" className="w-full h-full object-cover" />
+                            </div>
+                            <span className="text-[10px] font-mono text-brand-gold font-bold">
+                              {sub.photos.length} photo(s)
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-brand-travertine/40 block mt-0.5">Aucun visuel</span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono">
+                          {sub.objective}
+                        </span>
+                      </td>
+                      <td className="p-3 text-brand-travertine/70">{sub.district}, {sub.city}</td>
+                      <td className="p-3 font-mono">{sub.surfaceM2} m² ({sub.bedrooms} ch.)</td>
+                      <td className="p-3 font-mono text-brand-gold font-bold">
+                        {sub.estimatedPrice.toLocaleString()} TND
+                      </td>
+                      <td className="p-3">
+                        <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase ${
+                          sub.status === 'APPROVED'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : sub.status === 'REJECTED'
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        }`}>
+                          {sub.status === 'APPROVED' ? 'Approuvé' : sub.status === 'REJECTED' ? 'Refusé' : 'En Attente'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-right space-x-2">
+                        {sub.status === 'PENDING' && (
+                          <button
+                            onClick={() => handleApproveSubmission(sub)}
+                            className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded text-[10px] font-bold uppercase transition-all inline-flex items-center gap-1"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Approuver & Publier</span>
+                          </button>
+                        )}
+
+                        <a
+                          href={`https://wa.me/${sub.ownerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${sub.ownerName}, concernant votre dossier ${sub.refCode} soumis à Villa Regia...`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-white/5 hover:bg-emerald-500/20 text-brand-travertine hover:text-emerald-400 p-2 rounded inline-block"
+                          title="WhatsApp Propriétaire"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                        </a>
+
+                        {sub.status === 'PENDING' && (
+                          <button
+                            onClick={() => handleRejectSubmission(sub.id, sub.refCode)}
+                            className="p-1.5 rounded bg-white/5 text-brand-travertine/40 hover:text-red-400"
+                            title="Refuser le dossier"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: FUNCTIONAL PROPERTIES MANAGEMENT */}
+        {activeTab === 'properties' && hasPermission('properties.read') && (
+          <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
+            
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <div className="relative w-full sm:w-72">
+                  <input
+                    type="text"
+                    placeholder="Rechercher par titre ou quartier..."
+                    value={propertySearch}
+                    onChange={(e) => setPropertySearch(e.target.value)}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-gold"
+                  />
+                  <Search className="w-4 h-4 text-brand-travertine/40 absolute right-3 top-2.5" />
+                </div>
+
+                <select
+                  value={universeFilter}
+                  onChange={(e) => setUniverseFilter(e.target.value)}
+                  className="bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-gold"
+                >
+                  <option value="ALL">Tous les Univers</option>
+                  <option value="VENTE">VENTE</option>
+                  <option value="RESIDENCE">RÉSIDENCE</option>
+                  <option value="LUXE">VILLAS DE LUXE</option>
+                  <option value="EVENT">ÉVÉNEMENTIEL</option>
+                </select>
+              </div>
+
+              {hasPermission('properties.create') && (
+                <button
+                  onClick={openAddPropertyModal}
+                  className="bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy px-4 py-2.5 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Ajouter une Propriété</span>
+                </button>
+              )}
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-brand-travertine/80">
+                <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
+                  <tr>
+                    <th className="p-3">Visuel</th>
+                    <th className="p-3">Intitulé du Bien</th>
+                    <th className="p-3">Univers</th>
+                    <th className="p-3">Catégorie</th>
+                    <th className="p-3">Localisation</th>
+                    <th className="p-3">Prix</th>
+                    <th className="p-3">Une</th>
+                    <th className="p-3">Statut</th>
+                    <th className="p-3 text-right">Actions Operatoires</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {filteredProperties.map((p) => (
+                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                      <td className="p-3">
+                        <div className="relative w-12 h-10 rounded overflow-hidden">
+                          <Image src={p.images[0]?.url || ''} alt={p.title.fr} fill className="object-cover" />
+                        </div>
+                      </td>
+                      <td className="p-3 font-semibold text-white max-w-xs truncate">
+                        {p.title.fr}
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Link
+                            href={`/properties/${p.id}`}
+                            target="_blank"
+                            className="text-[10px] text-brand-gold hover:underline inline-flex items-center gap-1"
+                          >
+                            <span>Voir fiche</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </Link>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono">
+                          {p.universe}
+                        </span>
+                      </td>
+                      <td className="p-3 text-brand-travertine/70">{p.category}</td>
+                      <td className="p-3 text-brand-travertine/70">{p.location.district}, {p.location.city}</td>
+                      <td className="p-3 font-mono text-brand-gold font-bold">
+                        {p.price.amount.toLocaleString()} {p.price.currency}
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => handleToggleFeatured(p.id, p.isFeatured || false, p.title.fr)}
+                          className={`p-1.5 rounded transition-colors ${
+                            p.isFeatured ? 'text-amber-400 bg-amber-400/10' : 'text-slate-600 hover:text-amber-400'
+                          }`}
+                          title="Basculer En Une"
+                        >
+                          <Star className="w-4 h-4 fill-current" />
+                        </button>
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => handleToggleStatus(p.id, p.status, p.title.fr)}
+                          className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all ${
+                            p.status === 'DISPONIBLE'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                          }`}
+                        >
+                          {p.status}
+                        </button>
+                      </td>
+                      <td className="p-3 text-right space-x-2">
+                        <button
+                          onClick={() => handleCreateLeadFromProperty(p)}
+                          className="p-1.5 rounded bg-white/5 text-emerald-400 hover:bg-emerald-500/20"
+                          title="Créer un Lead CRM"
+                        >
+                          <UserPlus className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => openEditPropertyModal(p)}
+                          className="p-1.5 rounded bg-white/5 text-brand-travertine hover:text-brand-gold hover:bg-white/10"
+                          title="Éditer la fiche"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDuplicateProperty(p)}
+                          className="p-1.5 rounded bg-white/5 text-brand-travertine hover:text-sky-400 hover:bg-white/10"
+                          title="Dupliquer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        {hasPermission('properties.delete') && (
+                          <button
+                            onClick={() => handleDeleteProperty(p.id, p.title.fr)}
+                            className="p-1.5 rounded bg-white/5 text-brand-travertine/50 hover:text-red-400 hover:bg-white/10"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        )}
+
+        {/* TAB 3: FUNCTIONAL CRM LEAD PIPELINE */}
+        {activeTab === 'crm' && hasPermission('leads.read') && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                  Pipeline Commercial CRM & Suivi Client
+                </h2>
+                <span className="text-xs text-brand-travertine/60 font-mono">
+                  {leads.length} opportunité(s) active(s)
+                </span>
+              </div>
+
+              <button
+                onClick={() => setNewLeadModalOpen(true)}
+                className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-3.5 py-2 rounded text-xs uppercase tracking-wider flex items-center gap-2 shadow"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Nouveau Lead Client</span>
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {(['Nouveau', 'Contacté', 'Visite', 'Offre', 'Conclu'] as const).map((stage) => {
+                const stageLeads = leads.filter((l) => l.status === stage);
+                return (
+                  <div key={stage} className="glass-card rounded-xl p-4 space-y-3 min-h-[360px] border border-brand-gold/15">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                      <span className="text-xs font-mono font-bold text-brand-travertine uppercase">{stage}</span>
+                      <span className="text-[10px] bg-brand-gold text-brand-navy px-2 py-0.5 rounded font-mono font-bold">
+                        {stageLeads.length}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {stageLeads.map((lead) => (
+                        <div
+                          key={lead.id}
+                          className="glass-navy p-4 rounded-lg border border-white/10 space-y-3 hover:border-brand-gold/40 transition-colors"
+                        >
+                          <div className="flex justify-between items-start">
+                            <span className="text-xs font-bold text-white">{lead.name}</span>
+                            <span className="text-[9px] bg-brand-gold/15 text-brand-gold px-1.5 py-0.5 rounded font-mono">
+                              {lead.universe}
+                            </span>
+                          </div>
+
+                          <p className="text-[11px] text-brand-travertine/70 line-clamp-1">{lead.propertyTitle}</p>
+
+                          <div className="space-y-1 text-[10px] text-brand-travertine/50">
+                            <div className="flex items-center gap-1.5">
+                              <Phone className="w-3 h-3 text-brand-gold shrink-0" />
+                              <span>{lead.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Mail className="w-3 h-3 text-brand-gold shrink-0" />
+                              <span className="truncate">{lead.email}</span>
+                            </div>
+                          </div>
+
+                          {lead.notes && (
+                            <p className="text-[10px] text-brand-travertine/60 italic bg-brand-navy p-2 rounded line-clamp-2">
+                              « {lead.notes} »
+                            </p>
+                          )}
+
+                          <div className="pt-2 border-t border-white/10 flex justify-between items-center text-[10px] font-mono">
+                            <span className="text-brand-travertine/60">{lead.assignedAgent || 'Non assigné'}</span>
+                            
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => openLeadModal(lead)}
+                                className="text-brand-gold hover:underline font-bold"
+                              >
+                                Gérer
+                              </button>
+                              <button
+                                onClick={() => handleDeleteLead(lead.id, lead.name)}
+                                className="text-brand-travertine/40 hover:text-red-400"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: RESERVATIONS MANAGER */}
+        {activeTab === 'reservations' && hasPermission('reservations.read') && (
+          <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+              Gestion des Réservations & Acomptes Court Séjour
+            </h2>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-brand-travertine/80">
+                <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
+                  <tr>
+                    <th className="p-3">Ref</th>
+                    <th className="p-3">Propriété</th>
+                    <th className="p-3">Client</th>
+                    <th className="p-3">Dates</th>
+                    <th className="p-3">Nuits</th>
+                    <th className="p-3">Acompte</th>
+                    <th className="p-3">Statut</th>
+                    <th className="p-3 text-right">Mettre à Jour</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {reservations.map((r) => (
+                    <tr key={r.id} className="hover:bg-white/5">
+                      <td className="p-3 font-mono text-brand-gold">{r.id}</td>
+                      <td className="p-3 font-semibold text-white max-w-xs truncate">{r.propertyTitle}</td>
+                      <td className="p-3">{r.guestName}<br /><span className="text-[10px] text-brand-travertine/50">{r.guestPhone}</span></td>
+                      <td className="p-3 font-mono text-brand-travertine/70">{r.checkIn} au {r.checkOut}</td>
+                      <td className="p-3 font-mono">{r.totalNights} nuits</td>
+                      <td className="p-3 font-mono text-brand-gold font-bold">{r.depositAmount} TND</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          r.status === 'CONFIRMED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                        }`}>
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-right space-x-2">
+                        {r.status !== 'CONFIRMED' && (
+                          <button
+                            onClick={() => handleUpdateReservationStatus(r.id, 'CONFIRMED')}
+                            className="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded text-[10px] font-bold hover:bg-emerald-500/30"
+                          >
+                            Valider
+                          </button>
+                        )}
+                        {r.status !== 'CANCELLED' && (
+                          <button
+                            onClick={() => handleUpdateReservationStatus(r.id, 'CANCELLED')}
+                            className="bg-red-500/20 text-red-400 px-2.5 py-1 rounded text-[10px] font-bold hover:bg-red-500/30"
+                          >
+                            Annuler
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: CMS & JOURNAL ARTICLES MANAGER */}
+        {activeTab === 'articles' && hasPermission('content.manage') && (
+          <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                Gestion des Publications & Articles du Journal
+              </h2>
+
+              <button
+                onClick={openAddArticleModal}
+                className="bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy px-4 py-2.5 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Rédiger un Article</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {articles.map((art) => {
+                const titleStr = typeof art.title === 'string' ? art.title : art.title.fr;
+                const excerptStr = typeof art.excerpt === 'string' ? art.excerpt : art.excerpt.fr;
+
+                return (
+                  <div key={art.id} className="glass-card p-5 rounded-xl border border-white/10 space-y-4 relative group">
+                    <div className="relative h-40 w-full rounded-lg overflow-hidden">
+                      <Image src={art.coverImage} alt={titleStr} fill className="object-cover group-hover:scale-105 transition-transform" />
+                      <span className="absolute top-2 left-2 bg-brand-navy/90 text-brand-gold text-[10px] font-mono px-2 py-0.5 rounded">
+                        {art.category}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-white text-sm line-clamp-1">{titleStr}</h3>
+                      <p className="text-[11px] text-brand-travertine/60 line-clamp-2">{excerptStr}</p>
+                    </div>
+
+                    <div className="pt-3 border-t border-white/10 flex justify-between items-center text-[10px] font-mono text-brand-travertine/50">
+                      <span>{art.publishedAt}</span>
+                      <span>{art.readTime}</span>
+                    </div>
+
+                    <div className="flex gap-2 justify-end pt-2">
+                      <button
+                        onClick={() => openEditArticleModal(art)}
+                        className="p-1.5 rounded bg-white/5 text-brand-travertine hover:text-brand-gold"
+                        title="Éditer"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteArticle(art.id, titleStr)}
+                        className="p-1.5 rounded bg-white/5 text-brand-travertine/50 hover:text-red-400"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 6: STAFF USER ACCOUNTS MANAGER */}
+        {activeTab === 'users' && hasPermission('users.manage') && (
+          <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                Gestion des Comptes Utilisateurs Staff & Droits RBAC
+              </h2>
+
+              <button
+                onClick={() => setUserModalOpen(true)}
+                className="bg-brand-gold text-brand-navy font-bold px-4 py-2.5 rounded text-xs uppercase tracking-wider flex items-center gap-2 shadow"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Ajouter un Compte Staff</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-brand-travertine/80">
+                <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
+                  <tr>
+                    <th className="p-3">Nom Collaborateur</th>
+                    <th className="p-3">Email Identifiant</th>
+                    <th className="p-3">Rôle Staff Habilité</th>
+                    <th className="p-3 text-right">Actions Droits</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {staffUsers.map((u) => (
+                    <tr key={u.id} className="hover:bg-white/5">
+                      <td className="p-3 font-semibold text-white">{u.name}</td>
+                      <td className="p-3 font-mono text-brand-travertine/70">{u.email}</td>
+                      <td className="p-3">
+                        <select
+                          value={u.role}
+                          onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name)}
+                          className="bg-brand-navy border border-white/20 rounded px-2.5 py-1 text-xs text-brand-gold font-mono font-bold"
+                        >
+                          <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                          <option value="ADMIN">ADMIN</option>
+                          <option value="AGENT">AGENT</option>
+                          <option value="CONTENT_MANAGER">CONTENT_MANAGER</option>
+                          <option value="CLIENT">CLIENT</option>
+                        </select>
+                      </td>
+                      <td className="p-3 text-right">
+                        <button
+                          onClick={() => handleDeleteStaffUser(u.id, u.name)}
+                          className="p-1.5 rounded bg-white/5 text-brand-travertine/50 hover:text-red-400"
+                          title="Révoquer l'accès"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: AUDIT LOGS */}
+        {activeTab === 'audit' && hasPermission('users.manage') && (
+          <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-4">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+              Journal d'Audit Intégral & Preuves des Actions
+            </h2>
+            <div className="divide-y divide-white/10 text-xs">
+              {auditLogs.map((log) => (
+                <div key={log.id} className="py-3 flex items-center justify-between font-mono text-[11px]">
+                  <div>
+                    <span className="text-brand-gold font-bold">{log.userName} ({log.role})</span>
+                    <span className="text-brand-travertine/80 ml-2">— {log.action} : {log.target}</span>
+                  </div>
+                  <span className="text-brand-travertine/40">{log.timestamp}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* MODAL: ADD / EDIT PROPERTY */}
+      {propertyModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
+          <div className="glass-navy p-8 rounded-xl max-w-2xl w-full border border-brand-gold/40 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-editorial text-2xl font-light text-brand-travertine">
+                {editingProperty ? 'Modifier la Fiche Propriété' : 'Ajouter une Propriété au Catalogue'}
+              </h3>
+              <button onClick={() => setPropertyModalOpen(false)} className="text-white/60 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProperty} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Titre de la Propriété</label>
+                <input
+                  required
+                  type="text"
+                  value={propTitle}
+                  onChange={(e) => setPropTitle(e.target.value)}
+                  placeholder="ex: Domaine de la Soukra — Villa de Maître"
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2.5 text-xs text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Univers</label>
+                  <select
+                    value={propUniverse}
+                    onChange={(e) => setPropUniverse(e.target.value as UniverseType)}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  >
+                    <option value="VENTE">VENTE</option>
+                    <option value="RESIDENCE">RÉSIDENCE</option>
+                    <option value="LUXE">VILLAS DE LUXE</option>
+                    <option value="EVENT">ÉVÉNEMENTIEL</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Catégorie</label>
+                  <select
+                    value={propCategory}
+                    onChange={(e) => setPropCategory(e.target.value as PropertyCategory)}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  >
+                    <option value="Villa">Villa</option>
+                    <option value="Appartement">Appartement</option>
+                    <option value="Duplex">Duplex</option>
+                    <option value="Penthouse">Penthouse</option>
+                    <option value="Domaine Événementiel">Domaine Événementiel</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Prix (TND)</label>
+                  <input
+                    type="number"
+                    value={propPrice}
+                    onChange={(e) => setPropPrice(Number(e.target.value))}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Surface (m²)</label>
+                  <input
+                    type="number"
+                    value={propSurface}
+                    onChange={(e) => setPropSurface(Number(e.target.value))}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Chambres</label>
+                  <input
+                    type="number"
+                    value={propBedrooms}
+                    onChange={(e) => setPropBedrooms(Number(e.target.value))}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Ville</label>
+                  <input
+                    type="text"
+                    value={propCity}
+                    onChange={(e) => setPropCity(e.target.value)}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Quartier / Secteur</label>
+                  <input
+                    type="text"
+                    value={propDistrict}
+                    onChange={(e) => setPropDistrict(e.target.value)}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-mono uppercase text-brand-gold block">
+                  Visuel de la Propriété (Chargement de Fichiers & Aperçu)
+                </label>
+
+                <div className="p-4 border border-dashed border-white/20 rounded-lg text-center space-y-2 bg-white/5">
+                  <input
+                    type="file"
+                    id="admin-prop-upload"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (!e.target.files || !e.target.files[0]) return;
+                      const file = e.target.files[0];
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        if (ev.target?.result) {
+                          setPropImageUrl(ev.target.result as string);
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                    className="hidden"
+                  />
+                  <UploadCloud className="w-6 h-6 text-brand-gold mx-auto" />
+                  <label
+                    htmlFor="admin-prop-upload"
+                    className="inline-block bg-brand-gold hover:bg-brand-gold-dark text-brand-navy font-bold px-4 py-2 rounded text-xs uppercase tracking-wider cursor-pointer shadow transition-all"
+                  >
+                    Charger une photo depuis l'ordinateur
+                  </label>
+                </div>
+
+                <div className="pt-1">
+                  <label className="text-[10px] font-mono text-brand-travertine/60 block mb-1">
+                    Ou coller l'URL d'une image web :
+                  </label>
+                  <input
+                    type="text"
+                    value={propImageUrl}
+                    onChange={(e) => setPropImageUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+
+                {propImageUrl && (
+                  <div className="relative w-full h-40 rounded-lg overflow-hidden border border-brand-gold/30 mt-2">
+                    <img src={propImageUrl} alt="Aperçu" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-2 left-2 bg-brand-navy/90 text-brand-gold text-[10px] font-mono px-2.5 py-0.5 rounded font-bold border border-brand-gold/20">
+                      ★ Photo Couverture Active
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Description Éditoriale</label>
+                <textarea
+                  rows={3}
+                  value={propDesc}
+                  onChange={(e) => setPropDesc(e.target.value)}
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded shadow-xl"
+              >
+                {editingProperty ? 'Enregistrer les Modifications' : 'Créer et Publier la Propriété'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: NEW LEAD CREATOR */}
+      {newLeadModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
+          <div className="glass-navy p-8 rounded-xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-6">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-editorial text-2xl font-light text-brand-travertine">
+                Saisir un Nouveau Lead Client
+              </h3>
+              <button onClick={() => setNewLeadModalOpen(false)} className="text-white/60 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateNewLead} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Nom du Client</label>
+                <input
+                  required
+                  type="text"
+                  value={newLeadName}
+                  onChange={(e) => setNewLeadName(e.target.value)}
+                  placeholder="ex: M. Mehdi Ben Salem"
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Téléphone</label>
+                  <input
+                    required
+                    type="text"
+                    value={newLeadPhone}
+                    onChange={(e) => setNewLeadPhone(e.target.value)}
+                    placeholder="+216 98 --- ---"
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={newLeadEmail}
+                    onChange={(e) => setNewLeadEmail(e.target.value)}
+                    placeholder="client@mail.tn"
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Univers d'Intérêt</label>
+                <select
+                  value={newLeadUniverse}
+                  onChange={(e) => setNewLeadUniverse(e.target.value as UniverseType)}
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                >
+                  <option value="VENTE">VENTE</option>
+                  <option value="RESIDENCE">RÉSIDENCE</option>
+                  <option value="LUXE">VILLAS DE LUXE</option>
+                  <option value="EVENT">ÉVÉNEMENTIEL</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Intitulé du Bien / Projet</label>
+                <input
+                  type="text"
+                  value={newLeadPropTitle}
+                  onChange={(e) => setNewLeadPropTitle(e.target.value)}
+                  placeholder="ex: Recherche Villa Soukra"
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-emerald-500 text-slate-950 font-bold text-xs uppercase tracking-widest py-3 rounded shadow-xl"
+              >
+                Créer l'Opportunité CRM
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CMS ARTICLE CREATOR / EDITOR */}
+      {articleModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
+          <div className="glass-navy p-8 rounded-xl max-w-xl w-full border border-brand-gold/40 shadow-2xl space-y-6">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-editorial text-2xl font-light text-brand-travertine">
+                {editingArticle ? 'Éditer l’Article du Journal' : 'Rédiger un Article de Journal'}
+              </h3>
+              <button onClick={() => setArticleModalOpen(false)} className="text-white/60 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveArticle} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Titre de l'Article</label>
+                <input
+                  required
+                  type="text"
+                  value={artTitle}
+                  onChange={(e) => setArtTitle(e.target.value)}
+                  placeholder="ex: L’Architecture Contemporaine à Sfax"
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Catégorie</label>
+                  <select
+                    value={artCategory}
+                    onChange={(e) => setArtCategory(e.target.value as BlogPost['category'])}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  >
+                    <option value="Architecture">Architecture</option>
+                    <option value="Investissement">Investissement</option>
+                    <option value="Sfax Lifestyle">Sfax Lifestyle</option>
+                    <option value="Immobilier de Luxe">Immobilier de Luxe</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Temps de Lecture</label>
+                  <input
+                    type="text"
+                    value={artReadTime}
+                    onChange={(e) => setArtReadTime(e.target.value)}
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-mono uppercase text-brand-gold block">
+                  Image Couverture de l'Article (Chargement de Fichier & Aperçu)
+                </label>
+
+                <div className="p-4 border border-dashed border-white/20 rounded-lg text-center space-y-2 bg-white/5">
+                  <input
+                    type="file"
+                    id="admin-art-upload"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (!e.target.files || !e.target.files[0]) return;
+                      const file = e.target.files[0];
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        if (ev.target?.result) {
+                          setArtCoverImage(ev.target.result as string);
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                    className="hidden"
+                  />
+                  <UploadCloud className="w-6 h-6 text-brand-gold mx-auto" />
+                  <label
+                    htmlFor="admin-art-upload"
+                    className="inline-block bg-brand-gold hover:bg-brand-gold-dark text-brand-navy font-bold px-4 py-2 rounded text-xs uppercase tracking-wider cursor-pointer shadow transition-all"
+                  >
+                    Charger l'image de couverture depuis l'ordinateur
+                  </label>
+                </div>
+
+                <div className="pt-1">
+                  <label className="text-[10px] font-mono text-brand-travertine/60 block mb-1">
+                    Ou coller l'URL d'une image web :
+                  </label>
+                  <input
+                    type="text"
+                    value={artCoverImage}
+                    onChange={(e) => setArtCoverImage(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  />
+                </div>
+
+                {artCoverImage && (
+                  <div className="relative w-full h-32 rounded-lg overflow-hidden border border-brand-gold/30 mt-2">
+                    <img src={artCoverImage} alt="Aperçu Couverture" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Résumé / Excerpt</label>
+                <textarea
+                  rows={2}
+                  value={artExcerpt}
+                  onChange={(e) => setArtExcerpt(e.target.value)}
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3 rounded shadow-xl"
+              >
+                {editingArticle ? 'Mettre à Jour l’Article' : 'Publier l’Article sur le Journal'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD STAFF USER */}
+      {userModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
+          <div className="glass-navy p-8 rounded-xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-6">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-editorial text-2xl font-light text-brand-travertine">
+                Ajouter un Compte Staff
+              </h3>
+              <button onClick={() => setUserModalOpen(false)} className="text-white/60 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddStaffUser} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Nom du Collaborateur</label>
+                <input
+                  required
+                  type="text"
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                  placeholder="ex: Yassine Triki"
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Email Identifiant</label>
+                <input
+                  required
+                  type="email"
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  placeholder="nom@villaregia.tn"
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Rôle Staff</label>
+                <select
+                  value={newUserRole}
+                  onChange={(e) => setNewUserRole(e.target.value as UserRole)}
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white font-mono font-bold"
+                >
+                  <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
+                  <option value="ADMIN">ADMIN (Gestionnaire)</option>
+                  <option value="AGENT">AGENT (Conseiller Commercial)</option>
+                  <option value="CONTENT_MANAGER">CONTENT_MANAGER (Rédacteur)</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3 rounded shadow-xl"
+              >
+                Créer le Compte Staff
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT LEAD DETAILS & NOTES */}
+      {leadModalOpen && activeLead && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
+          <div className="glass-navy p-8 rounded-xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-6">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="font-editorial text-2xl font-light text-brand-travertine">
+                Suivi Lead — {activeLead.name}
+              </h3>
+              <button onClick={() => setLeadModalOpen(false)} className="text-white/60 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveLead} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Statut Pipeline</label>
+                <select
+                  value={leadStatusInput}
+                  onChange={(e) => setLeadStatusInput(e.target.value as Lead['status'])}
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                >
+                  <option value="Nouveau">Nouveau</option>
+                  <option value="Contacté">Contacté</option>
+                  <option value="Visite">Visite</option>
+                  <option value="Offre">Offre</option>
+                  <option value="Conclu">Conclu</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Agent Assigné</label>
+                <input
+                  type="text"
+                  value={leadAgentInput}
+                  onChange={(e) => setLeadAgentInput(e.target.value)}
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Notes et Historique d'Échange</label>
+                <textarea
+                  rows={4}
+                  value={leadNoteInput}
+                  onChange={(e) => setLeadNoteInput(e.target.value)}
+                  placeholder="Compte-rendu de la visite ou retour client..."
+                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3 rounded shadow-xl"
+              >
+                Mettre à jour le Lead
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

@@ -1,0 +1,122 @@
+// Villa Regia — Prisma Schema for PostgreSQL Deployment
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UniverseType {
+  VENTE
+  RESIDENCE
+  LUXE
+  EVENT
+}
+
+enum PropertyStatus {
+  DISPONIBLE
+  RESERVE
+  VENDU
+  LOUE
+  SOUS_OFFRE
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  AGENT
+  CONTENT_MANAGER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(AGENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  leads     Lead[]
+}
+
+model Property {
+  id              String         @id @default(uuid())
+  universe        UniverseType
+  category        String
+  priceAmount     Float
+  priceCurrency   String         @default("TND")
+  pricePeriod     String?
+  city            String
+  district        String
+  country         String         @default("Tunisie")
+  latitude        Float
+  longitude       Float
+  isExactPosition Boolean        @default(false)
+  surfaceM2       Float
+  bedrooms        Int?
+  bathrooms       Int?
+  pool            Boolean        @default(false)
+  garden          Boolean        @default(false)
+  constructible   Boolean        @default(false)
+  status          PropertyStatus @default(DISPONIBLE)
+  isFeatured      Boolean        @default(false)
+  isNew           Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  translations PropertyTranslation[]
+  images       PropertyImage[]
+  bookings     Booking[]
+}
+
+model PropertyTranslation {
+  id          String   @id @default(uuid())
+  propertyId  String
+  language    String
+  title       String
+  description String   @db.Text
+  story       String?  @db.Text
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  propertyId String
+  url        String
+  alt        String
+  isCover    Boolean  @default(false)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id            String   @id @default(uuid())
+  propertyId    String
+  guestName     String
+  guestEmail    String
+  guestPhone    String
+  checkIn       DateTime
+  checkOut      DateTime
+  guestsCount   Int
+  totalAmount   Float
+  depositAmount Float
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  property      Property @relation(fields: [propertyId], references: [id])
+}
+
+model Lead {
+  id             String       @id @default(uuid())
+  name           String
+  email          String
+  phone          String
+  source         String
+  universe       UniverseType
+  status         String       @default("Nouveau")
+  notes          String?      @db.Text
+  assignedUserId String?
+  assignedUser   User?        @relation(fields: [assignedUserId], references: [id])
+  createdAt      DateTime     @default(now())
+}
