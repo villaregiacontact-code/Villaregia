@@ -252,7 +252,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                     <div key={favId} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2">
                       <div className="space-y-0.5 truncate">
                         <span className="text-xs font-bold text-brand-gold truncate block">
-                          {property ? property.title : `Bien ${favId}`}
+                          {property
+                            ? (typeof property.title === 'string'
+                                ? property.title
+                                : (property.title[language] || property.title.fr))
+                            : `Bien ${favId}`}
                         </span>
                         <span className="text-[10px] text-white/50 font-mono block">
                           {property ? `${property.location.district}, ${property.location.city}` : 'Sfax, Tunisie'}
