@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sendSecurityEmail } from '@/lib/email';
-
-export const TWO_FACTOR_SESSIONS = new Map<string, {
-  email: string;
-  code: string;
-  expiresAt: number;
-}>();
+import { TWO_FACTOR_SESSIONS } from '@/lib/authStore';
 
 export async function POST(request: Request) {
   try {

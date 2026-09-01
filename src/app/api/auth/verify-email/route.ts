@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PENDING_REGISTRATIONS } from '../register/route';
+import { PENDING_REGISTRATIONS } from '@/lib/authStore';
 
 export async function POST(request: Request) {
   try {

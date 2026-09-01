@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sendSecurityEmail } from '@/lib/email';
-
-export const PENDING_REGISTRATIONS = new Map<string, {
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  confirmationCode: string;
-  expiresAt: number;
-}>();
+import { PENDING_REGISTRATIONS } from '@/lib/authStore';
 
 export async function POST(request: Request) {
   try {
