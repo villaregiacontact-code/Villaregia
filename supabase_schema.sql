@@ -1,13 +1,21 @@
 -- =====================================================================
--- VILLA REGIA — SUPABASE DATABASE SCHEMA & SEED SCRIPT
+-- VILLA REGIA — SUPABASE DATABASE SCHEMA & SEED SCRIPT (IDEMPOTENT)
 -- Copy and paste this script directly into your Supabase SQL Editor:
 -- Dashboard -> SQL Editor -> New Query -> Run
 -- =====================================================================
 
--- 1. Create Enums
-CREATE TYPE universe_type AS ENUM ('VENTE', 'RESIDENCE', 'LUXE', 'EVENT');
-CREATE TYPE property_status AS ENUM ('DISPONIBLE', 'RESERVE', 'VENDU', 'LOUE', 'SOUS_OFFRE');
-CREATE TYPE user_role AS ENUM ('SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER');
+-- 1. Create Enums Safely
+DO $$ BEGIN
+    CREATE TYPE universe_type AS ENUM ('VENTE', 'RESIDENCE', 'LUXE', 'EVENT');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE property_status AS ENUM ('DISPONIBLE', 'RESERVE', 'VENDU', 'LOUE', 'SOUS_OFFRE');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM ('SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- 2. Create Properties Table
 CREATE TABLE IF NOT EXISTS properties (
