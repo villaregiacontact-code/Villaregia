@@ -106,7 +106,7 @@ export default function PropertyDetailPage() {
   const whatsappMessage = encodeURIComponent(
     `Bonjour Villa Regia, je suis intéressé(e) par la propriété : ${property.title[language]} (${property.id}). Pouvons-nous convenir d'un rendez-vous ?`
   );
-  const whatsappUrl = `https://wa.me/21698123456?text=${whatsappMessage}`;
+  const whatsappUrl = `https://wa.me/21627745405?text=${whatsappMessage}`;
 
   return (
     <div className="bg-brand-navy min-h-screen pb-24">

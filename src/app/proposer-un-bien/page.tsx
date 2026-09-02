@@ -16,6 +16,7 @@ import {
   Sparkles,
   ArrowRight,
   ArrowLeft,
+  Scale,
   UploadCloud,
   Trash2,
   Home,
@@ -522,12 +523,19 @@ export default function SubmitPropertyPage() {
   const setSp = (key: keyof SpecificDetails, value: SpecificDetails[keyof SpecificDetails]) =>
     setSpecific((prev) => ({ ...prev, [key]: value }));
 
-  // Step 5: Identité
+  // Step: Statut Juridique & Titre Foncier (Loi Tunisienne)
+  const [titleType, setTitleType] = useState<string>('Titre Bleu Individuel (رسم عقاري فردي مسجل - دفتر خانة)');
+  const [titleNumber, setTitleNumber] = useState<string>('');
+  const [hasCertificate, setHasCertificate] = useState<boolean>(true);
+  const [hasBuildingPermit, setHasBuildingPermit] = useState<string>('Permis de bâtir municipal en règle (PAU)');
+  const [tunisianLawCertified, setTunisianLawCertified] = useState<boolean>(true);
+
+  // Step: Identité
   const [ownerName, setOwnerName] = useState<string>('');
   const [ownerPhone, setOwnerPhone] = useState<string>('');
   const [ownerEmail, setOwnerEmail] = useState<string>('');
 
-  // Step 6: Photos & Notes
+  // Step: Photos & Notes
   const [uploadedPhotos, setUploadedPhotos] = useState<{ id: string; url: string; name: string }[]>([]);
   const [details, setDetails] = useState<string>('');
 
@@ -564,7 +572,7 @@ export default function SubmitPropertyPage() {
     ]);
 
   // ─── Nav ───────────────────────────────────────────────────────────
-  const TOTAL_STEPS = 6;
+  const TOTAL_STEPS = 7;
   const nextStep = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   const prevStep = () => setStep((s) => Math.max(s - 1, 1));
 
@@ -591,8 +599,13 @@ export default function SubmitPropertyPage() {
       address,
       googleMapsLink,
       ownerName: ownerName || 'Propriétaire Anonyme',
-      ownerPhone: ownerPhone || '+216 -- --- ---',
+      ownerPhone: ownerPhone || '+216 27 745 405',
       ownerEmail: ownerEmail || '',
+      titleType,
+      titleNumber,
+      hasCertificate,
+      hasBuildingPermit,
+      tunisianLawCertified,
       details,
       specificDetails: specific,
       photos: uploadedPhotos.map((p) => p.url),
@@ -621,12 +634,12 @@ export default function SubmitPropertyPage() {
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Bonjour Villa Regia, dossier ${dossierRef} — ${propertyType} (${objective}) — ${district}, ${city}, ${gouvernorat} — ${surfaceM2}m² — ${estimatedPrice} TND — Propriétaire: ${ownerName} (${ownerPhone})${googleMapsLink ? ` — Maps: ${googleMapsLink}` : ''}`;
-  const whatsappUrl = dynamicWhatsappUrl || `https://wa.me/21698123456?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappMessage = `Bonjour Villa Regia, dossier ${dossierRef} — ${propertyType} (${objective}) — ${district}, ${city}, ${gouvernorat} — ${surfaceM2}m² — ${estimatedPrice} TND — Titre: ${titleType}${titleNumber ? ` (N° ${titleNumber})` : ''} — Propriétaire: ${ownerName} (${ownerPhone})${googleMapsLink ? ` — Maps: ${googleMapsLink}` : ''}`;
+  const whatsappUrl = dynamicWhatsappUrl || `https://wa.me/21627745405?text=${encodeURIComponent(whatsappMessage)}`;
 
 
   // ─── Step Labels ────────────────────────────────────────────────────
-  const stepLabels = ['Type & Objectif', 'Localisation', 'Dimensions', specific.isNew !== undefined ? 'Caractéristiques' : 'Détails', 'Identité', 'Photos'];
+  const stepLabels = ['Type & Objectif', 'Localisation', 'Dimensions', specific.isNew !== undefined ? 'Caractéristiques' : 'Détails', 'Titre & Loi TN', 'Identité', 'Photos'];
 
   // ─── Specific Questions Component ───────────────────────────────────
   const renderSpecificStep = () => {
@@ -1158,8 +1171,156 @@ export default function SubmitPropertyPage() {
                   </div>
                 )}
 
-                {/* ── STEP 5: Identité Propriétaire ── */}
+                {/* ── STEP 5: Statut Juridique & Titre Foncier (Loi Tunisienne) ── */}
                 {step === 5 && (
+                  <div className="space-y-6">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Scale className="w-5 h-5 text-brand-gold" />
+                        <h3 className="font-editorial text-xl sm:text-2xl text-white font-light">
+                          Statut Juridique & Titre Foncier (Loi Tunisienne)
+                        </h3>
+                      </div>
+                      <p className="text-xs text-white/50 leading-relaxed">
+                        Conformément au <strong>Code des Droits Réels tunisien (Loi n° 65-5)</strong> et aux exigences de la <strong>Conservation de la Propriété Foncière (CPF - دفتر خانة)</strong>, veuillez préciser la situation juridique de votre bien.
+                      </p>
+                    </div>
+
+                    {/* Titre Types Grid */}
+                    <div>
+                      <label className={labelCls}>Nature du Titre de Propriété</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                          {
+                            id: 'Titre Bleu Individuel (رسم عقاري فردي مسجل - دفتر خانة)',
+                            title: 'Titre Foncier Individuel ("Titre Bleu")',
+                            sub: 'رسم عقاري فردي مسجل (دفتر خانة)',
+                            desc: 'Propriété immatriculée à la CPF avec force probante inattaquable selon le Code des Droits Réels.',
+                            badge: 'Recommandé Prestige',
+                          },
+                          {
+                            id: 'Titre en Indivision / Titre Mère (رسم عقاري مشاع)',
+                            title: 'Titre en Indivision (Titre Mère)',
+                            sub: 'رسم عقاري مشاع مع تحديد منابات',
+                            desc: 'Quote-part en millièmes avec convention de partage ou plan cadastral certifié.',
+                            badge: 'En Indivision',
+                          },
+                          {
+                            id: 'Acte Notarié Authentique Enregistré (حجة عادلة مسجلة بالقباضة)',
+                            title: 'Acte Notarié Enregistré',
+                            sub: 'حجة عادلة / عقد شراء مسجل بالقباضة',
+                            desc: 'Rédigé par notaire ou avocat à la Cassation, enregistré à la Recette des Finances.',
+                            badge: 'Acte Authentique',
+                          },
+                          {
+                            id: 'En cours d\'Immatriculation au Tribunal Immobilier (في طور التسجيل)',
+                            title: 'En cours d\'Immatriculation',
+                            sub: 'مطلب تحيين أو تسجيل بالمحكمة العقارية',
+                            desc: 'Dossier d\'immatriculation déposé auprès du Tribunal Immobilier compétent.',
+                            badge: 'Procédure en cours',
+                          },
+                        ].map((item) => {
+                          const isSelected = titleType === item.id;
+                          return (
+                            <button
+                              type="button"
+                              key={item.id}
+                              onClick={() => setTitleType(item.id)}
+                              className={`p-4 rounded-xl border text-left transition-all relative ${
+                                isSelected
+                                  ? 'bg-brand-gold/15 border-brand-gold shadow-lg ring-1 ring-brand-gold/40'
+                                  : 'bg-white/3 border-white/10 hover:border-brand-gold/40 hover:bg-white/5'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start gap-2 mb-1.5">
+                                <h4 className="text-xs font-bold text-white leading-tight">{item.title}</h4>
+                                <span className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded font-bold shrink-0 ${
+                                  isSelected ? 'bg-brand-gold text-brand-navy' : 'bg-white/10 text-brand-travertine/70'
+                                }`}>
+                                  {item.badge}
+                                </span>
+                              </div>
+                              <p className="text-[11px] font-mono text-brand-gold/80 mb-1.5">{item.sub}</p>
+                              <p className="text-[11px] text-white/50 leading-relaxed">{item.desc}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelCls}>Numéro du Titre Foncier CPF (Optionnel)</label>
+                        <input
+                          type="text"
+                          placeholder="ex: Sfax N° 142850"
+                          value={titleNumber}
+                          onChange={(e) => setTitleNumber(e.target.value)}
+                          className={inputCls}
+                        />
+                        <p className="text-[10px] text-white/40 mt-1">Numéro mentionné sur votre certificat de propriété CPF (دفتر خانة).</p>
+                      </div>
+
+                      <div>
+                        <label className={labelCls}>Certificat de Propriété Récent (&lt; 3 mois)</label>
+                        <select
+                          value={hasCertificate ? 'yes' : 'no'}
+                          onChange={(e) => setHasCertificate(e.target.value === 'yes')}
+                          className={inputCls}
+                        >
+                          <option value="yes">Oui — Certificat de propriété récent disponible</option>
+                          <option value="no">Non / En cours de délivrance auprès de la CPF</option>
+                        </select>
+                        <p className="text-[10px] text-white/40 mt-1">Délivré par la Conservation de la Propriété Foncière de Tunisie.</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={labelCls}>Situation Urbanistique & Permis Municipal</label>
+                      <select
+                        value={hasBuildingPermit}
+                        onChange={(e) => setHasBuildingPermit(e.target.value)}
+                        className={inputCls}
+                      >
+                        <option value="Permis de bâtir municipal en règle (PAU)">Permis de bâtir municipal délivré & conforme au Plan d'Aménagement Urbain (PAU)</option>
+                        <option value="Procès-verbal de récolement délivré">Permis de bâtir avec procès-verbal de récolement (شهادة إبراء / مطابقة)</option>
+                        <option value="En cours d'obtention / Régularisation">En cours de régularisation municipale</option>
+                        <option value="Terrain nu avec certificat de constructibilité">Terrain nu avec certificat de constructibilité (hors périmètre agricole)</option>
+                      </select>
+                    </div>
+
+                    {/* Tunisian Law Legal Declaration Checkbox */}
+                    <div className="p-4 rounded-xl bg-brand-gold/10 border border-brand-gold/30 space-y-2">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tunisianLawCertified}
+                          onChange={(e) => setTunisianLawCertified(e.target.checked)}
+                          className="mt-1 accent-brand-gold h-4 w-4 rounded"
+                        />
+                        <span className="text-xs text-brand-travertine/90 leading-relaxed font-sans">
+                          <strong>Déclaration de conformité à la Législation Tunisienne :</strong> J'atteste sur l'honneur que les informations juridiques renseignées sont sincères et que le bien est conforme au Code des Droits Réels tunisien (Loi n° 65-5) et aux lois de la République Tunisienne, sans saisie conservatoire ni litige non déclaré.
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Legal Framework Explanatory Notice */}
+                    <div className="p-4 rounded-xl bg-black/40 border border-white/10 text-xs space-y-2 font-mono text-white/60">
+                      <div className="text-brand-gold font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-brand-gold" />
+                        <span>Garanties Juridiques Villa Regia en Tunisie</span>
+                      </div>
+                      <p className="text-[11px] leading-relaxed">
+                        • Chaque transaction est rédigée par acte authentique notarié ou avocat à la Cassation et enregistrée à la Recette des Finances.<br />
+                        • Purge de toute hypothèque et vérification auprès de la Conservation Foncière (CPF).<br />
+                        • Assistance complète pour l'Autorisation du Gouverneur (رخصة الوالي) pour les acquéreurs résidents à l'étranger (Décret du 4 juin 1957).
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── STEP 6: Identité Propriétaire ── */}
+                {step === 6 && (
                   <div className="space-y-5">
                     <div>
                       <h3 className="font-editorial text-xl sm:text-2xl text-white font-light mb-1">Identité du Propriétaire</h3>
@@ -1172,21 +1333,21 @@ export default function SubmitPropertyPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className={labelCls}><Phone className="inline w-3 h-3 mr-1" />Téléphone Direct</label>
-                        <input required type="tel" placeholder="+216 98 --- ---" className={inputCls} value={ownerPhone} onChange={e => setOwnerPhone(e.target.value)} />
+                        <input required type="tel" placeholder="+216 27 745 405" className={inputCls} value={ownerPhone} onChange={e => setOwnerPhone(e.target.value)} />
                       </div>
                       <div>
-                        <label className={labelCls}><Mail className="inline w-3 h-3 mr-1" />Adresse Email</label>
+                        <label className={labelCls}><Mail className="inline w-3 h-3 mr-1" />Adresse Email (pour accusé de réception)</label>
                         <input type="email" placeholder="votreemail@domaine.tn" className={inputCls} value={ownerEmail} onChange={e => setOwnerEmail(e.target.value)} />
                       </div>
                     </div>
                     <div className="p-4 rounded-xl bg-white/5 border border-white/8 text-xs text-white/40 leading-relaxed">
-                      🔒 Vos données personnelles ne seront jamais partagées avec des tiers et seront utilisées uniquement pour l'évaluation de votre dossier par l'équipe Villa Regia.
+                      🔒 Vos données personnelles sont protégées par le secret professionnel et la loi tunisienne sur la protection des données personnelles.
                     </div>
                   </div>
                 )}
 
-                {/* ── STEP 6: Photos & Remarques ── */}
-                {step === 6 && (
+                {/* ── STEP 7: Photos & Remarques ── */}
+                {step === 7 && (
                   <div className="space-y-5">
                     <div>
                       <h3 className="font-editorial text-xl sm:text-2xl text-white font-light mb-1">Photos & Description</h3>

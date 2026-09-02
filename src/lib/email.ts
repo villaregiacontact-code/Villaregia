@@ -247,3 +247,188 @@ export async function sendWelcomeEmail({ to, name }: SendWelcomeEmailParams) {
     textContent: `Bienvenue chez Villa Regia, ${name} !\n\nVotre compte client a été activé avec succès. Découvrez notre collection exclusive de villas et demeures de maître à Sfax et en Tunisie sur https://villaregia.vercel.app\n\nLa Direction Villa Regia`,
   });
 }
+
+export interface OwnerSubmissionEmailData {
+  refCode: string;
+  propertyType: string;
+  objective: string;
+  surfaceM2: number;
+  bedrooms?: number;
+  estimatedValue?: number;
+  gouvernorat: string;
+  city: string;
+  district: string;
+  address?: string;
+  googleMapsLink?: string;
+  ownerName: string;
+  ownerPhone: string;
+  ownerEmail?: string;
+  titleType?: string; // Titre de bien selon la loi tunisienne
+  titleNumber?: string; // Numéro du Titre Foncier CPF
+  hasCertificate?: boolean; // Certificat de propriété récent
+  hasBuildingPermit?: string; // Permis de bâtir
+  details?: string;
+  photos?: string[];
+}
+
+/**
+ * Sends automated notification emails when an owner proposes a property:
+ * 1. Complete dossier email sent to the agency: villaregia.contact@gmail.com
+ * 2. Elegant confirmation email sent to the owner (if ownerEmail provided)
+ */
+export async function sendOwnerSubmissionEmails(data: OwnerSubmissionEmailData) {
+  const agencyEmail = 'villaregia.contact@gmail.com';
+  const ref = data.refCode || `DOS-${Date.now()}`;
+
+  // ── 1. AGENCY DOSSIER EMAIL ──
+  const agencySubject = `[NOUVEAU BIEN PROPOSÉ] Dossier ${ref} — ${data.propertyType} (${data.city}, ${data.gouvernorat})`;
+  const agencyHtml = `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head><meta charset="UTF-8"></head>
+    <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0A1120; color: #FAF8F5; padding: 40px 20px; margin: 0;">
+      <div style="max-width: 640px; margin: 0 auto; background-color: #121C30; border: 1.5px solid #C5A059; border-radius: 16px; padding: 36px 30px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <span style="font-size: 22px; font-weight: 700; letter-spacing: 5px; color: #C5A059;">VILLA REGIA</span><br>
+          <span style="display: inline-block; background: rgba(197,160,89,0.15); color: #C5A059; border: 1px solid rgba(197,160,89,0.3); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-top: 10px;">
+            Nouveau Dossier Propriétaire • ${ref}
+          </span>
+        </div>
+
+        <h2 style="font-size: 20px; color: #FAF8F5; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 20px;">
+          Détails du Bien Proposé
+        </h2>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #FAF8F5; margin-bottom: 24px;">
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 10px 0; color: #C5A059; font-weight: bold; width: 40%;">Type de Bien :</td>
+            <td style="padding: 10px 0;">${data.propertyType} (${data.objective})</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 10px 0; color: #C5A059; font-weight: bold;">Localisation :</td>
+            <td style="padding: 10px 0;">${data.district}, ${data.city} (${data.gouvernorat}, Tunisie)</td>
+          </tr>
+          ${data.address ? `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 10px 0; color: #C5A059; font-weight: bold;">Adresse Précise :</td>
+            <td style="padding: 10px 0;">${data.address}</td>
+          </tr>` : ''}
+          ${data.googleMapsLink ? `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 10px 0; color: #C5A059; font-weight: bold;">Emplacement Google Maps :</td>
+            <td style="padding: 10px 0;"><a href="${data.googleMapsLink}" target="_blank" style="color: #4ade80; text-decoration: underline;">Voir sur Google Maps</a></td>
+          </tr>` : ''}
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 10px 0; color: #C5A059; font-weight: bold;">Superficie :</td>
+            <td style="padding: 10px 0;">${data.surfaceM2} m²</td>
+          </tr>
+          ${data.bedrooms ? `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 10px 0; color: #C5A059; font-weight: bold;">Chambres / Suites :</td>
+            <td style="padding: 10px 0;">${data.bedrooms}</td>
+          </tr>` : ''}
+          ${data.estimatedValue ? `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 10px 0; color: #C5A059; font-weight: bold;">Valeur Estimée :</td>
+            <td style="padding: 10px 0; font-weight: bold; color: #C5A059;">${Number(data.estimatedValue).toLocaleString('fr-FR')} TND</td>
+          </tr>` : ''}
+        </table>
+
+        <h3 style="font-size: 16px; color: #C5A059; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 16px;">
+          ⚖️ Statut Juridique & Titre Foncier (Loi Tunisienne)
+        </h3>
+        <div style="background: #070D18; border: 1px solid rgba(197,160,89,0.3); border-radius: 10px; padding: 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.6;">
+          <p style="margin: 0 0 8px 0;"><strong>Titre Foncier :</strong> ${data.titleType || 'Titre Foncier Individuel (Titre Bleu CPF)'}</p>
+          ${data.titleNumber ? `<p style="margin: 0 0 8px 0;"><strong>N° Titre CPF (دفتر خانة) :</strong> <span style="color: #C5A059; font-family: monospace;">${data.titleNumber}</span></p>` : ''}
+          <p style="margin: 0 0 8px 0;"><strong>Certificat de Propriété Récent (&lt; 3 mois) :</strong> ${data.hasCertificate ? '✅ Oui (Disponible)' : 'ℹ️ À actualiser / En cours'}</p>
+          <p style="margin: 0;"><strong>Permis de Bâtir & Récolement Municipal :</strong> ${data.hasBuildingPermit || 'En règle avec le PAU'}</p>
+        </div>
+
+        <h3 style="font-size: 16px; color: #FAF8F5; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 16px;">
+          Coordonnées du Propriétaire
+        </h3>
+        <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 16px; margin-bottom: 24px; font-size: 13px;">
+          <p style="margin: 0 0 8px 0;"><strong>Nom :</strong> ${data.ownerName}</p>
+          <p style="margin: 0 0 8px 0;"><strong>Téléphone Direct :</strong> <a href="tel:${data.ownerPhone}" style="color: #C5A059; font-weight: bold;">${data.ownerPhone}</a></p>
+          ${data.ownerEmail ? `<p style="margin: 0 0 8px 0;"><strong>Email :</strong> <a href="mailto:${data.ownerEmail}" style="color: #FAF8F5;">${data.ownerEmail}</a></p>` : ''}
+          <a href="https://wa.me/${data.ownerPhone.replace(/\D/g, '')}" target="_blank" style="display: inline-block; background: #25D366; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; margin-top: 6px;">Contacter sur WhatsApp</a>
+        </div>
+
+        ${data.details ? `
+        <h3 style="font-size: 15px; color: #FAF8F5; margin-bottom: 8px;">Description & Caractéristiques :</h3>
+        <p style="font-size: 13px; line-height: 1.6; color: rgba(250,248,245,0.8); background: #070D18; padding: 14px; border-radius: 8px; margin-bottom: 24px;">
+          ${data.details}
+        </p>` : ''}
+
+        ${data.photos && data.photos.length > 0 ? `
+        <h3 style="font-size: 15px; color: #FAF8F5; margin-bottom: 8px;">Photos du Bien (${data.photos.length}) :</h3>
+        <div style="margin-bottom: 24px;">
+          ${data.photos.slice(0, 4).map((url, i) => `<a href="${url}" target="_blank" style="color: #C5A059; font-size: 12px; display: block; margin-bottom: 4px;">Photo ${i + 1} : ${url}</a>`).join('')}
+        </div>` : ''}
+
+        <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; font-size: 11px; color: rgba(250,248,245,0.4);">
+          Plateforme Villa Regia • Système Central d'Acquisition Immobilière Sfax
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Dispatch email to agency
+  await dispatchHtmlEmail({
+    to: agencyEmail,
+    subject: agencySubject,
+    htmlContent: agencyHtml,
+    textContent: `Nouveau bien proposé ref ${ref}: ${data.propertyType} à ${data.district}, ${data.city} par ${data.ownerName} (${data.ownerPhone}). Titre: ${data.titleType || 'Titre Bleu'}`,
+  });
+
+  // ── 2. OWNER CONFIRMATION RECEIPT (IF EMAIL PROVIDED) ──
+  if (data.ownerEmail && data.ownerEmail.includes('@')) {
+    const ownerSubject = `[Villa Regia] Accusé de Réception — Votre Dossier ${ref}`;
+    const ownerHtml = `
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head><meta charset="UTF-8"></head>
+      <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0A1120; color: #FAF8F5; padding: 40px 20px; margin: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #121C30; border: 1px solid rgba(197, 160, 89, 0.4); border-radius: 16px; padding: 40px 30px; text-align: center;">
+          <div style="font-size: 24px; font-weight: 700; letter-spacing: 6px; color: #C5A059;">VILLA REGIA</div><br>
+          <span style="display: inline-block; background: rgba(197,160,89,0.15); color: #C5A059; border: 1px solid rgba(197,160,89,0.3); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 6px 16px; border-radius: 20px; margin-bottom: 20px;">
+            Dossier d'Évaluation Enregistré
+          </span>
+          <h1 style="font-size: 22px; font-weight: 300; margin: 0 0 16px 0; color: #FAF8F5;">
+            Merci, ${data.ownerName}
+          </h1>
+          <p style="font-size: 13.5px; color: rgba(250,248,245,0.8); line-height: 1.7; text-align: left; margin-bottom: 20px;">
+            Nous avons le plaisir de vous confirmer la bonne réception du dossier concernant votre <strong>${data.propertyType}</strong> situé à <strong>${data.district}, ${data.city}</strong>.
+          </p>
+          <div style="background: #070D18; border: 1px solid rgba(197,160,89,0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: left; font-size: 13px; line-height: 1.6;">
+            <p style="margin: 0 0 8px 0;"><strong>Référence de Dossier :</strong> <span style="color: #C5A059; font-family: monospace; font-weight: bold;">${ref}</span></p>
+            <p style="margin: 0 0 8px 0;"><strong>Superficie :</strong> ${data.surfaceM2} m²</p>
+            <p style="margin: 0 0 8px 0;"><strong>Statut Juridique :</strong> ${data.titleType || 'Titre Foncier Individuel (Titre Bleu)'}</p>
+            <p style="margin: 0;"><strong>Prise en Charge :</strong> En cours d'analyse confidentielle par notre équipe d'experts.</p>
+          </div>
+          <p style="font-size: 13px; color: rgba(250,248,245,0.75); line-height: 1.6; text-align: left;">
+            Un conseiller privé de la Maison Villa Regia prendra contact avec vous sous <strong>24 heures ouvrées</strong> au <strong>${data.ownerPhone}</strong> afin de convenir d'un rendez-vous sur place ou d'un échange d'évaluation.
+          </p>
+          <div style="margin-top: 32px; text-align: left; font-size: 12px; color: rgba(250,248,245,0.6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
+            Bien cordialement,<br>
+            <strong style="color: #C5A059;">La Direction de la Maison Villa Regia</strong><br>
+            <span>Route de la Soukra, Km 2.5 • 3000 Sfax, Tunisie</span><br>
+            <span>Tél / WhatsApp : +216 27 745 405 • Email : villaregia.contact@gmail.com</span>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await dispatchHtmlEmail({
+      to: data.ownerEmail,
+      subject: ownerSubject,
+      htmlContent: ownerHtml,
+      textContent: `Bonjour ${data.ownerName},\n\nVotre dossier ${ref} pour la proposition de votre bien (${data.propertyType} à ${data.city}) a été bien reçu. Un conseiller Villa Regia vous contactera au ${data.ownerPhone} sous 24h.\n\nVilla Regia Sfax - +216 27 745 405`,
+    });
+  }
+
+  return { success: true, ref };
+}
+

@@ -300,7 +300,7 @@ export async function createOwnerSubmission(submission: Omit<OwnerSubmission, 'i
     `Merci de me contacter pour convenir d'un rendez-vous d'évaluation confidentiel.`
   );
 
-  const whatsappLink = `https://wa.me/21698123456?text=${text}`;
+  const whatsappLink = `https://wa.me/21627745405?text=${text}`;
 
   return { submission: newSubmission, whatsappLink };
 }

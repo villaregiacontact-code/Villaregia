@@ -109,12 +109,19 @@ export const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-brand-gold shrink-0" />
-                <a href="tel:+21674000111" className="hover:text-brand-gold">+216 74 000 111</a>
+                <a href="tel:+21627745405" className="hover:text-brand-gold font-mono">+216 27 745 405</a>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-brand-gold shrink-0" />
-                <a href="mailto:contact@villaregia.tn" className="hover:text-brand-gold">contact@villaregia.tn</a>
+                <a href="mailto:villaregia.contact@gmail.com" className="hover:text-brand-gold">villaregia.contact@gmail.com</a>
               </div>
+            </div>
+
+            {/* Tunisian Law Badge */}
+            <div className="pt-1">
+              <span className="text-[10px] font-mono text-brand-gold/90 bg-brand-gold/10 border border-brand-gold/25 px-2.5 py-1 rounded inline-block">
+                ⚖️ Régie par la Loi Tunisienne (Code des Droits Réels)
+              </span>
             </div>
 
             {/* Social Icons */}
@@ -133,12 +140,25 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-brand-travertine/50">
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-brand-travertine/60">
           <p>© {new Date().getFullYear()} Villa Regia Real Estates Sfax. {t('footer.rights')}</p>
-          <div className="flex items-center space-x-6 rtl:space-x-reverse">
-            <a href="#" className="hover:text-brand-gold">Mentions Légales</a>
+          
+          {/* Powered by EASYWEB */}
+          <div className="text-center font-mono text-[11px]">
+            <a
+              href="https://easyweb-growthagency.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand-gold hover:text-white font-bold tracking-wider underline underline-offset-4 decoration-brand-gold/60 hover:decoration-white transition-all"
+            >
+              Powered By EASYWEB
+            </a>
+          </div>
+
+          <div className="flex items-center space-x-6 rtl:space-x-reverse text-[11px]">
+            <a href="#" className="hover:text-brand-gold">Mentions Légales (Loi TN)</a>
             <a href="#" className="hover:text-brand-gold">Politique de Confidentialité</a>
-            <a href="#" className="hover:text-brand-gold">Gestion des Cookies</a>
+            <a href="#" className="hover:text-brand-gold">Conservation Foncière (CPF)</a>
           </div>
         </div>
       </div>

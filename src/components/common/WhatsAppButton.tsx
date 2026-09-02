@@ -15,7 +15,7 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
 }) => {
   const { t } = useLanguage();
 
-  const phone = '21674000111'; // Villa Regia Sfax official contact
+  const phone = '21627745405'; // Villa Regia Sfax official WhatsApp contact
   
   const defaultText = propertyTitle
     ? `Bonjour Villa Regia, je souhaite obtenir des informations exclusives concernant le bien : ${propertyTitle}.`

@@ -75,7 +75,7 @@ export default function ContactPage() {
                   <Phone className="w-5 h-5 text-brand-gold shrink-0" />
                   <div>
                     <strong className="text-brand-travertine block">Téléphone Privé:</strong>
-                    <a href="tel:+21674000111" className="hover:text-brand-gold">+216 74 000 111</a>
+                    <a href="tel:+21627745405" className="hover:text-brand-gold font-mono">+216 27 745 405</a>
                   </div>
                 </div>
 
@@ -83,17 +83,17 @@ export default function ContactPage() {
                   <Mail className="w-5 h-5 text-brand-gold shrink-0" />
                   <div>
                     <strong className="text-brand-travertine block">Email:</strong>
-                    <a href="mailto:contact@villaregia.tn" className="hover:text-brand-gold">contact@villaregia.tn</a>
+                    <a href="mailto:villaregia.contact@gmail.com" className="hover:text-brand-gold">villaregia.contact@gmail.com</a>
                   </div>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-white/10">
                 <a
-                  href="https://wa.me/21674000111"
+                  href="https://wa.me/21627745405"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-[#25D366] text-white py-3 rounded text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+                  className="w-full bg-[#25D366] text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-95 shadow-lg transition-all"
                 >
                   <MessageCircle className="w-4 h-4 fill-current" />
                   <span>Discussion WhatsApp Directe</span>
