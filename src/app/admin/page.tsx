@@ -58,17 +58,27 @@ export interface OwnerSubmission {
   refCode: string;
   propertyType: PropertyCategory;
   objective: UniverseType;
-  surfaceM2: number;
-  bedrooms: number;
-  estimatedPrice: number;
+  gouvernorat?: string;
   city: string;
   district: string;
+  address?: string;
+  googleMapsLink?: string;
+  surfaceM2: number;
+  bedrooms?: number;
+  estimatedPrice: number;
+  estimatedValue?: number;
   ownerName: string;
   ownerPhone: string;
   ownerEmail: string;
+  titleType?: string;
+  titleNumber?: string;
+  hasCertificate?: string;
+  hasBuildingPermit?: string;
+  tunisianLawCertified?: boolean;
+  specificDetails?: Record<string, any>;
   details?: string;
   photos?: string[];
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOUVEAU' | 'CONTACTE' | 'VISITE' | 'MANDAT_SIGNE';
   createdAt: string;
 }
 
@@ -99,12 +109,13 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function loadAdminData() {
       try {
-        const [statsRes, propsRes, bookingsRes, crmRes, usersRes] = await Promise.all([
+        const [statsRes, propsRes, bookingsRes, crmRes, usersRes, subsRes] = await Promise.all([
           fetch('/api/admin/stats').then(r => r.json()).catch(() => null),
           fetch('/api/properties').then(r => r.json()).catch(() => null),
           fetch('/api/bookings').then(r => r.json()).catch(() => null),
           fetch('/api/admin/crm').then(r => r.json()).catch(() => null),
           fetch('/api/admin/users').then(r => r.json()).catch(() => null),
+          fetch('/api/submissions').then(r => r.json()).catch(() => null),
         ]);
 
         if (statsRes?.success) setDbStats(statsRes.stats);
@@ -114,6 +125,9 @@ export default function AdminDashboardPage() {
         if (usersRes?.success && Array.isArray(usersRes.users)) {
           const staffOnly = usersRes.users.filter((u: any) => u.role !== 'CLIENT');
           if (staffOnly.length > 0) setStaffUsers(staffOnly);
+        }
+        if (subsRes?.success && Array.isArray(subsRes.submissions)) {
+          setSubmissions(subsRes.submissions);
         }
       } catch (err) {
         console.warn('Admin API load fallback:', err);
@@ -129,8 +143,8 @@ export default function AdminDashboardPage() {
         const parsed: OwnerSubmission[] = JSON.parse(stored);
         if (parsed.length > 0) {
           setSubmissions((prev) => {
-            const ids = new Set(prev.map((s) => s.id));
-            const fresh = parsed.filter((s) => !ids.has(s.id));
+            const ids = new Set(prev.map((s) => s.id || s.refCode));
+            const fresh = parsed.filter((s) => !ids.has(s.id) && !ids.has(s.refCode));
             return [...fresh, ...prev];
           });
         }
@@ -139,6 +153,8 @@ export default function AdminDashboardPage() {
       console.error(e);
     }
   }, []);
+
+  const [inspectingSubmission, setInspectingSubmission] = useState<OwnerSubmission | null>(null);
 
   // Status Handlers with API Sync
   const handleUpdatePropertyStatus = async (propId: string, newStatus: PropertyStatus) => {
@@ -241,7 +257,7 @@ export default function AdminDashboardPage() {
   // --------------------------------------------------------------------------
   // OWNER SUBMISSION APPROVAL & CONVERSION
   // --------------------------------------------------------------------------
-  const handleApproveSubmission = (sub: OwnerSubmission) => {
+  const handleApproveSubmission = async (sub: OwnerSubmission) => {
     const imagesList = sub.photos && sub.photos.length > 0
       ? sub.photos.map((url, idx) => ({ url, alt: `${sub.propertyType} Photo ${idx + 1}`, isCover: idx === 0 }))
       : [{ url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85', alt: sub.propertyType, isCover: true }];
@@ -251,12 +267,12 @@ export default function AdminDashboardPage() {
       title: { fr: `${sub.propertyType} High Standing — ${sub.district}`, ar: `${sub.propertyType} — ${sub.district}`, en: `${sub.propertyType} — ${sub.district}` },
       universe: sub.objective,
       category: sub.propertyType,
-      price: { amount: sub.estimatedPrice, currency: 'TND', period: 'total' },
+      price: { amount: sub.estimatedPrice || sub.estimatedValue || 0, currency: 'TND', period: 'total' },
       location: { city: sub.city, district: sub.district, country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
-      specs: { surfaceM2: sub.surfaceM2, bedrooms: sub.bedrooms, pool: true, garden: true },
+      specs: { surfaceM2: sub.surfaceM2, bedrooms: sub.bedrooms || 0, pool: true, garden: true },
       images: imagesList,
       description: { fr: sub.details || 'Prestigieuse demeure soumise par son propriétaire et vérifiée par l’équipe Villa Regia.', ar: sub.details || '', en: sub.details || '' },
-      amenities: ['Climatisation centralisée', 'Titre foncier individuel', 'Parking sécurisé', 'Marbre noble'],
+      amenities: ['Climatisation centralisée', sub.titleType || 'Titre foncier individuel', 'Parking sécurisé', 'Marbre noble'],
       status: 'DISPONIBLE',
       isFeatured: true,
       isNew: true,
@@ -266,12 +282,43 @@ export default function AdminDashboardPage() {
 
     setProperties((prev) => [newProp, ...prev]);
     setSubmissions((prev) => prev.map((s) => (s.id === sub.id ? { ...s, status: 'APPROVED' } : s)));
+    if (inspectingSubmission?.id === sub.id) {
+      setInspectingSubmission({ ...sub, status: 'APPROVED' });
+    }
+
+    try {
+      await fetch('/api/submissions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: sub.id, status: 'APPROVED' }),
+      });
+      await fetch('/api/properties', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProp),
+      });
+    } catch (e) {
+      console.warn('Submission approval API sync fallback:', e);
+    }
+
     logAction('Approbation dossier propriétaire', sub.refCode);
     setActiveTab('properties');
   };
 
-  const handleRejectSubmission = (subId: string, refCode: string) => {
+  const handleRejectSubmission = async (subId: string, refCode: string) => {
     setSubmissions((prev) => prev.map((s) => (s.id === subId ? { ...s, status: 'REJECTED' } : s)));
+    if (inspectingSubmission?.id === subId) {
+      setInspectingSubmission((prev) => prev ? { ...prev, status: 'REJECTED' } : null);
+    }
+    try {
+      await fetch('/api/submissions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: subId, status: 'REJECTED' }),
+      });
+    } catch (e) {
+      console.warn('Submission reject API sync fallback:', e);
+    }
     logAction('Refus dossier propriétaire', refCode);
   };
 
@@ -1066,7 +1113,7 @@ export default function AdminDashboardPage() {
               {submissions.map((sub) => (
                 <div
                   key={sub.id}
-                  className="glass-card p-4 rounded-xl border border-white/10 space-y-3"
+                  className="glass-card p-4 rounded-2xl border border-white/10 space-y-3 shadow-xl"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono font-bold text-xs text-brand-gold">{sub.refCode}</span>
@@ -1083,11 +1130,11 @@ export default function AdminDashboardPage() {
 
                   <div className="flex gap-3">
                     {sub.photos && sub.photos.length > 0 ? (
-                      <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-brand-gold/30 shrink-0">
+                      <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-brand-gold/30 shrink-0">
                         <img src={sub.photos[0]} alt="Bien" className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className="w-20 h-20 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/30 shrink-0 text-[10px]">
+                      <div className="w-20 h-20 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 shrink-0 text-[10px]">
                         Sans photo
                       </div>
                     )}
@@ -1100,12 +1147,20 @@ export default function AdminDashboardPage() {
                         <span className="text-xs text-white/70">{sub.district}, {sub.city}</span>
                       </div>
                       <div className="text-xs font-mono font-bold text-brand-gold">
-                        {sub.estimatedPrice.toLocaleString()} TND • {sub.surfaceM2} m² ({sub.bedrooms} ch.)
+                        {(sub.estimatedPrice || sub.estimatedValue || 0).toLocaleString()} TND • {sub.surfaceM2} m² ({sub.bedrooms || 0} ch.)
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-white/5 border border-white/8 space-y-1 text-xs">
+                  {/* Tunisian Legal Title Badge */}
+                  {sub.titleType && (
+                    <div className="p-2.5 rounded-xl bg-brand-gold/10 border border-brand-gold/20 text-[11px] font-mono flex items-center justify-between text-brand-gold">
+                      <span>⚖️ {sub.titleType}</span>
+                      {sub.titleNumber && <span className="font-bold">N° {sub.titleNumber}</span>}
+                    </div>
+                  )}
+
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/8 space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-white/60">Propriétaire:</span>
                       <span className="font-semibold text-white">{sub.ownerName}</span>
@@ -1114,16 +1169,30 @@ export default function AdminDashboardPage() {
                       <span className="text-white/60">Téléphone:</span>
                       <a href={`tel:${sub.ownerPhone}`} className="text-brand-gold hover:underline">{sub.ownerPhone}</a>
                     </div>
+                    {sub.address && (
+                      <div className="text-[11px] text-brand-travertine/60 pt-1 border-t border-white/5 truncate">
+                        📍 {sub.address}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                    <button
+                      onClick={() => setInspectingSubmission(sub)}
+                      className="bg-brand-gold/15 hover:bg-brand-gold/25 text-brand-gold border border-brand-gold/30 p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold font-mono transition-all"
+                      title="Examiner l'intégralité du dossier"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span className="text-[11px]">Détails</span>
+                    </button>
+
                     {sub.status === 'PENDING' && (
                       <button
                         onClick={() => handleApproveSubmission(sub)}
-                        className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 py-2.5 rounded-lg text-xs font-bold uppercase transition-all flex items-center justify-center gap-1.5"
+                        className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 py-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1.5"
                       >
                         <Check className="w-4 h-4" />
-                        <span>Approuver & Publier</span>
+                        <span>Approuver</span>
                       </button>
                     )}
 
@@ -1131,7 +1200,7 @@ export default function AdminDashboardPage() {
                       href={`https://wa.me/${sub.ownerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${sub.ownerName}, concernant votre dossier ${sub.refCode} soumis à Villa Regia...`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2.5 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold"
+                      className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold"
                       title="WhatsApp Propriétaire"
                     >
                       <MessageCircle className="w-4 h-4" />
@@ -1141,7 +1210,7 @@ export default function AdminDashboardPage() {
                     {sub.status === 'PENDING' && (
                       <button
                         onClick={() => handleRejectSubmission(sub.id, sub.refCode)}
-                        className="p-2.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                        className="p-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20"
                         title="Refuser le dossier"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1161,7 +1230,7 @@ export default function AdminDashboardPage() {
                     <th className="p-3">Propriétaire</th>
                     <th className="p-3">Bien Proposé</th>
                     <th className="p-3">Univers</th>
-                    <th className="p-3">Localisation</th>
+                    <th className="p-3">Localisation & Titre</th>
                     <th className="p-3">Surface / Pièces</th>
                     <th className="p-3">Prix Estimé</th>
                     <th className="p-3">Statut</th>
@@ -1175,12 +1244,13 @@ export default function AdminDashboardPage() {
                       <td className="p-3">
                         <span className="font-semibold text-white">{sub.ownerName}</span>
                         <div className="text-[10px] text-brand-travertine/50 font-mono">{sub.ownerPhone}</div>
+                        {sub.ownerEmail && <div className="text-[10px] text-brand-travertine/40 font-mono truncate max-w-[150px]">{sub.ownerEmail}</div>}
                       </td>
                       <td className="p-3">
                         <span className="font-semibold text-white">{sub.propertyType}</span>
                         {sub.photos && sub.photos.length > 0 ? (
                           <div className="flex items-center gap-1.5 mt-1">
-                            <div className="relative w-8 h-8 rounded overflow-hidden border border-brand-gold/40 shrink-0">
+                            <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-brand-gold/40 shrink-0">
                               <img src={sub.photos[0]} alt="Miniature" className="w-full h-full object-cover" />
                             </div>
                             <span className="text-[10px] font-mono text-brand-gold font-bold">
@@ -1192,14 +1262,21 @@ export default function AdminDashboardPage() {
                         )}
                       </td>
                       <td className="p-3">
-                        <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono">
+                        <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono font-bold">
                           {sub.objective}
                         </span>
                       </td>
-                      <td className="p-3 text-brand-travertine/70">{sub.district}, {sub.city}</td>
-                      <td className="p-3 font-mono">{sub.surfaceM2} m² ({sub.bedrooms} ch.)</td>
+                      <td className="p-3">
+                        <div className="text-white font-medium">{sub.district}, {sub.city}</div>
+                        {sub.titleType && (
+                          <div className="text-[10px] font-mono text-brand-gold mt-0.5">
+                            ⚖️ {sub.titleType} {sub.titleNumber ? `(N° ${sub.titleNumber})` : ''}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-3 font-mono">{sub.surfaceM2} m² ({sub.bedrooms || 0} ch.)</td>
                       <td className="p-3 font-mono text-brand-gold font-bold">
-                        {sub.estimatedPrice.toLocaleString()} TND
+                        {(sub.estimatedPrice || sub.estimatedValue || 0).toLocaleString()} TND
                       </td>
                       <td className="p-3">
                         <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase ${
@@ -1212,11 +1289,20 @@ export default function AdminDashboardPage() {
                           {sub.status === 'APPROVED' ? 'Approuvé' : sub.status === 'REJECTED' ? 'Refusé' : 'En Attente'}
                         </span>
                       </td>
-                      <td className="p-3 text-right space-x-2">
+                      <td className="p-3 text-right space-x-1.5 whitespace-nowrap">
+                        <button
+                          onClick={() => setInspectingSubmission(sub)}
+                          className="bg-white/5 hover:bg-brand-gold/20 text-brand-travertine hover:text-brand-gold p-2 rounded-lg inline-flex items-center gap-1 transition-colors"
+                          title="Examiner l'intégralité du formulaire et pièces jointes"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span className="text-[10px] font-mono">Dossier</span>
+                        </button>
+
                         {sub.status === 'PENDING' && (
                           <button
                             onClick={() => handleApproveSubmission(sub)}
-                            className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded text-[10px] font-bold uppercase transition-all inline-flex items-center gap-1"
+                            className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inline-flex items-center gap-1"
                           >
                             <Check className="w-3.5 h-3.5" />
                             <span>Approuver & Publier</span>
@@ -1227,7 +1313,7 @@ export default function AdminDashboardPage() {
                           href={`https://wa.me/${sub.ownerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${sub.ownerName}, concernant votre dossier ${sub.refCode} soumis à Villa Regia...`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-white/5 hover:bg-emerald-500/20 text-brand-travertine hover:text-emerald-400 p-2 rounded inline-block"
+                          className="bg-white/5 hover:bg-emerald-500/20 text-brand-travertine hover:text-emerald-400 p-2 rounded-lg inline-block transition-colors"
                           title="WhatsApp Propriétaire"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
@@ -1236,7 +1322,7 @@ export default function AdminDashboardPage() {
                         {sub.status === 'PENDING' && (
                           <button
                             onClick={() => handleRejectSubmission(sub.id, sub.refCode)}
-                            className="p-1.5 rounded bg-white/5 text-brand-travertine/40 hover:text-red-400"
+                            className="p-2 rounded-lg bg-white/5 text-brand-travertine/40 hover:text-red-400 transition-colors"
                             title="Refuser le dossier"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2500,6 +2586,269 @@ export default function AdminDashboardPage() {
                 Mettre à jour le Lead
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: INSPECT OWNER SUBMISSION (ALL FORM FIELDS & TUNISIAN LAW) */}
+      {inspectingSubmission && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-3 sm:p-4">
+          <div className="glass-navy p-5 sm:p-8 rounded-2xl max-w-3xl w-full border border-brand-gold/40 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-white/10 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-xs font-bold bg-brand-gold/15 text-brand-gold px-2.5 py-1 rounded border border-brand-gold/30">
+                    {inspectingSubmission.refCode}
+                  </span>
+                  <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase font-mono ${
+                    inspectingSubmission.status === 'APPROVED'
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : inspectingSubmission.status === 'REJECTED'
+                      ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                      : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  }`}>
+                    {inspectingSubmission.status === 'APPROVED' ? 'Dossier Approuvé' : inspectingSubmission.status === 'REJECTED' ? 'Dossier Refusé' : 'Dossier En Attente'}
+                  </span>
+                  <span className="text-[10px] text-white/50 font-mono">
+                    Soumis le {new Date(inspectingSubmission.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  </span>
+                </div>
+                <h3 className="font-editorial text-2xl sm:text-3xl font-light text-brand-travertine">
+                  Inspection du Dossier Propriétaire
+                </h3>
+              </div>
+              <button
+                onClick={() => setInspectingSubmission(null)}
+                className="text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                aria-label="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content Sections */}
+            <div className="space-y-5 text-xs text-brand-travertine/80">
+              
+              {/* Section 1: Propriétaire & Contacts */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-brand-gold font-bold flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Identité du Propriétaire</span>
+                  </span>
+                  <a
+                    href={`https://wa.me/${inspectingSubmission.ownerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${inspectingSubmission.ownerName}, je vous contacte depuis la direction Villa Regia au sujet de votre bien (${inspectingSubmission.refCode})...`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border border-emerald-500/30"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>Ouvrir WhatsApp</span>
+                  </a>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Nom Complet</span>
+                    <span className="font-semibold text-white text-sm">{inspectingSubmission.ownerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Téléphone Direct</span>
+                    <a href={`tel:${inspectingSubmission.ownerPhone}`} className="text-brand-gold hover:underline font-mono font-bold">
+                      {inspectingSubmission.ownerPhone}
+                    </a>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Adresse Email</span>
+                    {inspectingSubmission.ownerEmail ? (
+                      <a href={`mailto:${inspectingSubmission.ownerEmail}`} className="text-white/80 hover:text-brand-gold truncate block font-mono">
+                        {inspectingSubmission.ownerEmail}
+                      </a>
+                    ) : (
+                      <span className="text-white/40 italic">Non renseignée</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Localisation & Adresse */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-brand-gold font-bold block">
+                  📍 Localisation Géographique
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Gouvernorat</span>
+                    <span className="text-white font-medium">{inspectingSubmission.gouvernorat || 'Sfax'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Délégation / Ville</span>
+                    <span className="text-white font-medium">{inspectingSubmission.city}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Quartier / Secteur</span>
+                    <span className="text-white font-medium">{inspectingSubmission.district}</span>
+                  </div>
+                </div>
+
+                {(inspectingSubmission.address || inspectingSubmission.googleMapsLink) && (
+                  <div className="pt-2 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    {inspectingSubmission.address && (
+                      <div className="text-white/80">
+                        <strong className="text-brand-gold font-mono">Adresse exacte :</strong> {inspectingSubmission.address}
+                      </div>
+                    )}
+                    {inspectingSubmission.googleMapsLink && (
+                      <a
+                        href={inspectingSubmission.googleMapsLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-brand-gold hover:underline font-mono text-[11px] shrink-0"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Voir sur Google Maps</span>
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Section 3: Caractéristiques du Bien */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-brand-gold font-bold block">
+                  🏡 Caractéristiques Techniques
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Catégorie</span>
+                    <span className="text-white font-bold">{inspectingSubmission.propertyType}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Univers Souhaité</span>
+                    <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono font-bold inline-block mt-0.5">
+                      {inspectingSubmission.objective}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Surface Habitable</span>
+                    <span className="text-white font-mono font-bold text-sm">{inspectingSubmission.surfaceM2} m²</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-white/50 block font-mono">Pièces / Chambres</span>
+                    <span className="text-white font-mono font-bold text-sm">{inspectingSubmission.bedrooms || 0}</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase text-white/50">Estimation Financière Souhaitée :</span>
+                  <span className="text-base sm:text-lg font-bold font-mono text-brand-gold">
+                    {(inspectingSubmission.estimatedPrice || inspectingSubmission.estimatedValue || 0).toLocaleString('fr-FR')} TND
+                  </span>
+                </div>
+
+                {inspectingSubmission.details && (
+                  <div className="pt-2 border-t border-white/5 text-xs text-brand-travertine/80 leading-relaxed bg-black/20 p-3 rounded-lg">
+                    <strong className="text-brand-gold font-mono text-[10px] block uppercase mb-1">Description Éditoriale :</strong>
+                    {inspectingSubmission.details}
+                  </div>
+                )}
+              </div>
+
+              {/* Section 4: Cadre Juridique & Titre Foncier (Loi Tunisienne) */}
+              <div className="p-4 rounded-xl bg-brand-gold/10 border border-brand-gold/30 space-y-3">
+                <div className="flex items-center gap-2 text-brand-gold font-bold font-mono text-xs uppercase tracking-wider">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Statut Juridique & Titre Foncier (Loi Tunisienne)</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="p-3 rounded-lg bg-black/30 border border-white/10 space-y-1">
+                    <span className="text-[10px] font-mono text-brand-gold uppercase block">Type de Titre Déclaré</span>
+                    <span className="font-semibold text-white text-xs block">
+                      {inspectingSubmission.titleType || 'Titre Bleu Individuel (رسم عقاري فردي مسجل)'}
+                    </span>
+                    {inspectingSubmission.titleNumber && (
+                      <span className="text-[11px] font-mono text-brand-gold block">
+                        N° Titre CPF (دفتر خانة) : <strong>{inspectingSubmission.titleNumber}</strong>
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-black/30 border border-white/10 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/60">Certificat de Propriété &lt; 3 mois :</span>
+                      <span className="font-bold text-white font-mono">{inspectingSubmission.hasCertificate || 'Non'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/60">Permis de Bâtir Municipal :</span>
+                      <span className="font-bold text-white font-mono">{inspectingSubmission.hasBuildingPermit || 'Non'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-300 font-mono flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Dossier soumis avec engagement sur l'honneur de conformité au Code des Droits Réels (Loi n° 65-5).</span>
+                </div>
+              </div>
+
+              {/* Section 5: Photos Soumises */}
+              {inspectingSubmission.photos && inspectingSubmission.photos.length > 0 && (
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-brand-gold font-bold block">
+                    📷 Visuels Transmis ({inspectingSubmission.photos.length} photos)
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {inspectingSubmission.photos.map((photoUrl, idx) => (
+                      <a
+                        key={idx}
+                        href={photoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative aspect-video rounded-xl overflow-hidden border border-white/15 hover:border-brand-gold transition-colors block group"
+                      >
+                        <img src={photoUrl} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-mono font-bold">
+                          Agrandir ↗
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions Footer */}
+            <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <button
+                onClick={() => setInspectingSubmission(null)}
+                className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-mono transition-colors"
+              >
+                Fermer l'Aperçu
+              </button>
+
+              <div className="flex items-center gap-2.5">
+                {inspectingSubmission.status === 'PENDING' && (
+                  <button
+                    onClick={() => handleRejectSubmission(inspectingSubmission.id, inspectingSubmission.refCode)}
+                    className="px-4 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 text-xs font-bold transition-colors"
+                  >
+                    Refuser le Dossier
+                  </button>
+                )}
+
+                {inspectingSubmission.status === 'PENDING' && (
+                  <button
+                    onClick={() => handleApproveSubmission(inspectingSubmission)}
+                    className="flex-1 sm:flex-initial bg-gradient-to-r from-brand-gold to-brand-gold-dark hover:opacity-95 text-brand-navy font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 transition-all"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Approuver & Publier au Catalogue</span>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}

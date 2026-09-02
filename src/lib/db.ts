@@ -259,11 +259,45 @@ export async function updateLeadStatus(id: string, status: Lead['status']): Prom
 }
 
 // Owner Submissions ("Proposer un bien")
-export async function createOwnerSubmission(submission: Omit<OwnerSubmission, 'id' | 'createdAt' | 'status'>): Promise<{ submission: OwnerSubmission; whatsappLink: string }> {
+export async function getOwnerSubmissions(): Promise<OwnerSubmission[]> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('submissions').select('*').order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data as OwnerSubmission[];
+      }
+    } catch (e) {
+      console.warn('Supabase fetch submissions failed:', e);
+    }
+  }
+  return [...localSubmissions];
+}
+
+export async function updateOwnerSubmissionStatus(id: string, status: OwnerSubmission['status']): Promise<OwnerSubmission | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('submissions').update({ status }).eq('id', id);
+    } catch (e) {
+      console.warn('Supabase update submission status failed:', e);
+    }
+  }
+
+  const sub = localSubmissions.find(s => s.id === id || s.refCode === id);
+  if (sub) {
+    sub.status = status;
+    return { ...sub };
+  }
+  return null;
+}
+
+export async function createOwnerSubmission(submission: Omit<OwnerSubmission, 'id' | 'createdAt' | 'status'> & { refCode?: string }): Promise<{ submission: OwnerSubmission; whatsappLink: string }> {
+  const refCode = submission.refCode || `DOS-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
   const newSubmission: OwnerSubmission = {
     ...submission,
     id: `prop-sub-${Date.now()}`,
-    status: 'NOUVEAU',
+    refCode,
+    estimatedPrice: submission.estimatedPrice || submission.estimatedValue,
+    status: 'PENDING',
     createdAt: new Date().toISOString(),
   };
 
@@ -284,20 +318,21 @@ export async function createOwnerSubmission(submission: Omit<OwnerSubmission, 'i
     phone: submission.ownerPhone,
     source: 'Soumission Propriétaire',
     universe: submission.objective,
-    propertyTitle: `Bien proposé: ${submission.propertyType} à ${submission.district}, ${submission.city}`,
-    notes: `Surface: ${submission.surfaceM2}m². Valeur estimée: ${submission.estimatedValue ? submission.estimatedValue + ' TND' : 'Non précisée'}. Détails: ${submission.details || 'Aucun'}`,
+    propertyTitle: `Bien proposé: ${submission.propertyType} à ${submission.district}, ${submission.city} (${refCode})`,
+    notes: `Surface: ${submission.surfaceM2}m². Valeur: ${submission.estimatedValue ? submission.estimatedValue + ' TND' : 'Non précisée'}. Titre: ${submission.titleType || 'Non spécifié'} (${submission.titleNumber || 'S/O'}). Détails: ${submission.details || 'Aucun'}`,
   });
 
   // Generate WhatsApp formatted text message for instant broker connection
   const text = encodeURIComponent(
-    `Bonjour Villa Regia,\n\nJe souhaite vous confier la gestion / vente de mon bien d'exception:\n` +
+    `Bonjour Villa Regia,\n\nJe viens de soumettre mon bien sur votre plateforme (${refCode}):\n` +
     `• Type: ${submission.propertyType}\n` +
     `• Univers ciblé: ${submission.objective}\n` +
-    `• Localisation: ${submission.district}, ${submission.city}\n` +
+    `• Localisation: ${submission.district}, ${submission.city} (${submission.gouvernorat || 'Sfax'})\n` +
     `• Surface: ${submission.surfaceM2} m²\n` +
     (submission.estimatedValue ? `• Estimation: ${submission.estimatedValue.toLocaleString('fr-FR')} TND\n` : '') +
+    (submission.titleType ? `• Statut Juridique: ${submission.titleType}\n` : '') +
     `• Propriétaire: ${submission.ownerName} (${submission.ownerPhone})\n\n` +
-    `Merci de me contacter pour convenir d'un rendez-vous d'évaluation confidentiel.`
+    `Merci de me contacter pour convenir d'un rendez-vous d'évaluation et de validation.`
   );
 
   const whatsappLink = `https://wa.me/21627745405?text=${text}`;

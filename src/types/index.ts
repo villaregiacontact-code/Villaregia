@@ -147,17 +147,30 @@ export interface EventQuoteRequest {
 
 export interface OwnerSubmission {
   id: string;
+  refCode: string;
   propertyType: PropertyCategory;
   objective: UniverseType;
+  gouvernorat?: string;
   city: string;
   district: string;
+  address?: string;
+  googleMapsLink?: string;
   surfaceM2: number;
+  bedrooms?: number;
   estimatedValue?: number;
+  estimatedPrice?: number;
   ownerName: string;
   ownerPhone: string;
   ownerEmail: string;
+  titleType?: string;
+  titleNumber?: string;
+  hasCertificate?: string;
+  hasBuildingPermit?: string;
+  tunisianLawCertified?: boolean;
+  specificDetails?: Record<string, any>;
   details?: string;
-  status: 'NOUVEAU' | 'CONTACTE' | 'VISITE' | 'MANDAT_SIGNE';
+  photos?: string[];
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOUVEAU' | 'CONTACTE' | 'VISITE' | 'MANDAT_SIGNE';
   createdAt: string;
 }
 
