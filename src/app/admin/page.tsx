@@ -70,108 +70,11 @@ export interface OwnerSubmission {
   createdAt: string;
 }
 
-const INITIAL_SUBMISSIONS: OwnerSubmission[] = [
-  {
-    id: 'sub-101',
-    refCode: 'DOS-2026-9120',
-    propertyType: 'Villa',
-    objective: 'VENTE',
-    surfaceM2: 550,
-    bedrooms: 5,
-    estimatedPrice: 1950000,
-    city: 'Sfax',
-    district: 'Route de Thyna Km 4',
-    ownerName: 'M. Habib Ben Salah',
-    ownerPhone: '+216 98 444 555',
-    ownerEmail: 'h.bensalah@topnet.tn',
-    details: 'Demeure contemporaine neuve avec titre foncier individuel et piscine à débordement.',
-    status: 'PENDING',
-    createdAt: '2026-08-31',
-  },
-  {
-    id: 'sub-102',
-    refCode: 'DOS-2026-4401',
-    propertyType: 'Penthouse',
-    objective: 'RESIDENCE',
-    surfaceM2: 320,
-    bedrooms: 3,
-    estimatedPrice: 1200000,
-    city: 'Sfax',
-    district: 'Route de la Soukra',
-    ownerName: 'Mme. Cyrine Karray',
-    ownerPhone: '+216 22 888 999',
-    ownerEmail: 'cyrine.karray@gmail.com',
-    details: 'Dernier étage haut standing meublé avec terrasse panoramique 80m2.',
-    status: 'PENDING',
-    createdAt: '2026-08-30',
-  },
-];
+const INITIAL_SUBMISSIONS: OwnerSubmission[] = [];
 
-const INITIAL_RESERVATIONS: BookingRequest[] = [
-  {
-    id: 'res-101',
-    propertyId: 'vr-soukra-01',
-    propertyTitle: 'Domaine de la Soukra — Villa de Maître',
-    guestName: 'Mme. Sarah Louati',
-    guestEmail: 'sarah.l@yahoo.fr',
-    guestPhone: '+216 22 456 789',
-    checkIn: '2026-09-10',
-    checkOut: '2026-09-14',
-    guestsCount: 4,
-    totalNights: 4,
-    pricePerNight: 1450,
-    totalAmount: 5800,
-    depositAmount: 1740,
-    status: 'CONFIRMED',
-    createdAt: '2026-08-30 14:20',
-  },
-  {
-    id: 'res-102',
-    propertyId: 'vr-gammarth-06',
-    propertyTitle: 'Villa Riviera Gold — Gammarth',
-    guestName: 'M. Karim Ben Salah',
-    guestEmail: 'k.bensalah@invest.tn',
-    guestPhone: '+216 98 111 222',
-    checkIn: '2026-09-20',
-    checkOut: '2026-09-25',
-    guestsCount: 6,
-    totalNights: 5,
-    pricePerNight: 2100,
-    totalAmount: 10500,
-    depositAmount: 3150,
-    status: 'PENDING',
-    createdAt: '2026-08-31 09:10',
-  },
-];
+const INITIAL_RESERVATIONS: BookingRequest[] = [];
 
-const INITIAL_LEADS: Lead[] = [
-  {
-    id: 'lead-01',
-    name: 'M. Slim Ben Ayed',
-    phone: '+216 98 123 456',
-    email: 'slim.ay@gmail.com',
-    source: 'Soumission Propriétaire',
-    universe: 'VENTE',
-    propertyTitle: 'Palais El Maamoura Thyna',
-    status: 'Visite',
-    assignedAgent: 'Amine Karray',
-    notes: 'Visite programmée pour le samedi à 11h. Intéressé par le patio central.',
-    createdAt: '2026-08-30',
-  },
-  {
-    id: 'lead-02',
-    name: 'Mme. Sarah Louati',
-    phone: '+216 22 456 789',
-    email: 'sarah.l@yahoo.fr',
-    source: 'Formulaire Contact',
-    universe: 'LUXE',
-    propertyTitle: 'Domaine de la Soukra',
-    status: 'Nouveau',
-    assignedAgent: 'Yassine Triki',
-    notes: 'Demande d’information sur la disponibilité du chef cuisinier.',
-    createdAt: '2026-08-31',
-  },
-];
+const INITIAL_LEADS: Lead[] = [];
 
 export default function AdminDashboardPage() {
   const router = useRouter();

@@ -46,35 +46,22 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   ],
 };
 
-export const INITIAL_STAFF_ACCOUNTS: UserAccount[] = [
+// Registered client accounts (created via public registration flow)
+export const REGISTERED_CLIENTS: UserAccount[] = [
   {
-    id: 'user-sa',
-    name: 'Yassine Triki (Directeur Général)',
-    email: 'admin@villaregia.tn',
-    role: 'SUPER_ADMIN',
-    phone: '+216 74 000 111',
-    twoFactorEnabled: true,
-    createdAt: '2026-01-01',
-  },
-  {
-    id: 'user-ag',
-    name: 'Amine Karray (Conseiller Privé)',
-    email: 'agent@villaregia.tn',
-    role: 'AGENT',
-    phone: '+216 20 123 456',
-    twoFactorEnabled: true,
-    createdAt: '2026-03-15',
-  },
-  {
-    id: 'user-cm',
-    name: 'Sonia Masmoudi (Responsable Contenu)',
-    email: 'content@villaregia.tn',
-    role: 'CONTENT_MANAGER',
-    phone: '+216 55 888 999',
-    twoFactorEnabled: true,
-    createdAt: '2026-04-10',
+    id: 'user-client-01',
+    name: 'Yassine Aloulou',
+    email: 'yassinealoulou6@gmail.com',
+    role: 'CLIENT',
+    twoFactorEnabled: false,
+    emailVerified: true,
+    createdAt: '2026-09-02',
   },
 ];
+
+// Admin / Staff accounts — managed exclusively via the Admin Dashboard
+// No dummy data: real accounts are configured by SUPER_ADMIN only
+export const INITIAL_STAFF_ACCOUNTS: UserAccount[] = [];
 
 interface AuthContextType {
   user: UserAccount | null;
@@ -103,17 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [pendingEmailConfirmation, setPendingEmailConfirmation] = useState<string | null>(null);
   const [lastDispatchedEmailNotice, setLastDispatchedEmailNotice] = useState<{ type: 'CONFIRMATION' | '2FA'; email: string; code: string; previewUrl?: string | null } | null>(null);
 
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([
-    {
-      id: 'log-1',
-      timestamp: '2026-09-01 01:15',
-      userEmail: 'admin@villaregia.tn',
-      userName: 'Yassine Triki',
-      role: 'SUPER_ADMIN',
-      action: 'Envoi Code 2FA Email',
-      target: 'Protection Compte Sécurisée',
-    },
-  ]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   useEffect(() => {
     try {
@@ -173,18 +150,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logAction('Connexion au compte', userObj.role);
       return true;
     } catch (e) {
-      // Offline / API Fallback
-      let found = INITIAL_STAFF_ACCOUNTS.find((a) => a.email.toLowerCase() === cleanEmail);
-      const isStaff = cleanEmail.includes('admin') || cleanEmail.includes('agent');
+      // Offline / API Fallback — check registered clients and staff
+      const knownClient = REGISTERED_CLIENTS.find((a) => a.email.toLowerCase() === cleanEmail);
+      const knownStaff = INITIAL_STAFF_ACCOUNTS.find((a) => a.email.toLowerCase() === cleanEmail);
+      const found = knownStaff || knownClient;
 
-      const fallbackUser: UserAccount = found || {
-        id: `usr-${Date.now()}`,
-        name: cleanEmail.split('@')[0].toUpperCase(),
-        email: cleanEmail,
-        role: isStaff ? 'ADMIN' : 'CLIENT',
-        twoFactorEnabled: isStaff,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
+      // If no known account found, deny login
+      if (!found) {
+        return false;
+      }
+
+      const fallbackUser: UserAccount = found;
 
       setUser(fallbackUser);
       localStorage.setItem('vr_user', JSON.stringify(fallbackUser));

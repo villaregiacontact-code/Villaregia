@@ -5,84 +5,9 @@ import { supabase, isSupabaseConfigured } from './supabase';
 // In-Memory Fallback State (persists during server runtime, syncs with browser localStorage on client)
 let localProperties: Property[] = [...INITIAL_PROPERTIES];
 
-let localBookings: BookingRequest[] = [
-  {
-    id: 'res-101',
-    propertyId: 'vr-soukra-01',
-    propertyTitle: 'Domaine de la Soukra — Villa de Maître & Piscine Oliviers',
-    guestName: 'Kamel Triki',
-    guestEmail: 'k.triki@business.tn',
-    guestPhone: '+216 98 123 456',
-    checkIn: '2026-09-10',
-    checkOut: '2026-09-15',
-    guestsCount: 6,
-    totalNights: 5,
-    pricePerNight: 1450,
-    totalAmount: 7250,
-    depositAmount: 2175,
-    status: 'CONFIRMED',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'res-102',
-    propertyId: 'vr-gremda-02',
-    propertyTitle: 'Palais de l\'Altesse — Domaine Événementiel Route de Gremda',
-    guestName: 'Sonia Ben Ammar',
-    guestEmail: 'sonia.ba@gmail.com',
-    guestPhone: '+216 22 987 654',
-    checkIn: '2026-10-02',
-    checkOut: '2026-10-04',
-    guestsCount: 250,
-    totalNights: 2,
-    pricePerNight: 3500,
-    totalAmount: 7000,
-    depositAmount: 2100,
-    status: 'PENDING',
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-  }
-];
+let localBookings: BookingRequest[] = [];
 
-let localLeads: Lead[] = [
-  {
-    id: 'lead-01',
-    name: 'Mohamed Charfi',
-    email: 'm.charfi@sfax-export.com',
-    phone: '+216 98 444 555',
-    source: 'Formulaire Contact',
-    universe: 'VENTE',
-    propertyTitle: 'Résidence L’Olivier d’Or — Villa Contemporaine Route de Téniour',
-    status: 'Visite',
-    notes: 'Client sérieux cherche villa de maître pour résidence principale à Téniour. Visite programmée ce samedi.',
-    assignedAgent: 'Yassine Karray',
-    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-  },
-  {
-    id: 'lead-02',
-    name: 'Madame Meriam Louati',
-    email: 'meriam.louati@health.tn',
-    phone: '+216 24 111 222',
-    source: 'Soumission Propriétaire',
-    universe: 'LUXE',
-    propertyTitle: 'Propriété de Charme Route de Saltania',
-    status: 'Nouveau',
-    notes: 'A soumis un bien à la location courte durée. Surface 450m2 avec jardin.',
-    assignedAgent: 'Sofia Mezghani',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: 'lead-03',
-    name: 'Karim Fakhfakh',
-    email: 'kfakhfakh@tech-innov.tn',
-    phone: '+216 55 777 888',
-    source: 'WhatsApp',
-    universe: 'EVENT',
-    propertyTitle: 'Palais de l\'Altesse — Domaine Événementiel Route de Gremda',
-    status: 'Offre',
-    notes: 'Souhaite privatiser le domaine pour séminaire d\'entreprise (150 personnes). Devis transmis.',
-    assignedAgent: 'Yassine Karray',
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-  }
-];
+let localLeads: Lead[] = [];
 
 let localSubmissions: OwnerSubmission[] = [];
 

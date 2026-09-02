@@ -126,12 +126,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   // Resend Timer State
   const [resendTimer, setResendTimer] = useState<number>(0);
 
-  // Register Form State
+  // Register Form State (CLIENT role only — admin accounts are configured via the admin panel)
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regRole, setRegRole] = useState<UserRole>('CLIENT');
+  const regRole: UserRole = 'CLIENT'; // Fixed: public registration creates CLIENT accounts only
 
   const isStaffPending2FA = user && !is2FAVerified && user.role !== 'CLIENT';
 
@@ -404,7 +404,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <div className="border-b border-white/10 pb-4 text-center space-y-3">
               <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-[0.2em] uppercase text-brand-gold font-semibold">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Portail Membres & Administration</span>
+                <span>Portail Membres Villa Regia</span>
               </div>
 
               {/* Mode Toggle Bar */}
@@ -519,17 +519,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   />
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Type de Compte</label>
-                  <select
-                    value={regRole}
-                    onChange={(e) => setRegRole(e.target.value as UserRole)}
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-3 text-xs text-white font-mono transition-colors"
-                  >
-                    <option value="CLIENT">Client Membre (Consultation & Séjours)</option>
-                    <option value="AGENT">Conseiller Privé Staff</option>
-                    <option value="ADMIN">Administrateur Staff</option>
-                  </select>
+                <div className="p-3 rounded-lg bg-brand-gold/10 border border-brand-gold/25 text-[10px] font-mono text-brand-travertine/70 leading-relaxed">
+                  <span className="text-brand-gold font-bold block mb-1">Compte Client</span>
+                  L'inscription publique crée un compte Client Membre. Les comptes Administrateurs et Staff sont configurés exclusivement par la direction via le tableau de bord sécurisé.
                 </div>
 
                 <button
@@ -537,7 +529,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2 mt-2"
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>Créer mon Compte</span>
+                  <span>Créer mon Compte Client</span>
                 </button>
               </form>
             )}

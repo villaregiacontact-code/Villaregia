@@ -5,7 +5,7 @@ import { PENDING_REGISTRATIONS } from '@/lib/authStore';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, role, password } = body;
+    const { name, email, phone, password } = body;
 
     if (!name || !email) {
       return NextResponse.json(
@@ -16,6 +16,10 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.toLowerCase().trim();
 
+    // SECURITY: Public registration is restricted to CLIENT accounts only.
+    // Admin/Staff accounts are configured exclusively via the Admin Dashboard by a SUPER_ADMIN.
+    const role = 'CLIENT';
+
     // Generate 6-digit confirmation code
     const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -23,7 +27,7 @@ export async function POST(request: Request) {
       name,
       email: cleanEmail,
       phone: phone || '+216 -- --- ---',
-      role: role || 'CLIENT',
+      role,
       confirmationCode,
       expiresAt: Date.now() + 15 * 60 * 1000,
     });
@@ -47,7 +51,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('Error sending registration email:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de l’envoi de l’email de confirmation.' },
+      { error: "Erreur lors de l'envoi de l'email de confirmation." },
       { status: 500 }
     );
   }

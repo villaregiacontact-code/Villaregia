@@ -97,6 +97,389 @@ const toggleCls = (active: boolean) =>
       : 'bg-brand-navy/50 border-white/10 text-white/60 hover:border-brand-gold/30 hover:text-white/80'
   }`;
 
+// ─────────────────────────────────────────────
+// TUNISIA COMPLETE LOCATION DATABASE
+// Gouvernorat → Ville → Quartiers / Routes
+// ─────────────────────────────────────────────
+const TUNISIA_LOCATIONS: Record<string, Record<string, string[]>> = {
+  'Sfax': {
+    'Sfax Ville': [
+      'Route de la Soukra',
+      'Route de la Soukra Km 1', 'Route de la Soukra Km 2', 'Route de la Soukra Km 3',
+      'Route de la Soukra Km 4', 'Route de la Soukra Km 5', 'Route de la Soukra Km 6',
+      'Route de Thyna', 'Route de Thyna Km 1', 'Route de Thyna Km 2', 'Route de Thyna Km 3',
+      'Route de Thyna Km 4', 'Route de Thyna Km 5',
+      'Route de Tunis', 'Route de Tunis Km 1', 'Route de Tunis Km 2', 'Route de Tunis Km 3',
+      'Route de Gremda', 'Route de Gremda Km 1', 'Route de Gremda Km 2',
+      'Route de Saltania', 'Route de Téniour', 'Route de Mahres',
+      'Route El Ain', 'Route Menzel Chaker',
+      'Sfax Médina', 'Sfax Centre', 'Sakiet Ezzit', 'Sakiet Eddaier',
+      'El Ain', 'Chihia', 'Hay Riadh', 'Hay Ettahrir', 'Hay El Barid',
+      'Manzel Hichem', 'Cité El Habib', 'Cité Ennour', 'Cité Ezzahra',
+      'Cité Erriadh', 'Cité El Maamoura', 'El Maamoura',
+      'Route de Ghraiba', 'Route de Bir Ali', 'Route de Skhira',
+      'Autre quartier de Sfax',
+    ],
+    'Sakiet Ezzit': [
+      'Centre Sakiet Ezzit', 'Cité Ennour', 'Cité El Habib', 'Cité El Barid',
+      'Route de Thyna', 'Route de la Soukra', 'Hay Riadh', 'Hay Ettahrir',
+    ],
+    'Sakiet Eddaier': [
+      'Centre Sakiet Eddaier', 'Cité Ettahrir', 'Route de Gremda', 'Route de Tunis',
+      'Hay El Amel', 'Cité Ezzahra',
+    ],
+    'Thyna': [
+      'Route de Thyna Km 1', 'Route de Thyna Km 2', 'Route de Thyna Km 3',
+      'Route de Thyna Km 4', 'Route de Thyna Km 5', 'Hay El Maamoura',
+      'Cité El Habib', 'Centre Thyna',
+    ],
+    'Gremda': [
+      'Route de Gremda Km 1', 'Route de Gremda Km 2', 'Route de Gremda Km 3',
+      'Cité Ennour', 'Cité El Habib', 'Centre Gremda',
+    ],
+    'El Ain': [
+      'Route El Ain', 'Cité El Ain', 'Centre El Ain', 'Route de Saltania',
+      'Route de Téniour', 'Hay Riadh El Ain',
+    ],
+    'Agareb': [
+      'Centre Agareb', 'Route de Sfax Agareb', 'Hay El Amel', 'Cité Ennour',
+    ],
+    'Bir Ali Ben Khalifa': [
+      'Centre Bir Ali', 'Route de Sfax', 'Hay El Maamoura',
+    ],
+    'Chihia': [
+      'Centre Chihia', 'Route de Sfax Chihia', 'Hay El Amel',
+    ],
+    'Ghraiba': [
+      'Centre Ghraiba', 'Route de Sfax Ghraiba',
+    ],
+    'Jebéniana': [
+      'Centre Jebéniana', 'Route de Sfax Jebéniana', 'Zone Industrielle Jebéniana',
+    ],
+    'Kerkennah': [
+      'Attaya', 'El Abbassia', 'El Chergui', 'El Gharbi',
+      'Mellita', 'Ouled Yaneg', 'Kraten',
+    ],
+    'Mahres': [
+      'Centre Mahres', 'Route de Sfax Mahres', 'Zone Côtière Mahres', 'Hay El Amel',
+    ],
+    'Menzel Chaker': [
+      'Centre Menzel Chaker', 'Route de Sfax Menzel Chaker',
+    ],
+    'Skhira': [
+      'Centre Skhira', 'Zone Industrielle Skhira', 'Zone Côtière Skhira',
+    ],
+    'Téniour': [
+      'Route de Téniour Km 1', 'Route de Téniour Km 2', 'Route de Téniour Km 3',
+      'Centre Téniour', 'Hay El Amel Téniour',
+    ],
+  },
+  'Tunis': {
+    'Tunis Ville': [
+      'Médina de Tunis', 'Lafayette', 'El Menzah', 'El Menzah 1', 'El Menzah 4',
+      'El Menzah 5', 'El Menzah 6', 'El Menzah 7', 'El Menzah 8', 'El Menzah 9',
+      'Ennahli', 'Les Berges du Lac 1', 'Les Berges du Lac 2', 'Lac 1', 'Lac 2',
+      'El Khadra', 'Montplaisir', 'Belvédère', 'Mutuelle Ville', 'Bab Bhar',
+      'La Marsa', 'Sidi Bou Said', 'Carthage', 'Le Kram',
+      'Autre quartier de Tunis',
+    ],
+    'Ariana': [
+      'Ariana Ville', 'Ariana Essoughra', 'Cité Ghazela', 'Cité Ettadhamen',
+      'Mnihla', 'Raoued', 'Sidi Thabet', 'El Menzah', 'Borj Louzir',
+    ],
+    'Ben Arous': [
+      'Ben Arous Ville', 'Ezzahra', 'Hammam Lif', 'Hammam Chatt', 'Bou Mhel el-Bassatine',
+      'El Mourouj', 'Fouchana', 'Khalidia', 'Medina Jedida', 'Mégrine', 'Mornag', 'Radès',
+    ],
+    'Manouba': [
+      'Manouba Ville', 'Denden', 'Douar Hicher', 'El Battan', 'Jedaida',
+      'Mornaguia', 'Oued Ellil', 'Tébourba',
+    ],
+    'La Marsa': [
+      'La Marsa Centre', 'La Marsa Plage', 'Sidi Bou Said', 'Gammarth',
+      'Route de la Marsa', 'Cité Soukra La Marsa', 'Ain Zaghouan',
+    ],
+    'Carthage': [
+      'Byrsa', 'Dermech', 'Hannibal', 'Carthage Présidence', 'Carthage Amilcar',
+      'Carthage Salammbo', 'Carthage Junon',
+    ],
+    'Gammarth': [
+      'Gammarth Village', 'Gammarth Centre', 'Gammarth Plage',
+      'Route de Gammarth', 'Hôtel Zone Gammarth', 'Gammarth Supérieur',
+    ],
+  },
+  'Sousse': {
+    'Sousse Ville': [
+      'Médina de Sousse', 'Khezama', 'Sahloul', 'Riadh', 'Sidi Abdelhamid',
+      'Zaouia', 'Hay Erriadh', 'Cité Boudher', 'Zone Touristique Sousse',
+      'Autre quartier de Sousse',
+    ],
+    'Hammam Sousse': [
+      'Centre Hammam Sousse', 'Zone Hôtelière Hammam Sousse',
+      'Route Touristique Hammam Sousse', 'Borj Ghorbel',
+    ],
+    'Kalâa Kebira': [
+      'Centre Kalâa Kebira', 'Route de Sousse Kalâa Kebira',
+    ],
+    'Akouda': [
+      'Centre Akouda', 'Zone Touristique Akouda', 'Route Côtière Akouda',
+    ],
+    'Msaken': [
+      'Centre Msaken', 'Route de Sousse Msaken', 'Hay El Amel Msaken',
+    ],
+    'Kondar': [
+      'Centre Kondar', 'Route de Sousse Kondar',
+    ],
+    'Sidi Bou Ali': [
+      'Centre Sidi Bou Ali', 'Route de Sousse Sidi Bou Ali',
+    ],
+  },
+  'Monastir': {
+    'Monastir Ville': [
+      'Médina de Monastir', 'Skanes', 'Ouardia', 'Hay Ksiba',
+      'Zone Touristique Monastir', 'Route de Tunis Monastir',
+      'Autre quartier de Monastir',
+    ],
+    'Skanes': [
+      'Skanes Centre', 'Zone Hôtelière Skanes', 'Route Touristique Skanes',
+    ],
+    'Ksar Hellal': [
+      'Centre Ksar Hellal', 'Route de Monastir Ksar Hellal',
+    ],
+    'Moknine': [
+      'Centre Moknine', 'Zone Industrielle Moknine',
+    ],
+    'Jemmal': [
+      'Centre Jemmal', 'Route de Sousse Jemmal',
+    ],
+  },
+  'Mahdia': {
+    'Mahdia Ville': [
+      'Médina de Mahdia', 'Zone Touristique Mahdia', 'Hiboun', 'Sidi Messaoud',
+      'Route Côtière Mahdia', 'Autre quartier de Mahdia',
+    ],
+    'El Jem': [
+      'Centre El Jem', 'Route de Sfax El Jem', 'Route de Mahdia El Jem',
+    ],
+    'Chebba': [
+      'Centre Chebba', 'Zone Portuaire Chebba', 'Route Côtière Chebba',
+    ],
+    'Ksour Essef': [
+      'Centre Ksour Essef', 'Route de Mahdia Ksour Essef',
+    ],
+  },
+  'Nabeul': {
+    'Nabeul Ville': [
+      'Médina de Nabeul', 'Zone Touristique Nabeul', 'Route de Hammamet',
+      'Route de Tunis Nabeul', 'Hay Erriadh Nabeul', 'Autre quartier de Nabeul',
+    ],
+    'Hammamet': [
+      'Hammamet Centre', 'Hammamet Nord', 'Hammamet Sud', 'Yasmine Hammamet',
+      'Zone Hôtelière Hammamet', 'Route Touristique Hammamet',
+    ],
+    'Yasmine Hammamet': [
+      'Yasmine Hammamet Centre', 'Zone Résidentielle Yasmine',
+      'Zone Hôtelière Yasmine', 'Baie des Anges', 'Medina Yasmina',
+    ],
+    'Kélibia': [
+      'Centre Kélibia', 'Zone Côtière Kélibia', 'Route de Nabeul Kélibia',
+    ],
+    'Korba': [
+      'Centre Korba', 'Zone Touristique Korba', 'Route Côtière Korba',
+    ],
+    'Menzel Temime': [
+      'Centre Menzel Temime', 'Route de Nabeul Menzel Temime',
+    ],
+  },
+  'Djerba — Médenine': {
+    'Djerba': [
+      'Houmt Souk', 'Midoun', 'Aghir', "Ras R'mel", 'El Kantara',
+      'Sedouikech', 'Guellala', 'Mahboubine', 'Zone Hôtelière Djerba',
+      'Route Touristique Djerba', 'Autre quartier de Djerba',
+    ],
+    'Médenine Ville': [
+      'Centre Médenine', 'Hay El Amel Médenine', 'Route de Tunis Médenine',
+    ],
+    'Zarzis': [
+      'Centre Zarzis', 'Zone Touristique Zarzis', 'Zone Portuaire Zarzis',
+      'Route Côtière Zarzis',
+    ],
+    'Ben Gardane': [
+      'Centre Ben Gardane', 'Zone Frontalière Ben Gardane', 'Route de Tunis Ben Gardane',
+    ],
+  },
+  'Kairouan': {
+    'Kairouan Ville': [
+      'Médina de Kairouan', 'Hay Erriadh', 'Hay El Amel',
+      'Route de Tunis Kairouan', 'Route de Sfax Kairouan',
+      'Autre quartier de Kairouan',
+    ],
+    'Sbikha': [
+      'Centre Sbikha', 'Route de Kairouan Sbikha',
+    ],
+    'Hajeb El Ayoun': [
+      'Centre Hajeb El Ayoun', 'Zone Industrielle Hajeb',
+    ],
+  },
+  'Gabès': {
+    'Gabès Ville': [
+      'Médina de Gabès', 'Jara', 'Menzel', 'Chott', 'Matmata',
+      'Route de Sfax Gabès', 'Zone Industrielle Gabès',
+      'Autre quartier de Gabès',
+    ],
+    'Matmata': [
+      'Matmata Centre', 'Matmata Nouvelle', 'Route de Gabès Matmata',
+    ],
+    'El Hamma': [
+      'Centre El Hamma', 'Zone Thermale El Hamma',
+    ],
+  },
+  'Bizerte': {
+    'Bizerte Ville': [
+      'Bizerte Centre', 'Corniche Bizerte', 'Ain Mariem', 'Jaafer', 'Zarzouna',
+      'Route de Tunis Bizerte', 'Zone Touristique Bizerte',
+      'Autre quartier de Bizerte',
+    ],
+    'Menzel Bourguiba': [
+      'Centre Menzel Bourguiba', 'Route de Bizerte Menzel Bourguiba',
+    ],
+    'Mateur': [
+      'Centre Mateur', 'Route de Bizerte Mateur', 'Zone Agricole Mateur',
+    ],
+  },
+  'Béja': {
+    'Béja Ville': [
+      'Béja Centre', 'Route de Tunis Béja', 'Route de Jendouba Béja',
+      'Zone Agricole Béja', 'Autre quartier de Béja',
+    ],
+    'Testour': [
+      'Centre Testour', 'Route de Béja Testour',
+    ],
+    'Nefza': [
+      'Centre Nefza', 'Route de Béja Nefza',
+    ],
+  },
+  'Jendouba': {
+    'Jendouba Ville': [
+      'Jendouba Centre', 'Route de Tunis Jendouba', 'Route de Béja Jendouba',
+      'Autre quartier de Jendouba',
+    ],
+    'Tabarka': [
+      'Tabarka Centre', 'Zone Touristique Tabarka', 'Zone Côtière Tabarka',
+      'Ain Draham',
+    ],
+    'Ain Draham': [
+      'Ain Draham Centre', 'Route de Jendouba Ain Draham', 'Zone Montagnarde Ain Draham',
+    ],
+  },
+  'Le Kef': {
+    'Le Kef Ville': [
+      'Le Kef Centre', 'Médina du Kef', 'Route de Tunis Le Kef',
+      'Hay El Amel Le Kef', 'Autre quartier du Kef',
+    ],
+    'Dahmani': [
+      'Centre Dahmani', 'Route du Kef Dahmani',
+    ],
+  },
+  'Siliana': {
+    'Siliana Ville': [
+      'Siliana Centre', 'Route de Tunis Siliana', 'Zone Agricole Siliana',
+      'Autre quartier de Siliana',
+    ],
+    'Makthar': [
+      'Centre Makthar', 'Zone Archéologique Makthar',
+    ],
+  },
+  'Kasserine': {
+    'Kasserine Ville': [
+      'Kasserine Centre', 'Route de Tunis Kasserine', 'Zone Industrielle Kasserine',
+      'Autre quartier de Kasserine',
+    ],
+    'Sbeitla': [
+      'Centre Sbeitla', 'Zone Archéologique Sbeitla',
+    ],
+    'Thala': [
+      'Centre Thala', 'Route de Kasserine Thala',
+    ],
+  },
+  'Sidi Bouzid': {
+    'Sidi Bouzid Ville': [
+      'Sidi Bouzid Centre', 'Route de Sfax Sidi Bouzid', 'Zone Agricole Sidi Bouzid',
+      'Autre quartier de Sidi Bouzid',
+    ],
+    'Regueb': [
+      'Centre Regueb', 'Route de Sidi Bouzid Regueb',
+    ],
+    'Menzel Bouzaiane': [
+      'Centre Menzel Bouzaiane', 'Zone Minière Menzel Bouzaiane',
+    ],
+  },
+  'Gafsa': {
+    'Gafsa Ville': [
+      'Gafsa Centre', 'Lala', 'Sidi Ahmed Zarroug', 'Route de Tunis Gafsa',
+      'Zone Minière Gafsa', 'Autre quartier de Gafsa',
+    ],
+    'Métlaoui': [
+      'Centre Métlaoui', 'Zone Minière Métlaoui',
+    ],
+    'Redeyef': [
+      'Centre Redeyef', 'Zone Minière Redeyef',
+    ],
+    'El Ksar': [
+      'Centre El Ksar Gafsa', 'Route de Gafsa El Ksar',
+    ],
+  },
+  'Tozeur': {
+    'Tozeur Ville': [
+      'Tozeur Centre', 'Médina de Tozeur', 'Zone Touristique Tozeur',
+      'Route de Gafsa Tozeur', 'Nefta', 'Autre quartier de Tozeur',
+    ],
+    'Nefta': [
+      'Centre Nefta', 'Zone Touristique Nefta', 'Route de Tozeur Nefta',
+    ],
+  },
+  'Kébili': {
+    'Kébili Ville': [
+      'Kébili Centre', 'Route de Tozeur Kébili', 'Douz', 'Autre quartier de Kébili',
+    ],
+    'Douz': [
+      'Centre Douz', 'Zone Touristique Douz (Porte du Sahara)', 'Route de Kébili Douz',
+    ],
+  },
+  'Tataouine': {
+    'Tataouine Ville': [
+      'Tataouine Centre', 'Route de Médenine Tataouine', 'Ghomrassen',
+      'Beni Barka', 'Autre quartier de Tataouine',
+    ],
+    'Ghomrassen': [
+      'Centre Ghomrassen', 'Route de Tataouine Ghomrassen',
+    ],
+    'Remada': [
+      'Centre Remada', 'Zone Frontalière Remada',
+    ],
+  },
+  'Zaghouan': {
+    'Zaghouan Ville': [
+      'Zaghouan Centre', 'Route de Tunis Zaghouan', 'Zone Touristique Zaghouan',
+      'Autre quartier de Zaghouan',
+    ],
+    'Nadhour': [
+      'Centre Nadhour', 'Route de Zaghouan Nadhour',
+    ],
+  },
+};
+
+// Helper: get gouvernorats
+const GOUVERNORATS = Object.keys(TUNISIA_LOCATIONS);
+
+// Helper: get cities for a gouvernorat
+const getCities = (gov: string): string[] =>
+  gov && TUNISIA_LOCATIONS[gov] ? Object.keys(TUNISIA_LOCATIONS[gov]) : [];
+
+// Helper: get districts for a city within a gouvernorat
+const getDistricts = (gov: string, city: string): string[] =>
+  gov && city && TUNISIA_LOCATIONS[gov]?.[city] ? TUNISIA_LOCATIONS[gov][city] : [];
+
 export default function SubmitPropertyPage() {
   const { t } = useLanguage();
   const [step, setStep] = useState<number>(1);
@@ -110,9 +493,11 @@ export default function SubmitPropertyPage() {
   const [objective, setObjective] = useState<UniverseType>('VENTE');
 
   // Step 2: Localisation
-  const [city, setCity] = useState<string>('Sfax');
+  const [gouvernorat, setGouvernorat] = useState<string>('Sfax');
+  const [city, setCity] = useState<string>('Sfax Ville');
   const [district, setDistrict] = useState<string>('');
   const [address, setAddress] = useState<string>('');
+  const [googleMapsLink, setGoogleMapsLink] = useState<string>('');
 
   // Step 3: Dimensions de base
   const [surfaceM2, setSurfaceM2] = useState<number>(0);
@@ -200,9 +585,11 @@ export default function SubmitPropertyPage() {
       surfaceM2: Number(surfaceM2) || 0,
       bedrooms: Number(bedrooms) || 0,
       estimatedValue: Number(estimatedPrice) || undefined,
+      gouvernorat,
       city,
       district,
       address,
+      googleMapsLink,
       ownerName: ownerName || 'Propriétaire Anonyme',
       ownerPhone: ownerPhone || '+216 -- --- ---',
       ownerEmail: ownerEmail || '',
@@ -234,8 +621,9 @@ export default function SubmitPropertyPage() {
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Bonjour Villa Regia, dossier ${dossierRef} — ${propertyType} (${objective}) — ${district}, ${city} — ${surfaceM2}m² — ${estimatedPrice} TND — Propriétaire: ${ownerName} (${ownerPhone})`;
+  const whatsappMessage = `Bonjour Villa Regia, dossier ${dossierRef} — ${propertyType} (${objective}) — ${district}, ${city}, ${gouvernorat} — ${surfaceM2}m² — ${estimatedPrice} TND — Propriétaire: ${ownerName} (${ownerPhone})${googleMapsLink ? ` — Maps: ${googleMapsLink}` : ''}`;
   const whatsappUrl = dynamicWhatsappUrl || `https://wa.me/21698123456?text=${encodeURIComponent(whatsappMessage)}`;
+
 
   // ─── Step Labels ────────────────────────────────────────────────────
   const stepLabels = ['Type & Objectif', 'Localisation', 'Dimensions', specific.isNew !== undefined ? 'Caractéristiques' : 'Détails', 'Identité', 'Photos'];
@@ -594,27 +982,120 @@ export default function SubmitPropertyPage() {
                   <div className="space-y-5">
                     <div>
                       <h3 className="font-editorial text-xl sm:text-2xl text-white font-light mb-1">Localisation Géographique</h3>
-                      <p className="text-xs text-white/40">Indiquez la position exacte de votre bien pour l'estimation.</p>
+                      <p className="text-xs text-white/40">Sélectionnez votre gouvernorat, ville et quartier pour une estimation précise.</p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className={labelCls}><MapPin className="inline w-3 h-3 mr-1" />Gouvernorat / Ville</label>
-                        <div className="relative"><select className={inputCls + ' appearance-none pr-10'} value={city} onChange={e => setCity(e.target.value)}>
-                          {['Sfax', 'Tunis', 'Sousse', 'Monastir', 'Djerba', 'Hammamet', 'Autre'].map(c => <option key={c}>{c}</option>)}
-                        </select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" /></div>
-                      </div>
-                      <div>
-                        <label className={labelCls}>Quartier / Route</label>
-                        <div className="relative"><select className={inputCls + ' appearance-none pr-10'} value={district} onChange={e => setDistrict(e.target.value)}>
-                          <option value="">Sélectionner...</option>
-                          {['Route de la Soukra', 'Route de Thyna', 'Route de Tunis', 'Route de Gremda', 'Sakiet Ezzit', 'Sfax Médina', 'El Ain', 'Chihia', 'Autre'].map(d => <option key={d}>{d}</option>)}
-                        </select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" /></div>
+
+                    {/* Row 1: Gouvernorat */}
+                    <div>
+                      <label className={labelCls}><MapPin className="inline w-3 h-3 mr-1" />Gouvernorat / Région</label>
+                      <div className="relative">
+                        <select
+                          className={inputCls + ' appearance-none pr-10'}
+                          value={gouvernorat}
+                          onChange={e => {
+                            setGouvernorat(e.target.value);
+                            setCity('');
+                            setDistrict('');
+                          }}
+                        >
+                          <option value="">Sélectionner un gouvernorat...</option>
+                          {GOUVERNORATS.map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
                       </div>
                     </div>
+
+                    {/* Row 2: Ville */}
+                    {gouvernorat && (
+                      <div>
+                        <label className={labelCls}>Ville / Délégation</label>
+                        <div className="relative">
+                          <select
+                            className={inputCls + ' appearance-none pr-10'}
+                            value={city}
+                            onChange={e => {
+                              setCity(e.target.value);
+                              setDistrict('');
+                            }}
+                          >
+                            <option value="">Sélectionner une ville...</option>
+                            {getCities(gouvernorat).map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Row 3: Quartier / Route */}
+                    {city && getDistricts(gouvernorat, city).length > 0 && (
+                      <div>
+                        <label className={labelCls}>Quartier / Route / Secteur</label>
+                        <div className="relative">
+                          <select
+                            className={inputCls + ' appearance-none pr-10'}
+                            value={district}
+                            onChange={e => setDistrict(e.target.value)}
+                          >
+                            <option value="">Sélectionner un quartier ou une route...</option>
+                            {getDistricts(gouvernorat, city).map(d => <option key={d} value={d}>{d}</option>)}
+                          </select>
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Row 4: Adresse précise */}
                     <div>
                       <label className={labelCls}>Adresse précise (optionnel — confidentielle)</label>
-                      <input type="text" className={inputCls} placeholder="ex: Route de la Soukra Km 3, Villa n°12" value={address} onChange={e => setAddress(e.target.value)} />
+                      <input
+                        type="text"
+                        className={inputCls}
+                        placeholder="ex: Route de la Soukra Km 3, Villa n°12..."
+                        value={address}
+                        onChange={e => setAddress(e.target.value)}
+                      />
                     </div>
+
+                    {/* Row 5: Google Maps Link */}
+                    <div>
+                      <label className={labelCls}>
+                        <MapPin className="inline w-3 h-3 mr-1" />
+                        Lien Google Maps (placement exact)
+                      </label>
+                      <input
+                        type="url"
+                        className={inputCls}
+                        placeholder="https://maps.google.com/?q=..."
+                        value={googleMapsLink}
+                        onChange={e => setGoogleMapsLink(e.target.value)}
+                      />
+                      <p className="text-[10px] text-white/30 mt-1.5 leading-relaxed">
+                        Ouvrez Google Maps, trouvez votre bien, appuyez longuement sur la position et copiez le lien de partage ici.
+                      </p>
+                      {googleMapsLink && (
+                        <a
+                          href={googleMapsLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-mono text-brand-gold hover:underline"
+                        >
+                          <MapPin className="w-3 h-3" />
+                          Vérifier la position sur Google Maps →
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Summary badge */}
+                    {gouvernorat && city && (
+                      <div className="p-3 rounded-lg bg-brand-gold/8 border border-brand-gold/20 text-[10px] font-mono text-brand-travertine/70 flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-brand-gold shrink-0" />
+                        <span>
+                          <span className="text-brand-gold font-bold">{gouvernorat}</span>
+                          {city && <> &rsaquo; {city}</>}
+                          {district && <> &rsaquo; {district}</>}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 

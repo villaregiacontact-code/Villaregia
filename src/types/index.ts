@@ -37,6 +37,7 @@ export interface UserAccount {
   avatarUrl?: string;
   twoFactorEnabled?: boolean;
   twoFactorVerified?: boolean;
+  emailVerified?: boolean;
   createdAt: string;
 }
 
