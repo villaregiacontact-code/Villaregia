@@ -34,7 +34,7 @@ async function dispatchHtmlEmail({
   const resendApiKey = process.env.RESEND_API_KEY;
   if (resendApiKey) {
     try {
-      const fromAddress = process.env.EMAIL_FROM || 'Villa Regia <onboarding@resend.dev>';
+      const fromAddress = process.env.EMAIL_FROM || 'Villa Regia <contact@villaregiarealestates.com>';
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
