@@ -1,82 +1,109 @@
 import { NextResponse } from 'next/server';
 import { sendSecurityEmail } from '@/lib/email';
-import { TWO_FACTOR_SESSIONS } from '@/lib/authStore';
-
-// Known accounts with their credentials
-// In a production environment, these would be stored securely in a database with hashed passwords.
-const KNOWN_ACCOUNTS = [
-  {
-    email: 'yassinealoulou6@gmail.com',
-    password: 'Yassine.123',
-    name: 'Yassine Aloulou',
-    role: 'CLIENT' as const,
-    id: 'user-client-01',
-    twoFactorEnabled: false,
-  },
-];
+import { ACCOUNTS_STORE, TWO_FACTOR_SESSIONS, LOGIN_ATTEMPTS } from '@/lib/authStore';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { email, password } = body;
 
-    if (!email) {
+    if (!email || !email.trim()) {
       return NextResponse.json(
-        { error: 'Adresse email requise.' },
+        { error: 'Veuillez saisir votre adresse email.' },
+        { status: 400 }
+      );
+    }
+
+    if (!password || !password.trim()) {
+      return NextResponse.json(
+        { error: 'Veuillez saisir votre mot de passe.' },
         { status: 400 }
       );
     }
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // Check credentials against known accounts
-    const account = KNOWN_ACCOUNTS.find(
-      (a) => a.email.toLowerCase() === cleanEmail && a.password === password
-    );
-
-    // If credentials don't match any known account, reject
-    if (!account && password) {
+    // ── BRUTE-FORCE RATE-LIMITING PROTECTION ──
+    const now = Date.now();
+    const attemptRecord = LOGIN_ATTEMPTS.get(cleanEmail);
+    if (attemptRecord && attemptRecord.lockedUntil > now) {
+      const remainingMinutes = Math.ceil((attemptRecord.lockedUntil - now) / 60000);
       return NextResponse.json(
-        { error: 'Identifiants incorrects. Vérifiez votre email et mot de passe.' },
+        {
+          error: `Compte temporairement verrouillé pour des raisons de sécurité. Réessayez dans ${remainingMinutes} minute(s).`,
+        },
+        { status: 429 }
+      );
+    }
+
+    // ── LOOKUP ACCOUNT ──
+    const account = ACCOUNTS_STORE.get(cleanEmail);
+
+    // If account doesn't exist
+    if (!account) {
+      // Record failed attempt
+      const currentAttempts = (attemptRecord?.count || 0) + 1;
+      LOGIN_ATTEMPTS.set(cleanEmail, {
+        count: currentAttempts,
+        lockedUntil: currentAttempts >= 5 ? now + 5 * 60 * 1000 : 0,
+      });
+
+      return NextResponse.json(
+        { error: 'Identifiants incorrects. Aucun compte associé à cette adresse email.' },
         { status: 401 }
       );
     }
 
-    const isStaff = account
-      ? ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(account.role)
-      : cleanEmail.includes('admin') || cleanEmail.includes('agent') || cleanEmail.includes('staff');
+    // ── VERIFY PASSWORD ──
+    if (account.password && account.password !== password) {
+      const currentAttempts = (attemptRecord?.count || 0) + 1;
+      const isLocked = currentAttempts >= 5;
+      LOGIN_ATTEMPTS.set(cleanEmail, {
+        count: currentAttempts,
+        lockedUntil: isLocked ? now + 5 * 60 * 1000 : 0,
+      });
 
-    const userObj = account
-      ? {
-          id: account.id,
-          name: account.name,
-          email: cleanEmail,
-          role: account.role,
-          twoFactorEnabled: account.twoFactorEnabled,
-          createdAt: new Date().toISOString().split('T')[0],
-        }
-      : {
-          id: `usr-${cleanEmail.replace(/[^a-z0-9]/g, '')}`,
-          name: cleanEmail.split('@')[0].toUpperCase(),
-          email: cleanEmail,
-          role: isStaff ? 'ADMIN' : 'CLIENT',
-          twoFactorEnabled: isStaff,
-          createdAt: new Date().toISOString().split('T')[0],
-        };
+      return NextResponse.json(
+        {
+          error: isLocked
+            ? 'Nombre maximal de tentatives atteint. Compte verrouillé pour 5 minutes.'
+            : 'Mot de passe incorrect. Veuillez vérifier votre saisie.',
+        },
+        { status: 401 }
+      );
+    }
 
-    // Generate 6-digit 2FA OTP code for staff accounts
-    if (isStaff) {
+    // ── SUCCESS: RESET FAILED ATTEMPTS ──
+    LOGIN_ATTEMPTS.delete(cleanEmail);
+
+    const isStaff = ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(account.role);
+
+    const userObj = {
+      id: account.id,
+      name: account.name,
+      email: cleanEmail,
+      phone: account.phone || '+216 -- --- ---',
+      role: account.role,
+      twoFactorEnabled: isStaff || !!account.twoFactorEnabled,
+      emailVerified: account.emailVerified ?? true,
+      createdAt: account.createdAt,
+    };
+
+    const requires2FA = isStaff && account.twoFactorEnabled !== false;
+
+    // ── STAFF ACCOUNTS WITH 2FA REQUIRE EMAIL OTP ──
+    if (requires2FA) {
       const twoFactorCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       TWO_FACTOR_SESSIONS.set(cleanEmail, {
         email: cleanEmail,
         code: twoFactorCode,
-        expiresAt: Date.now() + 10 * 60 * 1000,
+        expiresAt: now + 10 * 60 * 1000,
       });
 
       const emailResult = await sendSecurityEmail({
         to: cleanEmail,
-        subject: `[Villa Regia] Code 2FA de Connexion : ${twoFactorCode}`,
+        subject: `[Villa Regia] Code 2FA de Connexion Sécurisée : ${twoFactorCode}`,
         title: 'Authentification Forte Double Facteur (2FA)',
         code: twoFactorCode,
         type: '2FA',
@@ -88,21 +115,21 @@ export async function POST(request: Request) {
         user: userObj,
         twoFactorCode,
         previewUrl: emailResult.previewUrl,
-        message: `Code 2FA réellement envoyé à votre adresse email ${cleanEmail}.`,
+        message: `Code 2FA envoyé à votre adresse email ${cleanEmail}.`,
       });
     }
 
-    // CLIENT accounts — direct login, no 2FA required
+    // ── DIRECT LOGIN (CLIENT or STAFF with direct login) ──
     return NextResponse.json({
       success: true,
       requires2FA: false,
       user: userObj,
-      message: `Connexion réussie en tant que ${userObj.name}.`,
+      message: `Bienvenue, ${userObj.name}. Connexion réussie.`,
     });
   } catch (error: any) {
-    console.error('Error in login:', error);
+    console.error('Error in login endpoint:', error);
     return NextResponse.json(
-      { error: "Erreur lors de la connexion." },
+      { error: 'Une erreur de sécurité est survenue lors de la connexion.' },
       { status: 500 }
     );
   }

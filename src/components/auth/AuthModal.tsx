@@ -11,15 +11,20 @@ import {
   LogOut,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   UserPlus,
   Lock,
   Mail,
+  Phone,
   ShieldCheck,
   CheckCircle2,
   Send,
   RefreshCw,
+  Eye,
+  EyeOff,
+  AlertCircle,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -36,13 +41,11 @@ interface OtpInputProps {
 
 const OtpInput: React.FC<OtpInputProps> = ({ value, onChange }) => {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
-
   const digits = Array.from({ length: 6 }, (_, i) => value[i] || '');
 
   const handleChange = (index: number, val: string) => {
     const cleanVal = val.replace(/\D/g, '');
     if (!cleanVal) {
-      // Clear digit
       const nextDigits = [...digits];
       nextDigits[index] = '';
       onChange(nextDigits.join(''));
@@ -54,7 +57,6 @@ const OtpInput: React.FC<OtpInputProps> = ({ value, onChange }) => {
     const newCode = nextDigits.join('');
     onChange(newCode);
 
-    // Auto-advance to next input
     if (index < 5 && cleanVal) {
       inputsRef.current[index + 1]?.focus();
     }
@@ -106,6 +108,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     register,
     verifyEmailCode,
     verify2FACode,
+    cancelEmailVerification,
     logout,
   } = useAuth();
 
@@ -114,7 +117,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   // Form States
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // OTP Codes
   const [pinCode, setPinCode] = useState<string>('');
@@ -126,12 +131,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   // Resend Timer State
   const [resendTimer, setResendTimer] = useState<number>(0);
 
-  // Register Form State (CLIENT role only — admin accounts are configured via the admin panel)
+  // Register Form State (CLIENT role only)
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const regRole: UserRole = 'CLIENT'; // Fixed: public registration creates CLIENT accounts only
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
 
   const isStaffPending2FA = user && !is2FAVerified && user.role !== 'CLIENT';
 
@@ -160,20 +166,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const handleCustomLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!email) {
+
+    if (!email.trim()) {
       setError('Veuillez saisir votre adresse email.');
       return;
     }
+    if (!password.trim()) {
+      setError('Veuillez saisir votre mot de passe.');
+      return;
+    }
 
-    const success = await login(email, password);
-    if (success) {
-      if (user?.role === 'CLIENT') {
-        onClose();
-      } else {
+    setIsLoading(true);
+    const result = await login(email, password);
+    setIsLoading(false);
+
+    if (result.success) {
+      if (result.requires2FA) {
         setResendTimer(60);
+      } else {
+        // Direct login success
+        if (result.user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(result.user.role)) {
+          router.push('/admin');
+        }
+        onClose();
       }
     } else {
-      setError('Identifiants incorrects ou compte non vérifié.');
+      setError(result.error || 'Identifiants incorrects. Veuillez vérifier votre email et mot de passe.');
     }
   };
 
@@ -194,26 +212,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const handleVerifyEmailConfirmation = async (e: React.FormEvent) => {
     e.preventDefault();
     setActivationError(null);
-    const valid = await verifyEmailCode(activationCode);
-    if (valid) {
+    setIsLoading(true);
+    const result = await verifyEmailCode(activationCode);
+    setIsLoading(false);
+
+    if (result.success) {
       onClose();
     } else {
-      setActivationError('Code de confirmation invalide ou expiré.');
+      setActivationError(result.error || 'Code de confirmation invalide ou expiré.');
     }
   };
 
   const handleCustomRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!regName || !regEmail) {
-      setError('Veuillez remplir tous les champs obligatoires.');
+
+    if (!regName.trim() || regName.trim().length < 2) {
+      setError('Veuillez renseigner votre nom complet (minimum 2 caractères).');
+      return;
+    }
+    if (!regEmail.trim() || !regEmail.includes('@')) {
+      setError('Veuillez saisir une adresse email valide.');
+      return;
+    }
+    if (!regPassword || regPassword.length < 6) {
+      setError('Le mot de passe doit comporter au moins 6 caractères.');
+      return;
+    }
+    if (regPassword !== regConfirmPassword) {
+      setError('Les mots de passe ne correspondent pas.');
       return;
     }
 
-    const success = await register(regName, regEmail, regPhone || '+216 -- --- ---', regRole, regPassword);
-    if (success) {
+    setIsLoading(true);
+    const result = await register(regName, regEmail, regPhone || '+216 -- --- ---', 'CLIENT', regPassword);
+    setIsLoading(false);
+
+    if (result.success) {
       setMode('confirm-email');
       setResendTimer(60);
+    } else {
+      setError(result.error || "Erreur lors de l'inscription.");
     }
   };
 
@@ -223,13 +262,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleCancelConfirmation = () => {
+    cancelEmailVerification();
+    setMode('register');
+    setError(null);
+  };
+
+  // Password strength calculation
+  const getPasswordStrength = (pass: string) => {
+    if (!pass) return 0;
+    let score = 0;
+    if (pass.length >= 6) score += 1;
+    if (pass.length >= 10) score += 1;
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+    return score;
+  };
+
+  const regPassStrength = getPasswordStrength(regPassword);
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="glass-navy p-8 rounded-2xl max-w-md w-full border border-brand-gold/30 shadow-2xl relative space-y-6 max-h-[90vh] overflow-y-auto"
+        className="glass-navy p-8 rounded-2xl max-w-md w-full border border-brand-gold/30 shadow-2xl relative space-y-6 max-h-[92vh] overflow-y-auto"
       >
         <button
           onClick={onClose}
@@ -250,19 +309,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
             <div className="space-y-2">
               <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-brand-gold bg-brand-gold/10 px-3.5 py-1.5 rounded border border-brand-gold/20 inline-block font-semibold">
-                Activation de Compte
+                Sécurité & Vérification
               </span>
               <h3 className="font-editorial text-3xl font-light text-brand-travertine pt-1">
-                Vérification Email
+                Activation de Compte
               </h3>
               <p className="text-xs text-brand-travertine/70 leading-relaxed max-w-xs mx-auto">
-                Un code de confirmation à 6 chiffres a été transmis à <span className="font-bold text-white font-mono">{pendingEmailConfirmation}</span>.
+                Un code de sécurité à 6 chiffres a été envoyé à :<br />
+                <span className="font-bold text-brand-gold font-mono break-all">{pendingEmailConfirmation}</span>
               </p>
             </div>
 
             {activationError && (
-              <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono">
-                {activationError}
+              <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono flex items-center gap-2 text-left">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{activationError}</span>
               </div>
             )}
 
@@ -271,15 +332,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
               <button
                 type="submit"
-                disabled={activationCode.length < 6}
+                disabled={activationCode.length < 6 || isLoading}
                 className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Activer mon Compte</span>
+                {isLoading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
+                <span>{isLoading ? 'Vérification...' : 'Activer mon Compte'}</span>
               </button>
             </form>
 
-            <div className="pt-2 text-center">
+            <div className="pt-2 text-center space-y-3">
               <button
                 type="button"
                 onClick={handleResendCode}
@@ -291,6 +356,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   {resendTimer > 0 ? `Renvoyer le code dans ${resendTimer}s` : 'Renvoyer un nouveau code par email'}
                 </span>
               </button>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={handleCancelConfirmation}
+                  className="text-[11px] text-brand-travertine/40 hover:text-brand-gold font-mono transition-colors inline-flex items-center gap-1"
+                >
+                  <ArrowLeft className="w-3 h-3" />
+                  <span>Modifier mon adresse email</span>
+                </button>
+              </div>
             </div>
           </div>
         ) : isStaffPending2FA ? (
@@ -315,8 +391,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             {twoFactorError && (
-              <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono">
-                {twoFactorError}
+              <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono flex items-center gap-2 text-left">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{twoFactorError}</span>
               </div>
             )}
 
@@ -358,15 +435,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
         ) : user ? (
-          /* Logged In View */
+          /* ------------------------------------------------------------------------- */
+          /* LOGGED-IN PROFILE VIEW                                                    */
+          /* ------------------------------------------------------------------------- */
           <div className="space-y-6 text-center pt-2">
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
               <CheckCircle2 className="w-9 h-9" />
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-brand-gold bg-brand-gold/10 px-3 py-1 rounded">
-                Membre : {user.role}
+              <span className={`text-[10px] font-mono uppercase tracking-widest px-3 py-1 rounded font-bold ${
+                user.role === 'SUPER_ADMIN'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  : user.role === 'ADMIN'
+                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                  : 'bg-brand-gold/10 text-brand-gold border border-brand-gold/20'
+              }`}>
+                {user.role === 'SUPER_ADMIN' ? 'Directeur Général (Super Admin)' : `Membre : ${user.role}`}
               </span>
               <h3 className="font-editorial text-2xl font-light text-brand-travertine pt-2">
                 {user.name}
@@ -380,7 +465,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   router.push('/admin');
                   onClose();
                 }}
-                className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3 rounded-xl shadow-xl flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3 rounded-xl shadow-xl flex items-center justify-center gap-2 hover:opacity-95 transition-all"
               >
                 <span>Accéder au Tableau de Bord Admin</span>
                 <ArrowRight className="w-4 h-4" />
@@ -399,12 +484,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
         ) : (
-          /* Login vs Register Switcher View */
+          /* ------------------------------------------------------------------------- */
+          /* LOGIN VS REGISTER TABS                                                    */
+          /* ------------------------------------------------------------------------- */
           <div className="space-y-6">
             <div className="border-b border-white/10 pb-4 text-center space-y-3">
               <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-[0.2em] uppercase text-brand-gold font-semibold">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Portail Membres Villa Regia</span>
+                <span>Portail Sécurisé Villa Regia</span>
               </div>
 
               {/* Mode Toggle Bar */}
@@ -431,105 +518,211 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono">
-                {error}
+              <div className="p-3.5 rounded-xl bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+                <span className="leading-relaxed">{error}</span>
               </div>
             )}
 
             {mode === 'login' ? (
+              /* ── LOGIN FORM ── */
               <form onSubmit={handleCustomLogin} className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Adresse Email</label>
-                  <input
-                    type="email"
-                    placeholder="votreemail@domaine.tn"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
-                    required
-                  />
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">
+                    Adresse Email
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      placeholder="votreemail@domaine.tn"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                      className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-3 pl-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
+                      required
+                    />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold/60" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Mot de passe</label>
-                  <input
-                    type="password"
-                    placeholder="••••••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
-                    required
-                  />
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-mono uppercase text-brand-gold block">
+                      Mot de passe
+                    </label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                      className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-3 pl-10 pr-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
+                      required
+                    />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold/60" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-brand-gold transition-colors"
+                      aria-label="Afficher le mot de passe"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] font-mono text-brand-travertine/60 pt-1">
+                  <span className="flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-brand-gold" />
+                    Chiffrement SSL 256-bit
+                  </span>
+                  <span>Accès Client & Staff</span>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2 mt-2"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Se Connecter</span>
+                  {isLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  <span>{isLoading ? 'Connexion en cours...' : 'Se Connecter'}</span>
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleCustomRegister} className="space-y-4">
+              /* ── REGISTER FORM ── */
+              <form onSubmit={handleCustomRegister} className="space-y-3.5">
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Nom & Prénom</label>
-                  <input
-                    type="text"
-                    placeholder="ex: Yassine Triki"
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-gold focus:outline-none transition-colors"
-                    required
-                  />
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">
+                    Nom & Prénom
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="ex: Mohamed Trabelsi"
+                      value={regName}
+                      onChange={(e) => { setRegName(e.target.value); setError(null); }}
+                      className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 pl-10 text-xs text-white focus:border-brand-gold focus:outline-none transition-colors"
+                      required
+                    />
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold/60" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Adresse Email</label>
-                  <input
-                    type="email"
-                    placeholder="votreemail@domaine.tn"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
-                    required
-                  />
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">
+                    Adresse Email
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      placeholder="votreemail@domaine.tn"
+                      value={regEmail}
+                      onChange={(e) => { setRegEmail(e.target.value); setError(null); }}
+                      className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 pl-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
+                      required
+                    />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold/60" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Téléphone Direct</label>
-                  <input
-                    type="text"
-                    placeholder="+216 98 --- ---"
-                    value={regPhone}
-                    onChange={(e) => setRegPhone(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
-                  />
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">
+                    Téléphone Direct
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      placeholder="+216 98 --- ---"
+                      value={regPhone}
+                      onChange={(e) => { setRegPhone(e.target.value); setError(null); }}
+                      className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 pl-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
+                    />
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold/60" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Mot de Passe</label>
-                  <input
-                    type="password"
-                    placeholder="••••••••••••"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-3 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
-                    required
-                  />
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">
+                    Mot de Passe (minimum 6 caractères)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showRegPassword ? 'text' : 'password'}
+                      placeholder="••••••••••••"
+                      value={regPassword}
+                      onChange={(e) => { setRegPassword(e.target.value); setError(null); }}
+                      className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 pl-10 pr-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
+                      required
+                    />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold/60" />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-brand-gold transition-colors"
+                      aria-label="Afficher le mot de passe"
+                    >
+                      {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {/* Password Strength Indicator */}
+                  {regPassword && (
+                    <div className="mt-1.5 space-y-1">
+                      <div className="flex gap-1 h-1">
+                        <div className={`flex-1 rounded-full ${regPassStrength >= 1 ? (regPassStrength < 3 ? 'bg-amber-400' : 'bg-emerald-400') : 'bg-white/10'}`} />
+                        <div className={`flex-1 rounded-full ${regPassStrength >= 3 ? (regPassStrength < 4 ? 'bg-amber-400' : 'bg-emerald-400') : 'bg-white/10'}`} />
+                        <div className={`flex-1 rounded-full ${regPassStrength >= 4 ? 'bg-emerald-400' : 'bg-white/10'}`} />
+                      </div>
+                      <span className="text-[9px] font-mono text-brand-travertine/60 block">
+                        Sécurité : {regPassStrength < 2 ? 'Faible' : regPassStrength < 4 ? 'Moyen' : 'Sécurisé'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">
+                    Confirmer le Mot de Passe
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showRegPassword ? 'text' : 'password'}
+                      placeholder="••••••••••••"
+                      value={regConfirmPassword}
+                      onChange={(e) => { setRegConfirmPassword(e.target.value); setError(null); }}
+                      className={`w-full bg-brand-navy border rounded-xl px-4 py-2.5 pl-10 text-xs text-white focus:outline-none font-mono transition-colors ${
+                        regConfirmPassword && regConfirmPassword !== regPassword
+                          ? 'border-red-500/60 focus:border-red-500'
+                          : regConfirmPassword && regConfirmPassword === regPassword
+                          ? 'border-emerald-500/60 focus:border-emerald-500'
+                          : 'border-white/20 focus:border-brand-gold'
+                      }`}
+                      required
+                    />
+                    <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold/60" />
+                  </div>
                 </div>
 
                 <div className="p-3 rounded-lg bg-brand-gold/10 border border-brand-gold/25 text-[10px] font-mono text-brand-travertine/70 leading-relaxed">
-                  <span className="text-brand-gold font-bold block mb-1">Compte Client</span>
-                  L'inscription publique crée un compte Client Membre. Les comptes Administrateurs et Staff sont configurés exclusivement par la direction via le tableau de bord sécurisé.
+                  <span className="text-brand-gold font-bold block mb-0.5">Inscription Client Membre</span>
+                  L'inscription crée un compte Client privé. Les comptes Staff sont configurés par la direction via le tableau de bord sécurisé.
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2 mt-2"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
                 >
-                  <UserPlus className="w-4 h-4" />
-                  <span>Créer mon Compte Client</span>
+                  {isLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <UserPlus className="w-4 h-4" />
+                  )}
+                  <span>{isLoading ? 'Création en cours...' : 'Créer mon Compte Client'}</span>
                 </button>
               </form>
             )}

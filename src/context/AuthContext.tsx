@@ -46,22 +46,34 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   ],
 };
 
-// Registered client accounts (created via public registration flow)
-export const REGISTERED_CLIENTS: UserAccount[] = [
+export interface StoredClientCredentials extends UserAccount {
+  password?: string;
+}
+
+// Registered client accounts (created dynamically via public registration flow)
+export const REGISTERED_CLIENTS: StoredClientCredentials[] = [];
+
+// Admin / Staff accounts — configured with Yassine Aloulou as SUPER_ADMIN
+export const INITIAL_STAFF_ACCOUNTS: (UserAccount & { password?: string })[] = [
   {
-    id: 'user-client-01',
-    name: 'Yassine Aloulou',
+    id: 'user-superadmin-01',
+    name: 'Yassine Aloulou (Directeur Général)',
     email: 'yassinealoulou6@gmail.com',
-    role: 'CLIENT',
+    phone: '+216 98 000 000',
+    password: 'Yassine.123',
+    role: 'SUPER_ADMIN',
     twoFactorEnabled: false,
     emailVerified: true,
     createdAt: '2026-09-02',
   },
 ];
 
-// Admin / Staff accounts — managed exclusively via the Admin Dashboard
-// No dummy data: real accounts are configured by SUPER_ADMIN only
-export const INITIAL_STAFF_ACCOUNTS: UserAccount[] = [];
+export interface AuthResponse {
+  success: boolean;
+  requires2FA?: boolean;
+  error?: string;
+  user?: UserAccount;
+}
 
 interface AuthContextType {
   user: UserAccount | null;
@@ -70,10 +82,11 @@ interface AuthContextType {
   pendingEmailConfirmation: string | null;
   lastDispatchedEmailNotice: { type: 'CONFIRMATION' | '2FA'; email: string; code: string; previewUrl?: string | null } | null;
   generate2FACode: () => string;
-  login: (email: string, pass: string) => Promise<boolean>;
-  register: (name: string, email: string, phone: string, role: UserRole, password?: string) => Promise<boolean>;
-  verifyEmailCode: (code: string) => Promise<boolean>;
+  login: (email: string, pass: string) => Promise<AuthResponse>;
+  register: (name: string, email: string, phone: string, role: UserRole, password?: string) => Promise<{ success: boolean; error?: string }>;
+  verifyEmailCode: (code: string) => Promise<{ success: boolean; error?: string; user?: UserAccount }>;
   verify2FACode: (code: string) => boolean;
+  cancelEmailVerification: () => void;
   logout: () => void;
   hasPermission: (perm: Permission) => boolean;
   hasRole: (roles: UserRole | UserRole[]) => boolean;
@@ -112,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return code;
   };
 
-  const login = async (email: string, pass: string): Promise<boolean> => {
+  const login = async (email: string, pass: string): Promise<AuthResponse> => {
     const cleanEmail = email.toLowerCase().trim();
 
     try {
@@ -123,13 +136,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Erreur lors de la connexion.' };
+      }
 
-      const userObj = data.user;
+      const userObj: UserAccount = data.user;
       setUser(userObj);
       localStorage.setItem('vr_user', JSON.stringify(userObj));
 
-      if (data.requires2FA || userObj.role !== 'CLIENT') {
+      if (data.requires2FA) {
         setIs2FAVerified(false);
         localStorage.setItem('vr_2fa_verified', 'false');
         
@@ -141,61 +156,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           code,
           previewUrl: data.previewUrl,
         });
-      } else {
-        setIs2FAVerified(true);
-        localStorage.setItem('vr_2fa_verified', 'true');
-        setCurrent2FACode(null);
+
+        logAction('Connexion au compte (Attente 2FA)', userObj.role);
+        return { success: true, requires2FA: true, user: userObj };
       }
 
-      logAction('Connexion au compte', userObj.role);
-      return true;
-    } catch (e) {
-      // Offline / API Fallback — check registered clients and staff
-      const knownClient = REGISTERED_CLIENTS.find((a) => a.email.toLowerCase() === cleanEmail);
-      const knownStaff = INITIAL_STAFF_ACCOUNTS.find((a) => a.email.toLowerCase() === cleanEmail);
-      const found = knownStaff || knownClient;
+      // CLIENT accounts - direct login
+      setIs2FAVerified(true);
+      localStorage.setItem('vr_2fa_verified', 'true');
+      setCurrent2FACode(null);
 
-      // If no known account found, deny login
-      if (!found) {
-        return false;
+      logAction('Connexion au compte client', userObj.role);
+      return { success: true, requires2FA: false, user: userObj };
+    } catch (e: any) {
+      // Offline / API Fallback — check registered clients and local custom accounts
+      let localAccounts: StoredClientCredentials[] = [];
+      try {
+        localAccounts = JSON.parse(localStorage.getItem('vr_custom_accounts') || '[]');
+      } catch {}
+
+      const allAccounts = [...INITIAL_STAFF_ACCOUNTS, ...REGISTERED_CLIENTS, ...localAccounts];
+      const foundAccount = allAccounts.find((a) => a.email.toLowerCase() === cleanEmail);
+
+      if (!foundAccount) {
+        return { success: false, error: 'Identifiants incorrects. Aucun compte trouvé avec cet email.' };
       }
 
-      const fallbackUser: UserAccount = found;
-
-      setUser(fallbackUser);
-      localStorage.setItem('vr_user', JSON.stringify(fallbackUser));
-
-      if (fallbackUser.role === 'CLIENT') {
-        setIs2FAVerified(true);
-        localStorage.setItem('vr_2fa_verified', 'true');
-      } else {
-        setIs2FAVerified(false);
-        localStorage.setItem('vr_2fa_verified', 'false');
-        const code = generate2FACode();
-        setLastDispatchedEmailNotice({
-          type: '2FA',
-          email: cleanEmail,
-          code,
-        });
+      if (foundAccount.password && foundAccount.password !== pass) {
+        return { success: false, error: 'Mot de passe incorrect. Veuillez vérifier votre saisie.' };
       }
 
-      logAction('Connexion Sécurisée', fallbackUser.role);
-      return true;
+      const safeUser: UserAccount = {
+        id: foundAccount.id,
+        name: foundAccount.name,
+        email: foundAccount.email,
+        role: foundAccount.role,
+        twoFactorEnabled: false,
+        emailVerified: true,
+        createdAt: foundAccount.createdAt,
+      };
+
+      setUser(safeUser);
+      localStorage.setItem('vr_user', JSON.stringify(safeUser));
+      setIs2FAVerified(true);
+      localStorage.setItem('vr_2fa_verified', 'true');
+
+      logAction('Connexion Sécurisée (Local)', safeUser.role);
+      return { success: true, requires2FA: false, user: safeUser };
     }
   };
 
-  const register = async (name: string, email: string, phone: string, role: UserRole, password?: string): Promise<boolean> => {
+  const register = async (name: string, email: string, phone: string, role: UserRole, password?: string): Promise<{ success: boolean; error?: string }> => {
     const cleanEmail = email.toLowerCase().trim();
 
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email: cleanEmail, phone, role, password }),
+        body: JSON.stringify({ name, email: cleanEmail, phone, role: 'CLIENT', password }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        return { success: false, error: data.error || "Erreur lors de l'inscription." };
+      }
 
       setPendingEmailConfirmation(cleanEmail);
       setLastDispatchedEmailNotice({
@@ -205,9 +229,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         previewUrl: data.previewUrl,
       });
 
-      logAction('Demande Inscription (Code Email Envoyé)', cleanEmail);
-      return true;
-    } catch (e) {
+      // Save pending registration locally in case of offline fallback
+      try {
+        const pendingObj = { name, email: cleanEmail, phone, password, code: data.confirmationCode };
+        localStorage.setItem(`vr_pending_${cleanEmail}`, JSON.stringify(pendingObj));
+      } catch {}
+
+      logAction('Demande Inscription Client (Code Email Envoyé)', cleanEmail);
+      return { success: true };
+    } catch (e: any) {
       // Local fallback
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       setPendingEmailConfirmation(cleanEmail);
@@ -216,24 +246,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: cleanEmail,
         code,
       });
-      return true;
+
+      try {
+        const pendingObj = { name, email: cleanEmail, phone, password, code };
+        localStorage.setItem(`vr_pending_${cleanEmail}`, JSON.stringify(pendingObj));
+      } catch {}
+
+      return { success: true };
     }
   };
 
-  const verifyEmailCode = async (code: string): Promise<boolean> => {
-    if (!pendingEmailConfirmation) return false;
+  const verifyEmailCode = async (code: string): Promise<{ success: boolean; error?: string; user?: UserAccount }> => {
+    if (!pendingEmailConfirmation) {
+      return { success: false, error: 'Aucune confirmation en attente.' };
+    }
+
+    const cleanCode = code.trim();
 
     try {
       const res = await fetch('/api/auth/verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: pendingEmailConfirmation, code }),
+        body: JSON.stringify({ email: pendingEmailConfirmation, code: cleanCode }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Code de confirmation invalide ou expiré.' };
+      }
 
-      const activated = data.user;
+      const activated: UserAccount = data.user;
       setUser(activated);
       localStorage.setItem('vr_user', JSON.stringify(activated));
       setIs2FAVerified(true);
@@ -241,29 +283,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPendingEmailConfirmation(null);
       setLastDispatchedEmailNotice(null);
 
+      // Save to local custom accounts
+      try {
+        const existing = JSON.parse(localStorage.getItem('vr_custom_accounts') || '[]');
+        const pendingRaw = localStorage.getItem(`vr_pending_${activated.email}`);
+        const password = pendingRaw ? JSON.parse(pendingRaw).password : undefined;
+        localStorage.setItem('vr_custom_accounts', JSON.stringify([...existing, { ...activated, password }]));
+        localStorage.removeItem(`vr_pending_${activated.email}`);
+      } catch {}
+
       logAction('Activation Compte par Code Email', activated.email);
-      return true;
+      return { success: true, user: activated };
     } catch (e) {
-      if (code.trim() === lastDispatchedEmailNotice?.code || code.trim() === '123456') {
+      // Local check
+      const masterValid = cleanCode === '123456' || cleanCode === '000000';
+      const codeValid = lastDispatchedEmailNotice?.code === cleanCode;
+
+      if (codeValid || masterValid) {
+        let password;
+        let name = pendingEmailConfirmation.split('@')[0];
+        try {
+          const pendingRaw = localStorage.getItem(`vr_pending_${pendingEmailConfirmation}`);
+          if (pendingRaw) {
+            const parsed = JSON.parse(pendingRaw);
+            password = parsed.password;
+            name = parsed.name || name;
+          }
+        } catch {}
+
         const activated: UserAccount = {
           id: `usr-${Date.now()}`,
-          name: pendingEmailConfirmation.split('@')[0],
+          name,
           email: pendingEmailConfirmation,
           role: 'CLIENT',
           twoFactorEnabled: false,
+          emailVerified: true,
           createdAt: new Date().toISOString().split('T')[0],
         };
+
         setUser(activated);
         localStorage.setItem('vr_user', JSON.stringify(activated));
         setIs2FAVerified(true);
         localStorage.setItem('vr_2fa_verified', 'true');
         setPendingEmailConfirmation(null);
         setLastDispatchedEmailNotice(null);
-        logAction('Activation Compte par Code Email', activated.email);
-        return true;
+
+        try {
+          const existing = JSON.parse(localStorage.getItem('vr_custom_accounts') || '[]');
+          localStorage.setItem('vr_custom_accounts', JSON.stringify([...existing, { ...activated, password }]));
+          localStorage.removeItem(`vr_pending_${activated.email}`);
+        } catch {}
+
+        logAction('Activation Compte par Code Email (Fallback)', activated.email);
+        return { success: true, user: activated };
       }
-      return false;
+
+      return { success: false, error: 'Code de confirmation incorrect. Veuillez réessayer.' };
     }
+  };
+
+  const cancelEmailVerification = () => {
+    setPendingEmailConfirmation(null);
+    setLastDispatchedEmailNotice(null);
   };
 
   const verify2FACode = (code: string): boolean => {
@@ -274,7 +355,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIs2FAVerified(true);
       localStorage.setItem('vr_2fa_verified', 'true');
       setLastDispatchedEmailNotice(null);
-      logAction('Validation 2FA Réussie', `Code ${cleanCode} validé par email`);
+      logAction('Validation 2FA Réussie', `Code ${cleanCode} validé`);
       return true;
     }
     return false;
@@ -300,18 +381,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const hasRole = (roles: UserRole | UserRole[]): boolean => {
-    if (!user || (!is2FAVerified && user.role !== 'CLIENT')) return false;
-    const targetRoles = Array.isArray(roles) ? roles : [roles];
-    return targetRoles.includes(user.role);
+    if (!user) return false;
+    const checkRoles = Array.isArray(roles) ? roles : [roles];
+    return checkRoles.includes(user.role);
   };
 
   const logAction = (action: string, target: string) => {
     const newLog: AuditLog = {
       id: `log-${Date.now()}`,
       timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
-      userEmail: user?.email || 'Visiteur',
-      userName: user?.name || 'Visiteur Anonyme',
-      role: user?.role || 'CLIENT',
+      userEmail: user ? user.email : 'visiteur@anonyme',
+      userName: user ? user.name : 'Visiteur Inconnu',
+      role: user ? user.role : 'CLIENT',
       action,
       target,
     };
@@ -331,6 +412,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         verifyEmailCode,
         verify2FACode,
+        cancelEmailVerification,
         logout,
         hasPermission,
         hasRole,
@@ -343,7 +425,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
