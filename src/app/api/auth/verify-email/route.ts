@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ACCOUNTS_STORE, PENDING_REGISTRATIONS } from '@/lib/authStore';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -17,10 +18,10 @@ export async function POST(request: Request) {
     const cleanCode = code.trim();
     const pending = PENDING_REGISTRATIONS.get(cleanEmail);
 
+    // Only allow activation with the strictly generated 6-digit email code
     const isMatch = pending && pending.confirmationCode === cleanCode;
-    const isMasterCode = cleanCode === '123456' || cleanCode === '000000';
 
-    if (isMatch || isMasterCode) {
+    if (isMatch) {
       // Create permanent active user account
       const activatedUser = {
         id: `user-${Date.now()}`,
@@ -40,18 +41,28 @@ export async function POST(request: Request) {
       // Clean up pending registration
       PENDING_REGISTRATIONS.delete(cleanEmail);
 
+      // ── AUTOMATED WELCOME EMAIL DISPATCH ──
+      try {
+        await sendWelcomeEmail({
+          to: cleanEmail,
+          name: activatedUser.name,
+        });
+      } catch (welcomeErr) {
+        console.warn('Could not dispatch welcome email:', welcomeErr);
+      }
+
       // Return user profile without leaking password
       const { password: _, ...safeUser } = activatedUser;
 
       return NextResponse.json({
         success: true,
-        message: 'Compte activé avec succès ! Bienvenue à Villa Regia.',
+        message: 'Compte activé avec succès ! Un email de bienvenue vous a été transmis.',
         user: safeUser,
       });
     }
 
     return NextResponse.json(
-      { error: 'Code de confirmation incorrect ou expiré. Veuillez vérifier votre saisie.' },
+      { error: 'Code de confirmation incorrect ou expiré. Veuillez vérifier votre boîte de réception.' },
       { status: 400 }
     );
   } catch (error: any) {

@@ -296,10 +296,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, user: activated };
     } catch (e) {
       // Local check
-      const masterValid = cleanCode === '123456' || cleanCode === '000000';
       const codeValid = lastDispatchedEmailNotice?.code === cleanCode;
 
-      if (codeValid || masterValid) {
+      if (codeValid) {
         let password;
         let name = pendingEmailConfirmation.split('@')[0];
         try {
@@ -338,7 +337,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true, user: activated };
       }
 
-      return { success: false, error: 'Code de confirmation incorrect. Veuillez réessayer.' };
+      return { success: false, error: 'Code de confirmation incorrect. Veuillez vérifier votre boîte de réception.' };
     }
   };
 
@@ -349,7 +348,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const verify2FACode = (code: string): boolean => {
     const cleanCode = code.replace(/\s+/g, '');
-    const valid = cleanCode && (cleanCode === current2FACode || cleanCode === lastDispatchedEmailNotice?.code || cleanCode === '123456');
+    const valid = cleanCode && (cleanCode === current2FACode || cleanCode === lastDispatchedEmailNotice?.code);
 
     if (valid) {
       setIs2FAVerified(true);

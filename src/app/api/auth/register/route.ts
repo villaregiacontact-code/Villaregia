@@ -74,9 +74,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Code de confirmation transmis par email à ${cleanEmail}.`,
+      message: `Votre code d'activation à 6 chiffres a été généré et envoyé à votre adresse email ${cleanEmail}.`,
       email: cleanEmail,
-      confirmationCode,
       previewUrl: emailResult?.previewUrl || null,
     });
   } catch (error: any) {

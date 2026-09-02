@@ -94,11 +94,6 @@ export const Footer: React.FC = () => {
                   Nous Contacter
                 </Link>
               </li>
-              <li>
-                <Link href="/admin" className="hover:text-brand-gold transition-colors opacity-60">
-                  Espace Gestionnaire / Admin
-                </Link>
-              </li>
             </ul>
           </div>
 
