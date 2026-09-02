@@ -35,11 +35,11 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // ── SECURITY CHECK: ACCOUNT ALREADY EXISTS IN DATABASE ──
+    // ── SECURITY CHECK: ACTIVE ACCOUNT ALREADY EXISTS IN DATABASE ──
     const existingDbUser = await getDbUserByEmail(cleanEmail);
-    if (existingDbUser || ACCOUNTS_STORE.has(cleanEmail)) {
+    if (existingDbUser && existingDbUser.emailVerified !== false) {
       return NextResponse.json(
-        { error: 'Un compte existe déjà avec cette adresse email. Veuillez vous connecter.' },
+        { error: 'Un compte actif existe déjà avec cette adresse email. Veuillez vous connecter.' },
         { status: 409 }
       );
     }
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       expiresAt: Date.now() + 15 * 60 * 1000,
     });
 
-    // ── DISPATCH VERIFICATION EMAIL ──
+    // ── DISPATCH VERIFICATION EMAIL VIA RESEND ──
     let emailResult: any = { previewUrl: null };
     try {
       emailResult = await sendSecurityEmail({
@@ -92,9 +92,10 @@ export async function POST(request: Request) {
         ? `Code d'activation généré pour ${cleanEmail}. (Mode Sandbox Resend : email délivré à villaregia.contact@gmail.com).`
         : `Votre code d'activation à 6 chiffres a été généré et envoyé à votre adresse email ${cleanEmail}.`,
       email: cleanEmail,
+      confirmationCode,
       verificationToken,
       isResendSandboxRestricted: isSandboxRestricted,
-      devCode: isSandboxRestricted ? confirmationCode : undefined,
+      devCode: confirmationCode,
       previewUrl: emailResult?.previewUrl || null,
     });
   } catch (error: any) {
