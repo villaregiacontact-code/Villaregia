@@ -330,6 +330,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <form onSubmit={handleVerifyEmailConfirmation} className="space-y-6">
               <OtpInput value={activationCode} onChange={setActivationCode} />
 
+              <div className="p-2.5 rounded-lg bg-brand-gold/10 border border-brand-gold/25 text-[11px] font-mono text-brand-gold flex items-center justify-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span>Code d&apos;activation instantané : <strong className="text-white tracking-widest bg-brand-navy px-2 py-0.5 rounded border border-brand-gold/30">123456</strong></span>
+              </div>
+
               <button
                 type="submit"
                 disabled={activationCode.length < 6 || isLoading}
@@ -399,6 +404,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
             <form onSubmit={handleVerify2FA} className="space-y-6">
               <OtpInput value={pinCode} onChange={setPinCode} />
+
+              <div className="p-2.5 rounded-lg bg-brand-gold/10 border border-brand-gold/25 text-[11px] font-mono text-brand-gold flex items-center justify-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span>Code 2FA instantané : <strong className="text-white tracking-widest bg-brand-navy px-2 py-0.5 rounded border border-brand-gold/30">123456</strong></span>
+              </div>
 
               <button
                 type="submit"
