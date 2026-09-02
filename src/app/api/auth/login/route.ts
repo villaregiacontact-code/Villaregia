@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sendSecurityEmail } from '@/lib/email';
-import { ACCOUNTS_STORE, TWO_FACTOR_SESSIONS, LOGIN_ATTEMPTS } from '@/lib/authStore';
+import { getDbUserByEmail } from '@/lib/db';
+import { TWO_FACTOR_SESSIONS, LOGIN_ATTEMPTS } from '@/lib/authStore';
 
 export async function POST(request: Request) {
   try {
@@ -36,8 +37,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── LOOKUP ACCOUNT ──
-    const account = ACCOUNTS_STORE.get(cleanEmail);
+    // ── LOOKUP ACCOUNT IN DATABASE ──
+    const account = await getDbUserByEmail(cleanEmail);
 
     // If account doesn't exist
     if (!account) {

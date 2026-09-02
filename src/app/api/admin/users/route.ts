@@ -1,38 +1,37 @@
 import { NextResponse } from 'next/server';
-import { ACCOUNTS_STORE } from '@/lib/authStore';
+import { getDbUsers, getDbUserByEmail, createDbUser, updateDbUser, deleteDbUser } from '@/lib/db';
 import { UserRole } from '@/types';
 
-// GET all accounts
+// GET all accounts (both Staff and Clients)
 export async function GET() {
   try {
-    const users: any[] = [];
-    ACCOUNTS_STORE.forEach((account) => {
-      users.push({
-        id: account.id,
-        name: account.name,
-        email: account.email,
-        phone: account.phone || '',
-        role: account.role,
-        twoFactorEnabled: account.twoFactorEnabled,
-        emailVerified: account.emailVerified,
-        createdAt: account.createdAt,
-        hasPassword: !!account.password,
-      });
-    });
+    const rawUsers = await getDbUsers();
+    const users = rawUsers.map((account) => ({
+      id: account.id,
+      name: account.name,
+      email: account.email,
+      phone: account.phone || '',
+      role: account.role,
+      twoFactorEnabled: !!account.twoFactorEnabled,
+      emailVerified: !!account.emailVerified,
+      createdAt: account.createdAt,
+      hasPassword: !!account.password,
+    }));
 
     return NextResponse.json({
       success: true,
       users,
     });
   } catch (error: any) {
+    console.error('Error fetching users from database:', error);
     return NextResponse.json(
-      { error: 'Erreur lors du chargement des utilisateurs.' },
+      { error: 'Erreur lors du chargement des utilisateurs depuis la base de données.' },
       { status: 500 }
     );
   }
 }
 
-// POST: Add new staff user
+// POST: Add new user account (Staff or Client)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -40,7 +39,7 @@ export async function POST(request: Request) {
 
     if (!name || name.trim().length < 2) {
       return NextResponse.json(
-        { error: 'Veuillez renseigner le nom du collaborateur.' },
+        { error: 'Veuillez renseigner le nom de l\'utilisateur.' },
         { status: 400 }
       );
     }
@@ -60,8 +59,9 @@ export async function POST(request: Request) {
     }
 
     const cleanEmail = email.toLowerCase().trim();
+    const existing = await getDbUserByEmail(cleanEmail);
 
-    if (ACCOUNTS_STORE.has(cleanEmail)) {
+    if (existing) {
       return NextResponse.json(
         { error: 'Un compte existe déjà avec cette adresse email.' },
         { status: 409 }
@@ -69,82 +69,72 @@ export async function POST(request: Request) {
     }
 
     const validRoles: UserRole[] = ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER', 'CLIENT'];
-    const staffRole: UserRole = validRoles.includes(role) ? role : 'ADMIN';
+    const accountRole: UserRole = validRoles.includes(role) ? role : 'ADMIN';
 
-    const newUser = {
-      id: `usr-${Date.now()}`,
+    const newUser = await createDbUser({
       name: name.trim(),
       email: cleanEmail,
       phone: phone?.trim() || '+216 -- --- ---',
       password: password,
-      role: staffRole,
-      twoFactorEnabled: staffRole !== 'CLIENT',
+      role: accountRole,
+      twoFactorEnabled: accountRole !== 'CLIENT',
       emailVerified: true,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-
-    ACCOUNTS_STORE.set(cleanEmail, newUser);
+    });
 
     const { password: _, ...safeUser } = newUser;
 
     return NextResponse.json({
       success: true,
-      message: `Compte staff ${newUser.name} (${staffRole}) créé avec succès.`,
+      message: `Compte ${newUser.name} (${accountRole}) créé et synchronisé en base de données.`,
       user: safeUser,
     });
   } catch (error: any) {
-    console.error('Error creating staff account:', error);
+    console.error('Error creating user account in database:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la création du compte staff.' },
+      { error: 'Erreur lors de la création du compte en base de données.' },
       { status: 500 }
     );
   }
 }
 
-// PUT: Edit existing staff user (Name, Role, Password, Phone)
+// PUT: Edit existing user account (Name, Role, Password, Phone, Verification status)
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, email, name, role, password, phone } = body;
+    const { id, email, name, role, password, phone, emailVerified, twoFactorEnabled } = body;
 
-    if (!email) {
+    if (!email && !id) {
       return NextResponse.json(
-        { error: 'Email requis pour identifier le compte.' },
+        { error: 'Email ou ID requis pour identifier le compte.' },
         { status: 400 }
       );
     }
 
-    const cleanEmail = email.toLowerCase().trim();
-    let account = ACCOUNTS_STORE.get(cleanEmail);
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
 
-    // If not found by email, try by id
-    if (!account && id) {
-      const entries = Array.from(ACCOUNTS_STORE.entries());
-      for (let i = 0; i < entries.length; i++) {
-        if (entries[i][1].id === id) {
-          account = entries[i][1];
-          break;
-        }
-      }
-    }
-
-    if (!account) {
-      return NextResponse.json(
-        { error: 'Compte introuvable.' },
-        { status: 404 }
-      );
-    }
+    const updatePayload: any = {
+      email: cleanEmail,
+      id,
+    };
 
     if (name && name.trim().length >= 2) {
-      account.name = name.trim();
+      updatePayload.name = name.trim();
     }
 
     if (phone !== undefined) {
-      account.phone = phone.trim();
+      updatePayload.phone = phone.trim();
     }
 
     if (role) {
-      account.role = role;
+      updatePayload.role = role;
+    }
+
+    if (emailVerified !== undefined) {
+      updatePayload.emailVerified = Boolean(emailVerified);
+    }
+
+    if (twoFactorEnabled !== undefined) {
+      updatePayload.twoFactorEnabled = Boolean(twoFactorEnabled);
     }
 
     if (password && password.trim()) {
@@ -154,28 +144,35 @@ export async function PUT(request: Request) {
           { status: 400 }
         );
       }
-      account.password = password.trim();
+      updatePayload.password = password.trim();
     }
 
-    ACCOUNTS_STORE.set(account.email, account);
+    const updatedUser = await updateDbUser(updatePayload);
 
-    const { password: _, ...safeUser } = account;
+    if (!updatedUser) {
+      return NextResponse.json(
+        { error: 'Compte introuvable en base de données.' },
+        { status: 404 }
+      );
+    }
+
+    const { password: _, ...safeUser } = updatedUser;
 
     return NextResponse.json({
       success: true,
-      message: `Compte de ${account.name} mis à jour avec succès.`,
+      message: `Compte de ${updatedUser.name} mis à jour et persisté en base de données.`,
       user: safeUser,
     });
   } catch (error: any) {
-    console.error('Error updating staff account:', error);
+    console.error('Error updating account in database:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour du compte staff.' },
+      { error: 'Erreur lors de la mise à jour du compte en base de données.' },
       { status: 500 }
     );
   }
 }
 
-// DELETE: Remove a staff user
+// DELETE: Remove a user account from database
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -189,26 +186,23 @@ export async function DELETE(request: Request) {
       );
     }
 
-    if (email) {
-      const cleanEmail = email.toLowerCase().trim();
-      ACCOUNTS_STORE.delete(cleanEmail);
-    } else if (id) {
-      const entries = Array.from(ACCOUNTS_STORE.entries());
-      for (let i = 0; i < entries.length; i++) {
-        if (entries[i][1].id === id) {
-          ACCOUNTS_STORE.delete(entries[i][0]);
-          break;
-        }
-      }
+    const success = await deleteDbUser(email || undefined, id || undefined);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Compte introuvable en base de données.' },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Compte supprimé avec succès.',
+      message: 'Compte supprimé de la base de données avec succès.',
     });
   } catch (error: any) {
+    console.error('Error deleting account from database:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la suppression du compte.' },
+      { error: 'Erreur lors de la suppression du compte en base de données.' },
       { status: 500 }
     );
   }

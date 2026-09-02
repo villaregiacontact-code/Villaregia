@@ -123,8 +123,7 @@ export default function AdminDashboardPage() {
         if (bookingsRes?.success && Array.isArray(bookingsRes.bookings)) setReservations(bookingsRes.bookings);
         if (crmRes?.success && Array.isArray(crmRes.leads)) setLeads(crmRes.leads);
         if (usersRes?.success && Array.isArray(usersRes.users)) {
-          const staffOnly = usersRes.users.filter((u: any) => u.role !== 'CLIENT');
-          if (staffOnly.length > 0) setStaffUsers(staffOnly);
+          if (usersRes.users.length > 0) setStaffUsers(usersRes.users);
         }
         if (subsRes?.success && Array.isArray(subsRes.submissions)) {
           setSubmissions(subsRes.submissions);
@@ -241,6 +240,8 @@ export default function AdminDashboardPage() {
   const [newUserPhone, setNewUserPhone] = useState('');
   const [showUserPassword, setShowUserPassword] = useState(false);
   const [userModalError, setUserModalError] = useState<string | null>(null);
+  const [accountRoleFilter, setAccountRoleFilter] = useState<'ALL' | 'STAFF' | 'CLIENT'>('ALL');
+  const [accountSearchQuery, setAccountSearchQuery] = useState('');
 
   // Property Form State
   const [propTitle, setPropTitle] = useState('');
@@ -1859,73 +1860,146 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TAB 6: STAFF USER ACCOUNTS MANAGER */}
+        {/* TAB 6: USER ACCOUNTS MANAGER (STAFF & CLIENTS DATABASE) */}
         {activeTab === 'users' && hasPermission('users.manage') && (
           <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-              <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
-                Gestion des Comptes Utilisateurs Staff & Droits RBAC
-              </h2>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                  Gestion des Comptes Utilisateurs (Base de Données & RBAC)
+                </h2>
+                <p className="text-xs text-brand-travertine/60 font-light mt-0.5">
+                  Configurez et modifiez les profils (nom, rôle, téléphone, mot de passe) des collaborateurs et des clients synchronisés en base de données.
+                </p>
+              </div>
 
               <button
                 onClick={handleOpenCreateStaff}
-                className="bg-brand-gold text-brand-navy font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow hover:opacity-95 transition-all"
+                className="bg-brand-gold text-brand-navy font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow hover:opacity-95 transition-all shrink-0"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>Nouveau Compte Staff</span>
+                <span>Nouveau Compte</span>
               </button>
+            </div>
+
+            {/* Filters & Search Bar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
+              <div className="flex items-center gap-1.5 p-1 bg-brand-navy rounded-xl border border-white/10 overflow-x-auto text-xs font-mono">
+                <button
+                  onClick={() => setAccountRoleFilter('ALL')}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    accountRoleFilter === 'ALL'
+                      ? 'bg-brand-gold text-brand-navy font-bold shadow'
+                      : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  Tous ({staffUsers.length})
+                </button>
+                <button
+                  onClick={() => setAccountRoleFilter('STAFF')}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    accountRoleFilter === 'STAFF'
+                      ? 'bg-brand-gold text-brand-navy font-bold shadow'
+                      : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  Collaborateurs Staff ({staffUsers.filter(u => u.role !== 'CLIENT').length})
+                </button>
+                <button
+                  onClick={() => setAccountRoleFilter('CLIENT')}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    accountRoleFilter === 'CLIENT'
+                      ? 'bg-brand-gold text-brand-navy font-bold shadow'
+                      : 'text-brand-travertine/70 hover:text-white'
+                  }`}
+                >
+                  Comptes Clients ({staffUsers.filter(u => u.role === 'CLIENT').length})
+                </button>
+              </div>
+
+              <div className="relative flex-1 sm:max-w-xs">
+                <Search className="w-3.5 h-3.5 text-brand-gold absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={accountSearchQuery}
+                  onChange={(e) => setAccountSearchQuery(e.target.value)}
+                  placeholder="Rechercher nom, email, tél..."
+                  className="w-full bg-brand-navy border border-white/15 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder:text-white/40 focus:border-brand-gold focus:outline-none font-mono"
+                />
+              </div>
             </div>
 
             {/* Mobile View: Cards */}
             <div className="space-y-4 block lg:hidden">
-              {staffUsers.map((u) => (
-                <div key={u.id} className="glass-card p-4 rounded-xl border border-white/10 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="font-bold text-sm text-white">{u.name}</div>
-                      <div className="text-xs font-mono text-brand-travertine/70">{u.email}</div>
-                      {u.phone && <div className="text-[11px] font-mono text-brand-gold mt-0.5">{u.phone}</div>}
+              {staffUsers
+                .filter((u) => {
+                  if (accountRoleFilter === 'STAFF' && u.role === 'CLIENT') return false;
+                  if (accountRoleFilter === 'CLIENT' && u.role !== 'CLIENT') return false;
+                  if (accountSearchQuery.trim()) {
+                    const q = accountSearchQuery.toLowerCase().trim();
+                    return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone && u.phone.toLowerCase().includes(q));
+                  }
+                  return true;
+                })
+                .map((u) => (
+                  <div key={u.id} className="glass-card p-4 rounded-xl border border-white/10 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-sm text-white flex items-center gap-2 flex-wrap">
+                          <span>{u.name}</span>
+                          {u.role === 'CLIENT' ? (
+                            <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">
+                              Compte Client
+                            </span>
+                          ) : u.role === 'SUPER_ADMIN' ? (
+                            <span className="text-[9px] font-mono bg-amber-400/20 text-amber-400 border border-amber-400/30 px-2 py-0.5 rounded font-bold">
+                              Direction Générale
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-mono bg-brand-gold/15 text-brand-gold border border-brand-gold/30 px-2 py-0.5 rounded font-bold">
+                              {u.role}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs font-mono text-brand-travertine/70">{u.email}</div>
+                        {u.phone && <div className="text-[11px] font-mono text-brand-gold mt-0.5">{u.phone}</div>}
+                      </div>
                     </div>
-                    {u.role === 'SUPER_ADMIN' && (
-                      <span className="text-[9px] font-mono bg-amber-400/20 text-amber-400 border border-amber-400/30 px-2 py-0.5 rounded font-bold shrink-0">
-                        Direction
-                      </span>
-                    )}
-                  </div>
 
-                  <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
-                    <select
-                      value={u.role}
-                      onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
-                      className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none flex-1"
-                    >
-                      <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
-                      <option value="ADMIN">ADMIN (Gestionnaire)</option>
-                      <option value="AGENT">AGENT (Commercial)</option>
-                      <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
-                    </select>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => handleOpenEditStaff(u)}
-                        className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
-                        title="Configurer"
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                      <select
+                        value={u.role}
+                        onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
+                        className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none flex-1"
                       >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      {u.email !== 'yassinealoulou6@gmail.com' && (
+                        <option value="CLIENT">CLIENT (Espace Privé)</option>
+                        <option value="AGENT">AGENT (Commercial)</option>
+                        <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
+                        <option value="ADMIN">ADMIN (Gestionnaire)</option>
+                        <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
+                      </select>
+
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
-                          onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
-                          className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
-                          title="Révoquer"
+                          onClick={() => handleOpenEditStaff(u)}
+                          className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
+                          title="Configurer ce compte (Nom, Mot de passe, Coordonnées)"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Edit className="w-3.5 h-3.5" />
                         </button>
-                      )}
+                        {u.email !== 'yassinealoulou6@gmail.com' && (
+                          <button
+                            onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
+                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                            title="Supprimer définitivement de la base de données"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
 
             {/* Desktop View: Table */}
@@ -1933,58 +2007,78 @@ export default function AdminDashboardPage() {
               <table className="w-full text-left text-xs text-brand-travertine/80">
                 <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
                   <tr>
-                    <th className="p-3">Collaborateur</th>
+                    <th className="p-3">Utilisateur / Profil</th>
                     <th className="p-3">Email Identifiant</th>
                     <th className="p-3">Téléphone</th>
-                    <th className="p-3">Rôle Staff Habilité</th>
-                    <th className="p-3 text-right">Actions</th>
+                    <th className="p-3">Type & Rôle Attribué</th>
+                    <th className="p-3 text-right">Actions BD</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {staffUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-white/5 transition-colors">
-                      <td className="p-3">
-                        <div className="font-semibold text-white">{u.name}</div>
-                        {u.role === 'SUPER_ADMIN' && (
-                          <span className="text-[9px] font-mono text-amber-400 font-bold">Direction Générale</span>
-                        )}
-                      </td>
-                      <td className="p-3 font-mono text-brand-travertine/70">{u.email}</td>
-                      <td className="p-3 font-mono text-brand-travertine/60">{u.phone || '—'}</td>
-                      <td className="p-3">
-                        <select
-                          value={u.role}
-                          onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
-                          className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none"
-                        >
-                          <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
-                          <option value="ADMIN">ADMIN (Gestionnaire)</option>
-                          <option value="AGENT">AGENT (Commercial)</option>
-                          <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
-                        </select>
-                      </td>
-                      <td className="p-3 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleOpenEditStaff(u)}
-                            className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
-                            title="Configurer (Nom, Mot de Passe, Rôle)"
+                  {staffUsers
+                    .filter((u) => {
+                      if (accountRoleFilter === 'STAFF' && u.role === 'CLIENT') return false;
+                      if (accountRoleFilter === 'CLIENT' && u.role !== 'CLIENT') return false;
+                      if (accountSearchQuery.trim()) {
+                        const q = accountSearchQuery.toLowerCase().trim();
+                        return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone && u.phone.toLowerCase().includes(q));
+                      }
+                      return true;
+                    })
+                    .map((u) => (
+                      <tr key={u.id} className="hover:bg-white/5 transition-colors">
+                        <td className="p-3">
+                          <div className="font-semibold text-white flex items-center gap-2">
+                            <span>{u.name}</span>
+                            {u.role === 'CLIENT' && (
+                              <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">
+                                Client
+                              </span>
+                            )}
+                            {u.role === 'SUPER_ADMIN' && (
+                              <span className="text-[9px] font-mono text-amber-400 font-bold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                                Direction
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-3 font-mono text-brand-travertine/70">{u.email}</td>
+                        <td className="p-3 font-mono text-brand-travertine/60">{u.phone || '—'}</td>
+                        <td className="p-3">
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
+                            className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none"
                           >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          {u.email !== 'yassinealoulou6@gmail.com' && (
+                            <option value="CLIENT">CLIENT (Espace Privé)</option>
+                            <option value="AGENT">AGENT (Commercial)</option>
+                            <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
+                            <option value="ADMIN">ADMIN (Gestionnaire)</option>
+                            <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
+                          </select>
+                        </td>
+                        <td className="p-3 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
                             <button
-                              onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
-                              className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
-                              title="Révoquer et supprimer le compte"
+                              onClick={() => handleOpenEditStaff(u)}
+                              className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
+                              title="Configurer (Nom, Mot de Passe, Téléphone, Rôle)"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Edit className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {u.email !== 'yassinealoulou6@gmail.com' && (
+                              <button
+                                onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
+                                className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                                title="Supprimer définitivement de la base de données"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -2407,41 +2501,36 @@ export default function AdminDashboardPage() {
       )}
 
       {/* MODAL: ADD / EDIT STAFF USER */}
+{/* MODAL: ADD / EDIT STAFF USER */}
       {userModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-3 sm:p-4">
           <div className="glass-navy p-4 sm:p-8 rounded-2xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-mono text-brand-gold uppercase tracking-widest font-bold">
-                  {editingUserId ? 'Configuration Staff' : 'Nouveau Collaborateur'}
-                </span>
-                <h3 className="font-editorial text-2xl font-light text-brand-travertine">
-                  {editingUserId ? 'Modifier le Compte Staff' : 'Créer un Compte Staff'}
-                </h3>
-              </div>
+              <h3 className="font-editorial text-xl sm:text-2xl font-light text-brand-travertine">
+                {editingUserId ? 'Configuration du Compte (Base de Données)' : 'Créer un Nouveau Compte'}
+              </h3>
               <button onClick={() => setUserModalOpen(false)} className="text-white/60 hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {userModalError && (
-              <div className="p-3 rounded-xl bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-                <span>{userModalError}</span>
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 font-mono">
+                {userModalError}
               </div>
             )}
 
             <form onSubmit={handleSaveStaffUser} className="space-y-4">
               <div>
                 <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
-                  Nom du Collaborateur
+                  Nom Complet de l'Utilisateur
                 </label>
                 <input
                   required
                   type="text"
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
-                  placeholder="ex: Yassine Triki"
+                  placeholder="ex: Yassine Triki ou Karim Mansour"
                   className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-gold focus:outline-none"
                 />
               </div>
@@ -2455,7 +2544,7 @@ export default function AdminDashboardPage() {
                   type="email"
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
-                  placeholder="collaborateur@villaregia.tn"
+                  placeholder="utilisateur@domaine.com"
                   className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-gold focus:outline-none font-mono"
                 />
               </div>
@@ -2463,17 +2552,18 @@ export default function AdminDashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
-                    Rôle Staff
+                    Type de Profil & Rôle
                   </label>
                   <select
                     value={newUserRole}
                     onChange={(e) => setNewUserRole(e.target.value as UserRole)}
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono font-bold focus:border-brand-gold focus:outline-none"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none"
                   >
-                    <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
-                    <option value="ADMIN">ADMIN (Gestionnaire)</option>
-                    <option value="AGENT">AGENT (Commercial)</option>
-                    <option value="CONTENT_MANAGER">CONTENT_MANAGER (Rédacteur)</option>
+                    <option value="CLIENT">CLIENT (Espace Privé & Favoris)</option>
+                    <option value="AGENT">AGENT (Commercial & Suivi Leads)</option>
+                    <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur Journal)</option>
+                    <option value="ADMIN">ADMIN (Gestionnaire Catalogue & Réservations)</option>
+                    <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur Général)</option>
                   </select>
                 </div>
 
@@ -2493,7 +2583,7 @@ export default function AdminDashboardPage() {
 
               <div>
                 <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
-                  {editingUserId ? 'Nouveau Mot de Passe (laisser vide pour ne pas changer)' : 'Mot de Passe Initial (min. 6 caractères)'}
+                  {editingUserId ? 'Nouveau Mot de Passe (laisser vide pour ne pas modifier)' : 'Mot de Passe Initial (min. 6 caractères)'}
                 </label>
                 <div className="relative">
                   <input
@@ -2515,14 +2605,14 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="p-3 rounded-xl bg-brand-gold/10 border border-brand-gold/20 text-[10px] font-mono text-brand-travertine/70 leading-relaxed">
-                Ce collaborateur pourra se connecter avec cet email et ce mot de passe. Les permissions associées à son rôle lui seront attribuées immédiatement.
+                Ce compte sera synchronisé et persisté directement en base de données. L'utilisateur pourra se connecter instantanément avec ces identifiants.
               </div>
 
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all"
               >
-                {editingUserId ? 'Enregistrer les Modifications' : 'Créer et Activer le Compte Staff'}
+                {editingUserId ? 'Enregistrer les Modifications en Base de Données' : 'Créer et Enregistrer en Base de Données'}
               </button>
             </form>
           </div>

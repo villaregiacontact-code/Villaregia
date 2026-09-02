@@ -2,6 +2,8 @@ import { Property, BookingRequest, Lead, OwnerSubmission, FilterState, EventQuot
 import { INITIAL_PROPERTIES } from '@/data/properties';
 import { supabase, isSupabaseConfigured } from './supabase';
 
+import { ACCOUNTS_STORE, StoredUserAccount } from './authStore';
+
 // In-Memory Fallback State (persists during server runtime, syncs with browser localStorage on client)
 let localProperties: Property[] = [...INITIAL_PROPERTIES];
 
@@ -10,6 +12,20 @@ let localBookings: BookingRequest[] = [];
 let localLeads: Lead[] = [];
 
 let localSubmissions: OwnerSubmission[] = [];
+
+let localUsers: StoredUserAccount[] = [
+  {
+    id: 'user-superadmin-01',
+    name: 'Yassine Aloulou (Directeur Général)',
+    email: 'yassinealoulou6@gmail.com',
+    phone: '+216 98 000 000',
+    password: 'Yassine.123',
+    role: 'SUPER_ADMIN',
+    twoFactorEnabled: false,
+    emailVerified: true,
+    createdAt: '2026-09-02',
+  },
+];
 
 // Helper functions for properties
 export async function getProperties(filters?: Partial<FilterState>): Promise<Property[]> {
@@ -361,3 +377,183 @@ export async function getAdminStats() {
     portfolioValueTND: totalVolume,
   };
 }
+
+// ----------------------------------------------------------------------------
+// USER ACCOUNTS PERSISTENCE (DATABASE / SUPABASE & ACCOUNTS_STORE SYNCHRONIZATION)
+// ----------------------------------------------------------------------------
+
+export async function getDbUsers(): Promise<StoredUserAccount[]> {
+  // Sync in-memory map accounts into localUsers list
+  ACCOUNTS_STORE.forEach((acc) => {
+    const existing = localUsers.find(u => u.email.toLowerCase() === acc.email.toLowerCase());
+    if (!existing) {
+      localUsers.push(acc);
+    } else {
+      Object.assign(existing, acc);
+    }
+  });
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('users').select('*').order('createdAt', { ascending: false });
+      if (!error && data && data.length > 0) {
+        // Sync Supabase users into ACCOUNTS_STORE
+        data.forEach((u: StoredUserAccount) => {
+          ACCOUNTS_STORE.set(u.email.toLowerCase(), u);
+          const idx = localUsers.findIndex(item => item.email.toLowerCase() === u.email.toLowerCase());
+          if (idx >= 0) {
+            localUsers[idx] = u;
+          } else {
+            localUsers.push(u);
+          }
+        });
+        return localUsers;
+      }
+    } catch (e) {
+      console.warn('Supabase fetch users failed, fallback to memory store:', e);
+    }
+  }
+
+  return [...localUsers];
+}
+
+export async function getDbUserByEmail(email: string): Promise<StoredUserAccount | null> {
+  const cleanEmail = email.toLowerCase().trim();
+
+  // Check ACCOUNTS_STORE first for instant retrieval
+  const memUser = ACCOUNTS_STORE.get(cleanEmail);
+  if (memUser) return memUser;
+
+  // Check localUsers
+  const localUser = localUsers.find(u => u.email.toLowerCase() === cleanEmail);
+  if (localUser) {
+    ACCOUNTS_STORE.set(cleanEmail, localUser);
+    return localUser;
+  }
+
+  // Check Supabase if configured
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('users').select('*').eq('email', cleanEmail).single();
+      if (!error && data) {
+        ACCOUNTS_STORE.set(cleanEmail, data as StoredUserAccount);
+        return data as StoredUserAccount;
+      }
+    } catch (e) {
+      console.warn('Supabase fetch user by email failed:', e);
+    }
+  }
+
+  return null;
+}
+
+export async function createDbUser(userData: Omit<StoredUserAccount, 'id' | 'createdAt'> & { id?: string; createdAt?: string }): Promise<StoredUserAccount> {
+  const cleanEmail = userData.email.toLowerCase().trim();
+
+  const newUser: StoredUserAccount = {
+    ...userData,
+    id: userData.id || `usr-${Date.now()}`,
+    email: cleanEmail,
+    createdAt: userData.createdAt || new Date().toISOString().split('T')[0],
+  };
+
+  // 1. Sync in memory Map
+  ACCOUNTS_STORE.set(cleanEmail, newUser);
+
+  // 2. Sync in localUsers array
+  const existingIdx = localUsers.findIndex(u => u.email.toLowerCase() === cleanEmail);
+  if (existingIdx >= 0) {
+    localUsers[existingIdx] = newUser;
+  } else {
+    localUsers.unshift(newUser);
+  }
+
+  // 3. Persist in Supabase if configured
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('users').upsert([newUser], { onConflict: 'email' });
+    } catch (e) {
+      console.warn('Supabase user insert/upsert failed:', e);
+    }
+  }
+
+  return newUser;
+}
+
+export async function updateDbUser(updateData: Partial<StoredUserAccount> & { email: string; id?: string }): Promise<StoredUserAccount | null> {
+  const cleanEmail = updateData.email.toLowerCase().trim();
+
+  let targetUser = await getDbUserByEmail(cleanEmail);
+  if (!targetUser && updateData.id) {
+    targetUser = localUsers.find(u => u.id === updateData.id) || null;
+  }
+
+  if (!targetUser) return null;
+
+  const updatedUser: StoredUserAccount = {
+    ...targetUser,
+    ...updateData,
+    email: cleanEmail,
+  };
+
+  // Sync Memory
+  ACCOUNTS_STORE.set(cleanEmail, updatedUser);
+
+  // Sync Array
+  const idx = localUsers.findIndex(u => u.email.toLowerCase() === cleanEmail || (updateData.id && u.id === updateData.id));
+  if (idx >= 0) {
+    localUsers[idx] = updatedUser;
+  } else {
+    localUsers.push(updatedUser);
+  }
+
+  // Sync Supabase
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('users').update(updatedUser).eq('email', cleanEmail);
+    } catch (e) {
+      console.warn('Supabase user update failed:', e);
+    }
+  }
+
+  return updatedUser;
+}
+
+export async function deleteDbUser(email?: string, id?: string): Promise<boolean> {
+  let cleanEmail = email ? email.toLowerCase().trim() : '';
+
+  if (!cleanEmail && id) {
+    const user = localUsers.find(u => u.id === id);
+    if (user) cleanEmail = user.email.toLowerCase().trim();
+  }
+
+  if (!cleanEmail && !id) return false;
+
+  // Remove from ACCOUNTS_STORE
+  if (cleanEmail) {
+    ACCOUNTS_STORE.delete(cleanEmail);
+  }
+
+  // Remove from localUsers
+  localUsers = localUsers.filter(u => {
+    if (cleanEmail && u.email.toLowerCase() === cleanEmail) return false;
+    if (id && u.id === id) return false;
+    return true;
+  });
+
+  // Remove from Supabase
+  if (isSupabaseConfigured && supabase) {
+    try {
+      if (cleanEmail) {
+        await supabase.from('users').delete().eq('email', cleanEmail);
+      } else if (id) {
+        await supabase.from('users').delete().eq('id', id);
+      }
+    } catch (e) {
+      console.warn('Supabase user delete failed:', e);
+    }
+  }
+
+  return true;
+}
+

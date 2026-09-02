@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { ACCOUNTS_STORE, PENDING_REGISTRATIONS } from '@/lib/authStore';
+import { PENDING_REGISTRATIONS } from '@/lib/authStore';
+import { createDbUser } from '@/lib/db';
 import { sendWelcomeEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
@@ -22,21 +23,18 @@ export async function POST(request: Request) {
     const isMatch = pending && pending.confirmationCode === cleanCode;
 
     if (isMatch) {
-      // Create permanent active user account
-      const activatedUser = {
+      // Create permanent active user account and persist in database
+      const activatedUser = await createDbUser({
         id: `user-${Date.now()}`,
         name: pending?.name || cleanEmail.split('@')[0],
         email: cleanEmail,
         phone: pending?.phone || '+216 -- --- ---',
         password: pending?.password,
-        role: 'CLIENT' as const,
+        role: 'CLIENT',
         twoFactorEnabled: false,
         emailVerified: true,
         createdAt: new Date().toISOString().split('T')[0],
-      };
-
-      // Store in active accounts store so user can log in subsequently
-      ACCOUNTS_STORE.set(cleanEmail, activatedUser);
+      });
 
       // Clean up pending registration
       PENDING_REGISTRATIONS.delete(cleanEmail);
