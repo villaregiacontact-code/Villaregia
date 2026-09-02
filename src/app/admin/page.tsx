@@ -26,6 +26,8 @@ import {
   Plus,
   Search,
   Eye,
+  EyeOff,
+  AlertCircle,
   Edit,
   Trash2,
   Lock,
@@ -97,17 +99,22 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function loadAdminData() {
       try {
-        const [statsRes, propsRes, bookingsRes, crmRes] = await Promise.all([
+        const [statsRes, propsRes, bookingsRes, crmRes, usersRes] = await Promise.all([
           fetch('/api/admin/stats').then(r => r.json()).catch(() => null),
           fetch('/api/properties').then(r => r.json()).catch(() => null),
           fetch('/api/bookings').then(r => r.json()).catch(() => null),
           fetch('/api/admin/crm').then(r => r.json()).catch(() => null),
+          fetch('/api/admin/users').then(r => r.json()).catch(() => null),
         ]);
 
         if (statsRes?.success) setDbStats(statsRes.stats);
         if (propsRes?.success && Array.isArray(propsRes.properties)) setProperties(propsRes.properties);
         if (bookingsRes?.success && Array.isArray(bookingsRes.bookings)) setReservations(bookingsRes.bookings);
         if (crmRes?.success && Array.isArray(crmRes.leads)) setLeads(crmRes.leads);
+        if (usersRes?.success && Array.isArray(usersRes.users)) {
+          const staffOnly = usersRes.users.filter((u: any) => u.role !== 'CLIENT');
+          if (staffOnly.length > 0) setStaffUsers(staffOnly);
+        }
       } catch (err) {
         console.warn('Admin API load fallback:', err);
       }
@@ -210,9 +217,14 @@ export default function AdminDashboardPage() {
   const [artCoverImage, setArtCoverImage] = useState('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');
 
   const [userModalOpen, setUserModalOpen] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState<UserRole>('AGENT');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserPhone, setNewUserPhone] = useState('');
+  const [showUserPassword, setShowUserPassword] = useState(false);
+  const [userModalError, setUserModalError] = useState<string | null>(null);
 
   // Property Form State
   const [propTitle, setPropTitle] = useState('');
@@ -550,31 +562,142 @@ export default function AdminDashboardPage() {
   };
 
   // --------------------------------------------------------------------------
-  // STAFF USER MANAGEMENT FUNCTIONS
+  // STAFF USER MANAGEMENT FUNCTIONS (CREATE, EDIT, PASSWORD, ROLE, DELETE)
   // --------------------------------------------------------------------------
-  const handleAddStaffUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newUser: UserAccount = {
-      id: `usr-${Date.now()}`,
-      email: newUserEmail,
-      name: newUserName,
-      role: newUserRole,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setStaffUsers((prev) => [...prev, newUser]);
-    logAction('Ajout utilisateur staff', `${newUserName} (${newUserRole})`);
-    setUserModalOpen(false);
+  const handleOpenCreateStaff = () => {
+    setEditingUserId(null);
     setNewUserName('');
     setNewUserEmail('');
+    setNewUserRole('AGENT');
+    setNewUserPassword('');
+    setNewUserPhone('');
+    setUserModalError(null);
+    setUserModalOpen(true);
   };
 
-  const handleChangeStaffRole = (userId: string, newRole: UserRole, userName: string) => {
+  const handleOpenEditStaff = (u: UserAccount) => {
+    setEditingUserId(u.id);
+    setNewUserName(u.name);
+    setNewUserEmail(u.email);
+    setNewUserRole(u.role);
+    setNewUserPassword('');
+    setNewUserPhone(u.phone || '');
+    setUserModalError(null);
+    setUserModalOpen(true);
+  };
+
+  const handleSaveStaffUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserModalError(null);
+
+    if (!newUserName.trim() || newUserName.trim().length < 2) {
+      setUserModalError('Veuillez renseigner le nom complet du collaborateur.');
+      return;
+    }
+
+    if (!newUserEmail.trim() || !newUserEmail.includes('@')) {
+      setUserModalError('Veuillez renseigner une adresse email valide.');
+      return;
+    }
+
+    if (!editingUserId && (!newUserPassword || newUserPassword.length < 6)) {
+      setUserModalError('Le mot de passe initial doit comporter au minimum 6 caractères.');
+      return;
+    }
+
+    if (editingUserId && newUserPassword && newUserPassword.length < 6) {
+      setUserModalError('Le nouveau mot de passe doit comporter au minimum 6 caractères.');
+      return;
+    }
+
+    try {
+      if (editingUserId) {
+        // Edit existing staff user
+        const res = await fetch('/api/admin/users', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingUserId,
+            email: newUserEmail.trim(),
+            name: newUserName.trim(),
+            role: newUserRole,
+            phone: newUserPhone.trim(),
+            password: newUserPassword ? newUserPassword.trim() : undefined,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setUserModalError(data.error || 'Erreur lors de la mise à jour.');
+          return;
+        }
+
+        setStaffUsers((prev) =>
+          prev.map((u) =>
+            u.id === editingUserId
+              ? { ...u, name: newUserName.trim(), email: newUserEmail.trim(), role: newUserRole, phone: newUserPhone.trim() }
+              : u
+          )
+        );
+        logAction('Mise à jour compte staff', `${newUserName} (${newUserRole})`);
+      } else {
+        // Create new staff user with password
+        const res = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: newUserName.trim(),
+            email: newUserEmail.trim(),
+            role: newUserRole,
+            password: newUserPassword.trim(),
+            phone: newUserPhone.trim(),
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setUserModalError(data.error || 'Erreur lors de la création.');
+          return;
+        }
+
+        const createdUser: UserAccount = data.user || {
+          id: `usr-${Date.now()}`,
+          name: newUserName.trim(),
+          email: newUserEmail.trim(),
+          role: newUserRole,
+          phone: newUserPhone.trim(),
+          createdAt: new Date().toISOString().split('T')[0],
+        };
+
+        setStaffUsers((prev) => [...prev, createdUser]);
+        logAction('Création compte staff avec mot de passe', `${newUserName} (${newUserRole})`);
+      }
+
+      setUserModalOpen(false);
+    } catch (err) {
+      setUserModalError('Erreur de communication avec le serveur.');
+    }
+  };
+
+  const handleChangeStaffRole = async (userId: string, newRole: UserRole, userName: string, userEmail: string) => {
     setStaffUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+    try {
+      await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, email: userEmail, role: newRole }),
+      });
+    } catch {}
     logAction(`Rôle modifié (${newRole})`, userName);
   };
 
-  const handleDeleteStaffUser = (userId: string, userName: string) => {
-    if (confirm(`Révoquer le compte de ${userName} ?`)) {
+  const handleDeleteStaffUser = async (userId: string, userName: string, userEmail: string) => {
+    if (confirm(`Révoquer et supprimer définitivement le compte staff de ${userName} (${userEmail}) ?`)) {
+      try {
+        await fetch(`/api/admin/users?email=${encodeURIComponent(userEmail)}&id=${userId}`, {
+          method: 'DELETE',
+        });
+      } catch {}
       setStaffUsers((prev) => prev.filter((u) => u.id !== userId));
       logAction('Révocation compte staff', userName);
     }
@@ -1414,11 +1537,11 @@ export default function AdminDashboardPage() {
               </h2>
 
               <button
-                onClick={() => setUserModalOpen(true)}
-                className="bg-brand-gold text-brand-navy font-bold px-4 py-2.5 rounded text-xs uppercase tracking-wider flex items-center gap-2 shadow"
+                onClick={handleOpenCreateStaff}
+                className="bg-brand-gold text-brand-navy font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow hover:opacity-95 transition-all"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>Ajouter un Compte Staff</span>
+                <span>Nouveau Compte Staff</span>
               </button>
             </div>
 
@@ -1426,38 +1549,55 @@ export default function AdminDashboardPage() {
               <table className="w-full text-left text-xs text-brand-travertine/80">
                 <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
                   <tr>
-                    <th className="p-3">Nom Collaborateur</th>
+                    <th className="p-3">Collaborateur</th>
                     <th className="p-3">Email Identifiant</th>
+                    <th className="p-3">Téléphone</th>
                     <th className="p-3">Rôle Staff Habilité</th>
-                    <th className="p-3 text-right">Actions Droits</th>
+                    <th className="p-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
                   {staffUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-white/5">
-                      <td className="p-3 font-semibold text-white">{u.name}</td>
+                    <tr key={u.id} className="hover:bg-white/5 transition-colors">
+                      <td className="p-3">
+                        <div className="font-semibold text-white">{u.name}</div>
+                        {u.role === 'SUPER_ADMIN' && (
+                          <span className="text-[9px] font-mono text-amber-400 font-bold">Direction Générale</span>
+                        )}
+                      </td>
                       <td className="p-3 font-mono text-brand-travertine/70">{u.email}</td>
+                      <td className="p-3 font-mono text-brand-travertine/60">{u.phone || '—'}</td>
                       <td className="p-3">
                         <select
                           value={u.role}
-                          onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name)}
-                          className="bg-brand-navy border border-white/20 rounded px-2.5 py-1 text-xs text-brand-gold font-mono font-bold"
+                          onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
+                          className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none"
                         >
-                          <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-                          <option value="ADMIN">ADMIN</option>
-                          <option value="AGENT">AGENT</option>
-                          <option value="CONTENT_MANAGER">CONTENT_MANAGER</option>
-                          <option value="CLIENT">CLIENT</option>
+                          <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
+                          <option value="ADMIN">ADMIN (Gestionnaire)</option>
+                          <option value="AGENT">AGENT (Commercial)</option>
+                          <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
                         </select>
                       </td>
                       <td className="p-3 text-right">
-                        <button
-                          onClick={() => handleDeleteStaffUser(u.id, u.name)}
-                          className="p-1.5 rounded bg-white/5 text-brand-travertine/50 hover:text-red-400"
-                          title="Révoquer l'accès"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditStaff(u)}
+                            className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
+                            title="Configurer (Nom, Mot de Passe, Rôle)"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          {u.email !== 'yassinealoulou6@gmail.com' && (
+                            <button
+                              onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
+                              className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                              title="Révoquer et supprimer le compte"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1882,63 +2022,123 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* MODAL: ADD STAFF USER */}
+      {/* MODAL: ADD / EDIT STAFF USER */}
       {userModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
-          <div className="glass-navy p-8 rounded-xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-6">
+          <div className="glass-navy p-6 sm:p-8 rounded-2xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-6">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h3 className="font-editorial text-2xl font-light text-brand-travertine">
-                Ajouter un Compte Staff
-              </h3>
-              <button onClick={() => setUserModalOpen(false)} className="text-white/60 hover:text-white">
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-mono text-brand-gold uppercase tracking-widest font-bold">
+                  {editingUserId ? 'Configuration Staff' : 'Nouveau Collaborateur'}
+                </span>
+                <h3 className="font-editorial text-2xl font-light text-brand-travertine">
+                  {editingUserId ? 'Modifier le Compte Staff' : 'Créer un Compte Staff'}
+                </h3>
+              </div>
+              <button onClick={() => setUserModalOpen(false)} className="text-white/60 hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAddStaffUser} className="space-y-4">
+            {userModalError && (
+              <div className="p-3 rounded-xl bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{userModalError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveStaffUser} className="space-y-4">
               <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Nom du Collaborateur</label>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
+                  Nom du Collaborateur
+                </label>
                 <input
                   required
                   type="text"
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
                   placeholder="ex: Yassine Triki"
-                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-gold focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Email Identifiant</label>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
+                  Email Identifiant (Connexion)
+                </label>
                 <input
                   required
                   type="email"
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
-                  placeholder="nom@villaregia.tn"
-                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  placeholder="collaborateur@villaregia.tn"
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-gold focus:outline-none font-mono"
                 />
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
+                    Rôle Staff
+                  </label>
+                  <select
+                    value={newUserRole}
+                    onChange={(e) => setNewUserRole(e.target.value as UserRole)}
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono font-bold focus:border-brand-gold focus:outline-none"
+                  >
+                    <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
+                    <option value="ADMIN">ADMIN (Gestionnaire)</option>
+                    <option value="AGENT">AGENT (Commercial)</option>
+                    <option value="CONTENT_MANAGER">CONTENT_MANAGER (Rédacteur)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
+                    Téléphone Direct
+                  </label>
+                  <input
+                    type="tel"
+                    value={newUserPhone}
+                    onChange={(e) => setNewUserPhone(e.target.value)}
+                    placeholder="+216 98 --- ---"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-brand-gold focus:outline-none"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Rôle Staff</label>
-                <select
-                  value={newUserRole}
-                  onChange={(e) => setNewUserRole(e.target.value as UserRole)}
-                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white font-mono font-bold"
-                >
-                  <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
-                  <option value="ADMIN">ADMIN (Gestionnaire)</option>
-                  <option value="AGENT">AGENT (Conseiller Commercial)</option>
-                  <option value="CONTENT_MANAGER">CONTENT_MANAGER (Rédacteur)</option>
-                </select>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
+                  {editingUserId ? 'Nouveau Mot de Passe (laisser vide pour ne pas changer)' : 'Mot de Passe Initial (min. 6 caractères)'}
+                </label>
+                <div className="relative">
+                  <input
+                    type={showUserPassword ? 'text' : 'password'}
+                    value={newUserPassword}
+                    onChange={(e) => setNewUserPassword(e.target.value)}
+                    placeholder={editingUserId ? 'Conserver le mot de passe actuel' : '••••••••••••'}
+                    required={!editingUserId}
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 pr-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowUserPassword(!showUserPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-brand-gold transition-colors"
+                  >
+                    {showUserPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-brand-gold/10 border border-brand-gold/20 text-[10px] font-mono text-brand-travertine/70 leading-relaxed">
+                Ce collaborateur pourra se connecter avec cet email et ce mot de passe. Les permissions associées à son rôle lui seront attribuées immédiatement.
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3 rounded shadow-xl"
+                className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all"
               >
-                Créer le Compte Staff
+                {editingUserId ? 'Enregistrer les Modifications' : 'Créer et Activer le Compte Staff'}
               </button>
             </form>
           </div>
