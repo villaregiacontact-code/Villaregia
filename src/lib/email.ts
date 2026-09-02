@@ -55,6 +55,36 @@ async function dispatchHtmlEmail({
         return { success: true, provider: 'resend', id: data.id };
       } else {
         console.error('[RESEND API ERROR]:', data);
+        // Handle Resend sandbox restriction (onboarding@resend.dev only permits sending to account owner)
+        if (data?.statusCode === 403 || data?.name === 'validation_error' || data?.message?.includes('testing emails')) {
+          console.warn(`[RESEND SANDBOX RESTRICTION]: Cannot send to ${to}. Forwarding notice to villaregia.contact@gmail.com...`);
+          try {
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${resendApiKey}`,
+              },
+              body: JSON.stringify({
+                from: fromAddress,
+                to: ['villaregia.contact@gmail.com'],
+                subject: `[CODE POUR ${to}] ${subject}`,
+                html: `
+                  <div style="padding: 24px; font-family: sans-serif; background-color: #121C30; color: #FAF8F5; border: 1.5px solid #C5A059; border-radius: 12px;">
+                    <h2 style="color: #C5A059; margin-top: 0;">Code de Sécurité Villa Regia (Destinataire: ${to})</h2>
+                    <p>Ce message vous est adressé car le compte Resend est actuellement en mode test sandbox (<em>onboarding@resend.dev</em>) et n'autorise la livraison qu'à l'email de compte <strong>villaregia.contact@gmail.com</strong>.</p>
+                    <p>Pour envoyer des emails directement à tous les clients externes, vérifiez votre nom de domaine sur <a href="https://resend.com/domains" style="color: #C5A059;">resend.com/domains</a>.</p>
+                    <hr style="border-color: rgba(255,255,255,0.15); margin: 20px 0;" />
+                    ${htmlContent}
+                  </div>
+                `,
+              }),
+            });
+          } catch (forwardErr) {
+            console.error('Failed to forward sandbox copy to owner:', forwardErr);
+          }
+          return { success: false, provider: 'resend', isResendSandboxRestricted: true, error: data.message };
+        }
       }
     } catch (resendErr) {
       console.error('Failed to send via Resend API:', resendErr);

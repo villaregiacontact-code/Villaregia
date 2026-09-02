@@ -72,10 +72,16 @@ export async function POST(request: Request) {
       console.warn('Could not dispatch external email, code generated for local/fallback verification:', mailErr);
     }
 
+    const isSandboxRestricted = Boolean(emailResult?.isResendSandboxRestricted);
+
     return NextResponse.json({
       success: true,
-      message: `Votre code d'activation à 6 chiffres a été généré et envoyé à votre adresse email ${cleanEmail}.`,
+      message: isSandboxRestricted
+        ? `Code d'activation généré pour ${cleanEmail}. (Mode Sandbox Resend : email délivré à villaregia.contact@gmail.com).`
+        : `Votre code d'activation à 6 chiffres a été généré et envoyé à votre adresse email ${cleanEmail}.`,
       email: cleanEmail,
+      isResendSandboxRestricted: isSandboxRestricted,
+      devCode: isSandboxRestricted ? confirmationCode : undefined,
       previewUrl: emailResult?.previewUrl || null,
     });
   } catch (error: any) {

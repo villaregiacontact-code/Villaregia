@@ -104,6 +104,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     user,
     is2FAVerified,
     pendingEmailConfirmation,
+    lastDispatchedEmailNotice,
     login,
     register,
     verifyEmailCode,
@@ -324,6 +325,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono flex items-center gap-2 text-left">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
                 <span>{activationError}</span>
+              </div>
+            )}
+
+            {lastDispatchedEmailNotice?.isResendSandboxRestricted && lastDispatchedEmailNotice?.code && (
+              <div className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs font-mono space-y-2 text-left">
+                <div className="flex items-center gap-1.5 font-bold text-amber-300 text-[11px]">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Information Sandbox Resend (Domaine non vérifié) :</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-amber-200/90 font-sans">
+                  Votre compte Resend est en mode test sandbox gratuit (<em>onboarding@resend.dev</em>). Selon la politique Resend, les emails ne sont délivrés qu'à <strong>villaregia.contact@gmail.com</strong> tant qu'un domaine n'est pas validé sur <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="underline text-brand-gold">resend.com/domains</a>. Une copie y a été envoyée.
+                </p>
+                <div className="bg-black/40 p-2.5 rounded-lg flex items-center justify-between gap-2">
+                  <span className="text-white/80 text-[11px]">Code généré :</span>
+                  <button
+                    type="button"
+                    onClick={() => setActivationCode(lastDispatchedEmailNotice.code!)}
+                    className="bg-brand-gold text-brand-navy font-bold px-3 py-1 rounded text-xs tracking-wider uppercase hover:opacity-95 transition-opacity font-mono"
+                  >
+                    Insérer {lastDispatchedEmailNotice.code}
+                  </button>
+                </div>
               </div>
             )}
 

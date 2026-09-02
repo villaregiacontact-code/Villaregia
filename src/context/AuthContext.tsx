@@ -80,7 +80,7 @@ interface AuthContextType {
   is2FAVerified: boolean;
   current2FACode: string | null;
   pendingEmailConfirmation: string | null;
-  lastDispatchedEmailNotice: { type: 'CONFIRMATION' | '2FA'; email: string; code: string; previewUrl?: string | null } | null;
+  lastDispatchedEmailNotice: { type: 'CONFIRMATION' | '2FA'; email: string; code?: string; previewUrl?: string | null; isResendSandboxRestricted?: boolean } | null;
   generate2FACode: () => string;
   login: (email: string, pass: string) => Promise<AuthResponse>;
   register: (name: string, email: string, phone: string, role: UserRole, password?: string) => Promise<{ success: boolean; error?: string }>;
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [is2FAVerified, setIs2FAVerified] = useState<boolean>(false);
   const [current2FACode, setCurrent2FACode] = useState<string | null>(null);
   const [pendingEmailConfirmation, setPendingEmailConfirmation] = useState<string | null>(null);
-  const [lastDispatchedEmailNotice, setLastDispatchedEmailNotice] = useState<{ type: 'CONFIRMATION' | '2FA'; email: string; code: string; previewUrl?: string | null } | null>(null);
+  const [lastDispatchedEmailNotice, setLastDispatchedEmailNotice] = useState<{ type: 'CONFIRMATION' | '2FA'; email: string; code?: string; previewUrl?: string | null; isResendSandboxRestricted?: boolean } | null>(null);
 
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
@@ -225,13 +225,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLastDispatchedEmailNotice({
         type: 'CONFIRMATION',
         email: cleanEmail,
-        code: data.confirmationCode,
+        code: data.confirmationCode || data.devCode,
         previewUrl: data.previewUrl,
+        isResendSandboxRestricted: data.isResendSandboxRestricted,
       });
 
       // Save pending registration locally in case of offline fallback
       try {
-        const pendingObj = { name, email: cleanEmail, phone, password, code: data.confirmationCode };
+        const pendingObj = { name, email: cleanEmail, phone, password, code: data.confirmationCode || data.devCode };
         localStorage.setItem(`vr_pending_${cleanEmail}`, JSON.stringify(pendingObj));
       } catch {}
 
