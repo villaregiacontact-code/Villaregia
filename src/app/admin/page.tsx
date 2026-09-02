@@ -762,39 +762,50 @@ export default function AdminDashboardPage() {
     <div className="pt-24 pb-24 bg-brand-navy-dark min-h-screen text-brand-travertine">
       
       {/* Top Executive Header Bar */}
-      <div className="glass-navy border-b border-brand-gold/20 py-5 px-6 mb-8 shadow-2xl">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="glass-navy border-b border-brand-gold/20 py-4 sm:py-5 px-4 sm:px-6 mb-6 sm:mb-8 shadow-2xl">
+        <div className="max-w-7xl mx-auto flex flex-col gap-4">
           
-          {/* Brand + User Info */}
-          <div className="flex items-center gap-4">
-            <div className="relative w-36 h-9">
-              <Image src="/images/logo-light.png" alt="Villa Regia" fill className="object-contain" />
-            </div>
-            <div className="h-8 w-px bg-white/15 hidden sm:block" />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono uppercase bg-brand-gold text-brand-navy font-bold px-2.5 py-0.5 rounded shadow">
-                  {user.role}
-                </span>
-                <span className="text-xs text-brand-travertine/60 font-mono">{user.email}</span>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 inline-flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                  <span>2FA Sécurisé</span>
-                </span>
+          {/* Top Row: Brand + User Info + Logout */}
+          <div className="flex items-center justify-between gap-3 w-full">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="relative w-28 sm:w-36 h-7 sm:h-9 shrink-0">
+                <Image src="/images/logo-light.png" alt="Villa Regia" fill className="object-contain" priority />
               </div>
-              <h1 className="text-sm font-bold text-brand-travertine mt-0.5">
-                {user.name}
-              </h1>
+              <div className="h-6 sm:h-8 w-px bg-white/15 shrink-0" />
+              <div className="min-w-0 truncate">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[9px] sm:text-[10px] font-mono uppercase bg-brand-gold text-brand-navy font-bold px-2 py-0.5 rounded shadow">
+                    {user.role}
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-brand-travertine/60 font-mono truncate max-w-[140px] sm:max-w-none">{user.email}</span>
+                  <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 hidden sm:inline-flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                    <span>2FA</span>
+                  </span>
+                </div>
+                <h1 className="text-xs sm:text-sm font-bold text-brand-travertine truncate mt-0.5">
+                  {user.name}
+                </h1>
+              </div>
             </div>
+
+            <button
+              onClick={logout}
+              className="p-2 sm:p-2.5 rounded-xl bg-white/5 hover:bg-red-500/20 text-brand-travertine/60 hover:text-red-400 border border-white/10 transition-colors shrink-0 flex items-center gap-1.5 text-xs"
+              title="Se déconnecter"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline font-mono">Quitter</span>
+            </button>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex gap-1 bg-brand-navy p-1.5 rounded-lg border border-white/10">
+          {/* Navigation Tabs - Mobile Swipeable with Horizontal Scroll */}
+          <div className="w-full overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex gap-1.5 bg-brand-navy/90 p-1.5 rounded-xl border border-white/10 min-w-max">
               <button
                 onClick={() => setActiveTab('kpi')}
-                className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
-                  activeTab === 'kpi' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                className={`px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+                  activeTab === 'kpi' ? 'bg-brand-gold text-brand-navy shadow-md font-bold' : 'text-brand-travertine/70 hover:text-white'
                 }`}
               >
                 Tableau de Bord
@@ -803,8 +814,8 @@ export default function AdminDashboardPage() {
               {hasPermission('properties.read') && (
                 <button
                   onClick={() => setActiveTab('properties')}
-                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
-                    activeTab === 'properties' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  className={`px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    activeTab === 'properties' ? 'bg-brand-gold text-brand-navy shadow-md font-bold' : 'text-brand-travertine/70 hover:text-white'
                   }`}
                 >
                   Biens ({properties.length})
@@ -814,8 +825,8 @@ export default function AdminDashboardPage() {
               {hasPermission('properties.read') && (
                 <button
                   onClick={() => setActiveTab('submissions')}
-                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                    activeTab === 'submissions' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  className={`px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                    activeTab === 'submissions' ? 'bg-brand-gold text-brand-navy shadow-md font-bold' : 'text-brand-travertine/70 hover:text-white'
                   }`}
                 >
                   <FileCheck className="w-3.5 h-3.5" />
@@ -826,8 +837,8 @@ export default function AdminDashboardPage() {
               {hasPermission('leads.read') && (
                 <button
                   onClick={() => setActiveTab('crm')}
-                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
-                    activeTab === 'crm' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  className={`px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    activeTab === 'crm' ? 'bg-brand-gold text-brand-navy shadow-md font-bold' : 'text-brand-travertine/70 hover:text-white'
                   }`}
                 >
                   Pipeline CRM ({leads.length})
@@ -837,8 +848,8 @@ export default function AdminDashboardPage() {
               {hasPermission('reservations.read') && (
                 <button
                   onClick={() => setActiveTab('reservations')}
-                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
-                    activeTab === 'reservations' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  className={`px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    activeTab === 'reservations' ? 'bg-brand-gold text-brand-navy shadow-md font-bold' : 'text-brand-travertine/70 hover:text-white'
                   }`}
                 >
                   Réservations ({reservations.length})
@@ -848,8 +859,8 @@ export default function AdminDashboardPage() {
               {hasPermission('content.manage') && (
                 <button
                   onClick={() => setActiveTab('articles')}
-                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
-                    activeTab === 'articles' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  className={`px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    activeTab === 'articles' ? 'bg-brand-gold text-brand-navy shadow-md font-bold' : 'text-brand-travertine/70 hover:text-white'
                   }`}
                 >
                   Journal ({articles.length})
@@ -859,33 +870,25 @@ export default function AdminDashboardPage() {
               {hasPermission('users.manage') && (
                 <button
                   onClick={() => setActiveTab('users')}
-                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
-                    activeTab === 'users' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  className={`px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    activeTab === 'users' ? 'bg-brand-gold text-brand-navy shadow-md font-bold' : 'text-brand-travertine/70 hover:text-white'
                   }`}
                 >
-                  Utilisateurs Staff ({staffUsers.length})
+                  Staff ({staffUsers.length})
                 </button>
               )}
 
               {hasPermission('users.manage') && (
                 <button
                   onClick={() => setActiveTab('audit')}
-                  className={`px-3.5 py-1.5 rounded text-xs font-semibold uppercase tracking-wider transition-all ${
-                    activeTab === 'audit' ? 'bg-brand-gold text-brand-navy shadow-md' : 'text-brand-travertine/70 hover:text-white'
+                  className={`px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+                    activeTab === 'audit' ? 'bg-brand-gold text-brand-navy shadow-md font-bold' : 'text-brand-travertine/70 hover:text-white'
                   }`}
                 >
                   Audit Logs
                 </button>
               )}
             </div>
-
-            <button
-              onClick={logout}
-              className="p-2.5 rounded bg-brand-navy hover:bg-red-500/20 text-brand-travertine/60 hover:text-red-400 border border-white/10 transition-colors"
-              title="Se déconnecter"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
 
         </div>
@@ -1058,7 +1061,99 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile View: Cards */}
+            <div className="space-y-4 block lg:hidden">
+              {submissions.map((sub) => (
+                <div
+                  key={sub.id}
+                  className="glass-card p-4 rounded-xl border border-white/10 space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold text-xs text-brand-gold">{sub.refCode}</span>
+                    <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      sub.status === 'APPROVED'
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : sub.status === 'REJECTED'
+                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    }`}>
+                      {sub.status === 'APPROVED' ? 'Approuvé' : sub.status === 'REJECTED' ? 'Refusé' : 'En Attente'}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-3">
+                    {sub.photos && sub.photos.length > 0 ? (
+                      <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-brand-gold/30 shrink-0">
+                        <img src={sub.photos[0]} alt="Bien" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/30 shrink-0 text-[10px]">
+                        Sans photo
+                      </div>
+                    )}
+                    <div className="space-y-1 min-w-0">
+                      <div className="font-bold text-sm text-white truncate">{sub.propertyType}</div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono font-bold">
+                          {sub.objective}
+                        </span>
+                        <span className="text-xs text-white/70">{sub.district}, {sub.city}</span>
+                      </div>
+                      <div className="text-xs font-mono font-bold text-brand-gold">
+                        {sub.estimatedPrice.toLocaleString()} TND • {sub.surfaceM2} m² ({sub.bedrooms} ch.)
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-white/5 border border-white/8 space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/60">Propriétaire:</span>
+                      <span className="font-semibold text-white">{sub.ownerName}</span>
+                    </div>
+                    <div className="flex items-center justify-between font-mono text-[11px]">
+                      <span className="text-white/60">Téléphone:</span>
+                      <a href={`tel:${sub.ownerPhone}`} className="text-brand-gold hover:underline">{sub.ownerPhone}</a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                    {sub.status === 'PENDING' && (
+                      <button
+                        onClick={() => handleApproveSubmission(sub)}
+                        className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 py-2.5 rounded-lg text-xs font-bold uppercase transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>Approuver & Publier</span>
+                      </button>
+                    )}
+
+                    <a
+                      href={`https://wa.me/${sub.ownerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${sub.ownerName}, concernant votre dossier ${sub.refCode} soumis à Villa Regia...`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2.5 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold"
+                      title="WhatsApp Propriétaire"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span className="text-[11px]">WhatsApp</span>
+                    </a>
+
+                    {sub.status === 'PENDING' && (
+                      <button
+                        onClick={() => handleRejectSubmission(sub.id, sub.refCode)}
+                        className="p-2.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                        title="Refuser le dossier"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="overflow-x-auto hidden lg:block">
               <table className="w-full text-left text-xs text-brand-travertine/80">
                 <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
                   <tr>
@@ -1160,23 +1255,23 @@ export default function AdminDashboardPage() {
         {activeTab === 'properties' && hasPermission('properties.read') && (
           <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
             
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
                 <div className="relative w-full sm:w-72">
                   <input
                     type="text"
                     placeholder="Rechercher par titre ou quartier..."
                     value={propertySearch}
                     onChange={(e) => setPropertySearch(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-gold"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold"
                   />
-                  <Search className="w-4 h-4 text-brand-travertine/40 absolute right-3 top-2.5" />
+                  <Search className="w-4 h-4 text-brand-travertine/40 absolute right-3 top-3" />
                 </div>
 
                 <select
                   value={universeFilter}
                   onChange={(e) => setUniverseFilter(e.target.value)}
-                  className="bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-gold"
+                  className="bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold"
                 >
                   <option value="ALL">Tous les Univers</option>
                   <option value="VENTE">VENTE</option>
@@ -1189,7 +1284,7 @@ export default function AdminDashboardPage() {
               {hasPermission('properties.create') && (
                 <button
                   onClick={openAddPropertyModal}
-                  className="bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy px-4 py-2.5 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow"
+                  className="bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow hover:opacity-95 transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Ajouter une Propriété</span>
@@ -1197,7 +1292,105 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile View: Cards */}
+            <div className="space-y-4 block lg:hidden">
+              {filteredProperties.map((p) => (
+                <div
+                  key={p.id}
+                  className="glass-card p-4 rounded-xl border border-white/10 space-y-3"
+                >
+                  <div className="flex gap-3">
+                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-brand-gold/30 shrink-0">
+                      <Image src={p.images[0]?.url || ''} alt={p.title.fr} fill className="object-cover" />
+                    </div>
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-1">
+                        <span className="font-bold text-sm text-white line-clamp-1">{p.title.fr}</span>
+                        <button
+                          onClick={() => handleToggleFeatured(p.id, p.isFeatured || false, p.title.fr)}
+                          className={`p-1 rounded shrink-0 transition-colors ${
+                            p.isFeatured ? 'text-amber-400 bg-amber-400/10' : 'text-slate-600 hover:text-amber-400'
+                          }`}
+                          title="En Une"
+                        >
+                          <Star className="w-4 h-4 fill-current" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono font-bold">
+                          {p.universe}
+                        </span>
+                        <span className="text-xs text-white/60">{p.category}</span>
+                      </div>
+
+                      <div className="text-xs text-white/70 truncate">{p.location.district}, {p.location.city}</div>
+
+                      <div className="text-xs font-mono font-bold text-brand-gold">
+                        {p.price.amount.toLocaleString()} {p.price.currency}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
+                    <button
+                      onClick={() => handleToggleStatus(p.id, p.status, p.title.fr)}
+                      className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all ${
+                        p.status === 'DISPONIBLE'
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      }`}
+                    >
+                      {p.status}
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      <Link
+                        href={`/properties/${p.id}`}
+                        target="_blank"
+                        className="p-2 rounded-lg bg-white/5 text-brand-gold hover:bg-white/10"
+                        title="Voir fiche publique"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Link>
+                      <button
+                        onClick={() => handleCreateLeadFromProperty(p)}
+                        className="p-2 rounded-lg bg-white/5 text-emerald-400 hover:bg-white/10"
+                        title="Créer Lead CRM"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => openEditPropertyModal(p)}
+                        className="p-2 rounded-lg bg-white/5 text-brand-travertine hover:text-brand-gold hover:bg-white/10"
+                        title="Modifier"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDuplicateProperty(p)}
+                        className="p-2 rounded-lg bg-white/5 text-sky-400 hover:bg-white/10"
+                        title="Dupliquer"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                      {hasPermission('properties.delete') && (
+                        <button
+                          onClick={() => handleDeleteProperty(p.id, p.title.fr)}
+                          className="p-2 rounded-lg bg-white/5 text-red-400 hover:bg-white/10"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="overflow-x-auto hidden lg:block">
               <table className="w-full text-left text-xs text-brand-travertine/80">
                 <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
                   <tr>
@@ -1329,11 +1522,11 @@ export default function AdminDashboardPage() {
               </button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="flex md:grid md:grid-cols-5 gap-4 overflow-x-auto pb-4 scrollbar-none snap-x -mx-4 px-4 sm:mx-0 sm:px-0">
               {(['Nouveau', 'Contacté', 'Visite', 'Offre', 'Conclu'] as const).map((stage) => {
                 const stageLeads = leads.filter((l) => l.status === stage);
                 return (
-                  <div key={stage} className="glass-card rounded-xl p-4 space-y-3 min-h-[360px] border border-brand-gold/15">
+                  <div key={stage} className="glass-card rounded-xl p-4 space-y-3 min-h-[360px] border border-brand-gold/15 min-w-[280px] sm:min-w-[300px] md:min-w-0 snap-start flex-1 shrink-0">
                     <div className="flex justify-between items-center border-b border-white/10 pb-2">
                       <span className="text-xs font-mono font-bold text-brand-travertine uppercase">{stage}</span>
                       <span className="text-[10px] bg-brand-gold text-brand-navy px-2 py-0.5 rounded font-mono font-bold">
@@ -1408,7 +1601,59 @@ export default function AdminDashboardPage() {
               Gestion des Réservations & Acomptes Court Séjour
             </h2>
 
-            <div className="overflow-x-auto">
+            {/* Mobile View: Cards */}
+            <div className="space-y-4 block lg:hidden">
+              {reservations.map((r) => (
+                <div key={r.id} className="glass-card p-4 rounded-xl border border-white/10 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold text-xs text-brand-gold">{r.id}</span>
+                    <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      r.status === 'CONFIRMED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                    }`}>
+                      {r.status}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-bold text-white">{r.propertyTitle}</h3>
+                    <div className="text-xs text-white/60 mt-0.5">{r.guestName} • <span className="font-mono text-brand-gold">{r.guestPhone}</span></div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 p-2.5 rounded-lg bg-white/5 border border-white/8 text-xs font-mono">
+                    <div>
+                      <span className="text-white/40 block text-[10px]">Dates</span>
+                      <span className="text-white/90 text-[11px]">{r.checkIn} → {r.checkOut}</span>
+                    </div>
+                    <div>
+                      <span className="text-white/40 block text-[10px]">Acompte ({r.totalNights} n.)</span>
+                      <span className="text-brand-gold font-bold text-xs">{r.depositAmount} TND</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1 border-t border-white/10">
+                    {r.status !== 'CONFIRMED' && (
+                      <button
+                        onClick={() => handleUpdateReservationStatus(r.id, 'CONFIRMED')}
+                        className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 py-2 rounded-lg text-xs font-bold uppercase"
+                      >
+                        Valider
+                      </button>
+                    )}
+                    {r.status !== 'CANCELLED' && (
+                      <button
+                        onClick={() => handleUpdateReservationStatus(r.id, 'CANCELLED')}
+                        className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 py-2 rounded-lg text-xs font-bold uppercase"
+                      >
+                        Annuler
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="overflow-x-auto hidden lg:block">
               <table className="w-full text-left text-xs text-brand-travertine/80">
                 <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
                   <tr>
@@ -1531,21 +1776,74 @@ export default function AdminDashboardPage() {
         {/* TAB 6: STAFF USER ACCOUNTS MANAGER */}
         {activeTab === 'users' && hasPermission('users.manage') && (
           <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
               <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
                 Gestion des Comptes Utilisateurs Staff & Droits RBAC
               </h2>
 
               <button
                 onClick={handleOpenCreateStaff}
-                className="bg-brand-gold text-brand-navy font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow hover:opacity-95 transition-all"
+                className="bg-brand-gold text-brand-navy font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow hover:opacity-95 transition-all"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Nouveau Compte Staff</span>
               </button>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile View: Cards */}
+            <div className="space-y-4 block lg:hidden">
+              {staffUsers.map((u) => (
+                <div key={u.id} className="glass-card p-4 rounded-xl border border-white/10 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-bold text-sm text-white">{u.name}</div>
+                      <div className="text-xs font-mono text-brand-travertine/70">{u.email}</div>
+                      {u.phone && <div className="text-[11px] font-mono text-brand-gold mt-0.5">{u.phone}</div>}
+                    </div>
+                    {u.role === 'SUPER_ADMIN' && (
+                      <span className="text-[9px] font-mono bg-amber-400/20 text-amber-400 border border-amber-400/30 px-2 py-0.5 rounded font-bold shrink-0">
+                        Direction
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                    <select
+                      value={u.role}
+                      onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
+                      className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none flex-1"
+                    >
+                      <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
+                      <option value="ADMIN">ADMIN (Gestionnaire)</option>
+                      <option value="AGENT">AGENT (Commercial)</option>
+                      <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
+                    </select>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleOpenEditStaff(u)}
+                        className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
+                        title="Configurer"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      {u.email !== 'yassinealoulou6@gmail.com' && (
+                        <button
+                          onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
+                          className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                          title="Révoquer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="overflow-x-auto hidden lg:block">
               <table className="w-full text-left text-xs text-brand-travertine/80">
                 <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
                   <tr>
@@ -1631,37 +1929,37 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: ADD / EDIT PROPERTY */}
       {propertyModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
-          <div className="glass-navy p-8 rounded-xl max-w-2xl w-full border border-brand-gold/40 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-3 sm:p-4">
+          <div className="glass-navy p-4 sm:p-8 rounded-2xl max-w-2xl w-full border border-brand-gold/40 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h3 className="font-editorial text-2xl font-light text-brand-travertine">
+              <h3 className="font-editorial text-xl sm:text-2xl font-light text-brand-travertine">
                 {editingProperty ? 'Modifier la Fiche Propriété' : 'Ajouter une Propriété au Catalogue'}
               </h3>
-              <button onClick={() => setPropertyModalOpen(false)} className="text-white/60 hover:text-white">
+              <button onClick={() => setPropertyModalOpen(false)} className="text-white/60 hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveProperty} className="space-y-4">
               <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Titre de la Propriété</label>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Titre de la Propriété</label>
                 <input
                   required
                   type="text"
                   value={propTitle}
                   onChange={(e) => setPropTitle(e.target.value)}
                   placeholder="ex: Domaine de la Soukra — Villa de Maître"
-                  className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2.5 text-xs text-white"
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Univers</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Univers</label>
                   <select
                     value={propUniverse}
                     onChange={(e) => setPropUniverse(e.target.value as UniverseType)}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white"
                   >
                     <option value="VENTE">VENTE</option>
                     <option value="RESIDENCE">RÉSIDENCE</option>
@@ -1670,11 +1968,11 @@ export default function AdminDashboardPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Catégorie</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Catégorie</label>
                   <select
                     value={propCategory}
                     onChange={(e) => setPropCategory(e.target.value as PropertyCategory)}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white"
                   >
                     <option value="Villa">Villa</option>
                     <option value="Appartement">Appartement</option>
@@ -1685,63 +1983,63 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Prix (TND)</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Prix (TND)</label>
                   <input
                     type="number"
                     value={propPrice}
                     onChange={(e) => setPropPrice(Number(e.target.value))}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Surface (m²)</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Surface (m²)</label>
                   <input
                     type="number"
                     value={propSurface}
                     onChange={(e) => setPropSurface(Number(e.target.value))}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Chambres</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Chambres</label>
                   <input
                     type="number"
                     value={propBedrooms}
                     onChange={(e) => setPropBedrooms(Number(e.target.value))}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Ville</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Ville</label>
                   <input
                     type="text"
                     value={propCity}
                     onChange={(e) => setPropCity(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Quartier / Secteur</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Quartier / Secteur</label>
                   <input
                     type="text"
                     value={propDistrict}
                     onChange={(e) => setPropDistrict(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white"
                   />
                 </div>
               </div>
 
               <div className="space-y-3">
-                <label className="text-[10px] font-mono uppercase text-brand-gold block">
+                <label className="text-[10px] font-mono uppercase text-brand-gold block font-bold">
                   Visuel de la Propriété (Chargement de Fichiers & Aperçu)
                 </label>
 
-                <div className="p-4 border border-dashed border-white/20 rounded-lg text-center space-y-2 bg-white/5">
+                <div className="p-4 border border-dashed border-white/20 rounded-xl text-center space-y-2 bg-white/5">
                   <input
                     type="file"
                     id="admin-prop-upload"
@@ -1762,7 +2060,7 @@ export default function AdminDashboardPage() {
                   <UploadCloud className="w-6 h-6 text-brand-gold mx-auto" />
                   <label
                     htmlFor="admin-prop-upload"
-                    className="inline-block bg-brand-gold hover:bg-brand-gold-dark text-brand-navy font-bold px-4 py-2 rounded text-xs uppercase tracking-wider cursor-pointer shadow transition-all"
+                    className="inline-block bg-brand-gold hover:bg-brand-gold-dark text-brand-navy font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-pointer shadow transition-all"
                   >
                     Charger une photo depuis l'ordinateur
                   </label>
@@ -1777,12 +2075,12 @@ export default function AdminDashboardPage() {
                     value={propImageUrl}
                     onChange={(e) => setPropImageUrl(e.target.value)}
                     placeholder="https://..."
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2 text-xs text-white"
                   />
                 </div>
 
                 {propImageUrl && (
-                  <div className="relative w-full h-40 rounded-lg overflow-hidden border border-brand-gold/30 mt-2">
+                  <div className="relative w-full h-40 rounded-xl overflow-hidden border border-brand-gold/30 mt-2">
                     <img src={propImageUrl} alt="Aperçu" className="w-full h-full object-cover" />
                     <span className="absolute bottom-2 left-2 bg-brand-navy/90 text-brand-gold text-[10px] font-mono px-2.5 py-0.5 rounded font-bold border border-brand-gold/20">
                       ★ Photo Couverture Active
@@ -1792,18 +2090,18 @@ export default function AdminDashboardPage() {
               </div>
 
               <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Description Éditoriale</label>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Description Éditoriale</label>
                 <textarea
                   rows={3}
                   value={propDesc}
                   onChange={(e) => setPropDesc(e.target.value)}
-                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2 text-xs text-white"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded shadow-xl"
+                className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all"
               >
                 {editingProperty ? 'Enregistrer les Modifications' : 'Créer et Publier la Propriété'}
               </button>
@@ -1814,40 +2112,40 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: NEW LEAD CREATOR */}
       {newLeadModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
-          <div className="glass-navy p-8 rounded-xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-3 sm:p-4">
+          <div className="glass-navy p-4 sm:p-8 rounded-2xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h3 className="font-editorial text-2xl font-light text-brand-travertine">
+              <h3 className="font-editorial text-xl sm:text-2xl font-light text-brand-travertine">
                 Saisir un Nouveau Lead Client
               </h3>
-              <button onClick={() => setNewLeadModalOpen(false)} className="text-white/60 hover:text-white">
+              <button onClick={() => setNewLeadModalOpen(false)} className="text-white/60 hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateNewLead} className="space-y-4">
               <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Nom du Client</label>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Nom du Client</label>
                 <input
                   required
                   type="text"
                   value={newLeadName}
                   onChange={(e) => setNewLeadName(e.target.value)}
                   placeholder="ex: M. Mehdi Ben Salem"
-                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Téléphone</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Téléphone</label>
                   <input
                     required
                     type="text"
                     value={newLeadPhone}
                     onChange={(e) => setNewLeadPhone(e.target.value)}
-                    placeholder="+216 98 --- ---"
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    placeholder="+216 27 745 405"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono"
                   />
                 </div>
                 <div>
@@ -1900,37 +2198,37 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: CMS ARTICLE CREATOR / EDITOR */}
       {articleModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
-          <div className="glass-navy p-8 rounded-xl max-w-xl w-full border border-brand-gold/40 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-3 sm:p-4">
+          <div className="glass-navy p-4 sm:p-8 rounded-2xl max-w-xl w-full border border-brand-gold/40 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <h3 className="font-editorial text-2xl font-light text-brand-travertine">
+              <h3 className="font-editorial text-xl sm:text-2xl font-light text-brand-travertine">
                 {editingArticle ? 'Éditer l’Article du Journal' : 'Rédiger un Article de Journal'}
               </h3>
-              <button onClick={() => setArticleModalOpen(false)} className="text-white/60 hover:text-white">
+              <button onClick={() => setArticleModalOpen(false)} className="text-white/60 hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveArticle} className="space-y-4">
               <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Titre de l'Article</label>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Titre de l'Article</label>
                 <input
                   required
                   type="text"
                   value={artTitle}
                   onChange={(e) => setArtTitle(e.target.value)}
                   placeholder="ex: L’Architecture Contemporaine à Sfax"
-                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Catégorie</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Catégorie</label>
                   <select
                     value={artCategory}
                     onChange={(e) => setArtCategory(e.target.value as BlogPost['category'])}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white"
                   >
                     <option value="Architecture">Architecture</option>
                     <option value="Investissement">Investissement</option>
@@ -1939,22 +2237,22 @@ export default function AdminDashboardPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Temps de Lecture</label>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Temps de Lecture</label>
                   <input
                     type="text"
                     value={artReadTime}
                     onChange={(e) => setArtReadTime(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white"
                   />
                 </div>
               </div>
 
               <div className="space-y-3">
-                <label className="text-[10px] font-mono uppercase text-brand-gold block">
+                <label className="text-[10px] font-mono uppercase text-brand-gold block font-bold">
                   Image Couverture de l'Article (Chargement de Fichier & Aperçu)
                 </label>
 
-                <div className="p-4 border border-dashed border-white/20 rounded-lg text-center space-y-2 bg-white/5">
+                <div className="p-4 border border-dashed border-white/20 rounded-xl text-center space-y-2 bg-white/5">
                   <input
                     type="file"
                     id="admin-art-upload"
@@ -1975,7 +2273,7 @@ export default function AdminDashboardPage() {
                   <UploadCloud className="w-6 h-6 text-brand-gold mx-auto" />
                   <label
                     htmlFor="admin-art-upload"
-                    className="inline-block bg-brand-gold hover:bg-brand-gold-dark text-brand-navy font-bold px-4 py-2 rounded text-xs uppercase tracking-wider cursor-pointer shadow transition-all"
+                    className="inline-block bg-brand-gold hover:bg-brand-gold-dark text-brand-navy font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-pointer shadow transition-all"
                   >
                     Charger l'image de couverture depuis l'ordinateur
                   </label>
@@ -1990,30 +2288,30 @@ export default function AdminDashboardPage() {
                     value={artCoverImage}
                     onChange={(e) => setArtCoverImage(e.target.value)}
                     placeholder="https://..."
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2 text-xs text-white"
                   />
                 </div>
 
                 {artCoverImage && (
-                  <div className="relative w-full h-32 rounded-lg overflow-hidden border border-brand-gold/30 mt-2">
+                  <div className="relative w-full h-32 rounded-xl overflow-hidden border border-brand-gold/30 mt-2">
                     <img src={artCoverImage} alt="Aperçu Couverture" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Résumé / Excerpt</label>
+                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">Résumé / Excerpt</label>
                 <textarea
                   rows={2}
                   value={artExcerpt}
                   onChange={(e) => setArtExcerpt(e.target.value)}
-                  className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white"
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2 text-xs text-white"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3 rounded shadow-xl"
+                className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all"
               >
                 {editingArticle ? 'Mettre à Jour l’Article' : 'Publier l’Article sur le Journal'}
               </button>
@@ -2024,8 +2322,8 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: ADD / EDIT STAFF USER */}
       {userModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
-          <div className="glass-navy p-6 sm:p-8 rounded-2xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-3 sm:p-4">
+          <div className="glass-navy p-4 sm:p-8 rounded-2xl max-w-md w-full border border-brand-gold/40 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <div className="space-y-0.5">
                 <span className="text-[10px] font-mono text-brand-gold uppercase tracking-widest font-bold">
