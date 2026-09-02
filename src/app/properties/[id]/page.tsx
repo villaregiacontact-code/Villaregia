@@ -306,9 +306,10 @@ export default function PropertyDetailPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs uppercase tracking-widest py-3.5 rounded flex items-center justify-center gap-2 shadow-lg transition-all"
+                title="Contacter le conseiller privé Villa Regia sur WhatsApp Business (+216 27 745 405)"
               >
                 <MessageCircle className="w-4 h-4 fill-current" />
-                <span>Contact WhatsApp Direct</span>
+                <span>WhatsApp Business Officiel</span>
               </a>
 
               {property.universe === 'LUXE' ? (

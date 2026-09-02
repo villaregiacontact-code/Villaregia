@@ -90,13 +90,14 @@ export default function ContactPage() {
 
               <div className="pt-4 border-t border-white/10">
                 <a
-                  href="https://wa.me/21627745405"
+                  href="https://wa.me/21627745405?text=Bonjour%20Villa%20Regia%2C%20je%20souhaite%20%C3%A9changer%20avec%20un%20conseiller%20concernant%20vos%20services%20immobiliers."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-[#25D366] text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-95 shadow-lg transition-all"
+                  className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-95 shadow-lg transition-all font-mono"
+                  title="Ouvrir le compte WhatsApp Business de Villa Regia (+216 27 745 405)"
                 >
                   <MessageCircle className="w-4 h-4 fill-current" />
-                  <span>Discussion WhatsApp Directe</span>
+                  <span>WhatsApp Business (+216 27 745 405)</span>
                 </a>
               </div>
             </div>

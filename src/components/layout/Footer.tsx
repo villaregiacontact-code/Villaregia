@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
-import { MapPin, Phone, Mail, ArrowUpRight, Instagram, Facebook, Linkedin } from 'lucide-react';
+import { MapPin, Phone, Mail, ArrowUpRight, Instagram, Facebook, Linkedin, MessageCircle } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const { t } = useLanguage();
@@ -110,6 +110,12 @@ export const Footer: React.FC = () => {
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-brand-gold shrink-0" />
                 <a href="tel:+21627745405" className="hover:text-brand-gold font-mono">+216 27 745 405</a>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <MessageCircle className="w-4 h-4 text-[#25D366] shrink-0" />
+                <a href="https://wa.me/21627745405" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 font-mono flex items-center gap-1.5">
+                  <span>WhatsApp Business: 27 745 405</span>
+                </a>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-brand-gold shrink-0" />
