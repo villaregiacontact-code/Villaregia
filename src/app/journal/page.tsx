@@ -1,14 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { INITIAL_ARTICLES } from '@/data/properties';
+import { BlogPost } from '@/types';
 import { BookOpen, ArrowUpRight, Sparkles } from 'lucide-react';
 
 export default function JournalPage() {
   const { language } = useLanguage();
+  const [articles, setArticles] = useState<BlogPost[]>(INITIAL_ARTICLES);
+
+  useEffect(() => {
+    async function loadLiveArticles() {
+      try {
+        const res = await fetch('/api/articles');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.articles) && data.articles.length > 0) {
+          setArticles(data.articles);
+        }
+      } catch (err) {
+        console.warn('Live articles fetch fallback:', err);
+      }
+    }
+    loadLiveArticles();
+  }, []);
 
   return (
     <div className="pt-28 pb-24 bg-brand-navy min-h-screen">
@@ -28,7 +45,7 @@ export default function JournalPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {INITIAL_ARTICLES.map((article) => (
+          {articles.map((article) => (
             <Link
               key={article.id}
               href={`/journal/${article.slug}`}

@@ -109,13 +109,14 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function loadAdminData() {
       try {
-        const [statsRes, propsRes, bookingsRes, crmRes, usersRes, subsRes] = await Promise.all([
+        const [statsRes, propsRes, bookingsRes, crmRes, usersRes, subsRes, articlesRes] = await Promise.all([
           fetch('/api/admin/stats').then(r => r.json()).catch(() => null),
           fetch('/api/properties').then(r => r.json()).catch(() => null),
           fetch('/api/bookings').then(r => r.json()).catch(() => null),
           fetch('/api/admin/crm').then(r => r.json()).catch(() => null),
           fetch('/api/admin/users').then(r => r.json()).catch(() => null),
           fetch('/api/submissions').then(r => r.json()).catch(() => null),
+          fetch('/api/articles').then(r => r.json()).catch(() => null),
         ]);
 
         if (statsRes?.success) setDbStats(statsRes.stats);
@@ -127,6 +128,9 @@ export default function AdminDashboardPage() {
         }
         if (subsRes?.success && Array.isArray(subsRes.submissions)) {
           setSubmissions(subsRes.submissions);
+        }
+        if (articlesRes?.success && Array.isArray(articlesRes.articles)) {
+          setArticles(articlesRes.articles);
         }
       } catch (err) {
         console.warn('Admin API load fallback:', err);
@@ -567,26 +571,36 @@ export default function AdminDashboardPage() {
     const contentObj = { fr: artContent, ar: artContent, en: artContent };
 
     if (editingArticle) {
+      const updatedArticle: BlogPost = {
+        ...editingArticle,
+        title: titleObj,
+        category: artCategory,
+        excerpt: excerptObj,
+        content: contentObj,
+        readTime: artReadTime,
+        coverImage: artCoverImage,
+      };
+
       setArticles((prev) =>
-        prev.map((a) =>
-          a.id === editingArticle.id
-            ? {
-                ...a,
-                title: titleObj,
-                category: artCategory,
-                excerpt: excerptObj,
-                content: contentObj,
-                readTime: artReadTime,
-                coverImage: artCoverImage,
-              }
-            : a
-        )
+        prev.map((a) => (a.id === editingArticle.id ? updatedArticle : a))
       );
       logAction('Modification article', artTitle);
+
+      fetch(`/api/articles/${editingArticle.slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedArticle),
+      }).catch(err => console.warn('Article update API fallback:', err));
     } else {
+      const generatedSlug = artTitle
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
       const newArt: BlogPost = {
         id: `art-${Date.now()}`,
-        slug: artTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        slug: generatedSlug || `art-${Date.now()}`,
         title: titleObj,
         category: artCategory,
         excerpt: excerptObj,
@@ -598,14 +612,27 @@ export default function AdminDashboardPage() {
       };
       setArticles((prev) => [newArt, ...prev]);
       logAction('Création article journal', artTitle);
+
+      fetch('/api/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newArt),
+      }).catch(err => console.warn('Article create API fallback:', err));
     }
     setArticleModalOpen(false);
   };
 
   const handleDeleteArticle = (id: string, title: string) => {
     if (confirm(`Supprimer l'article "${title}" ?`)) {
+      const art = articles.find(a => a.id === id);
       setArticles((prev) => prev.filter((a) => a.id !== id));
       logAction('Suppression article', title);
+
+      if (art) {
+        fetch(`/api/articles/${art.slug}`, {
+          method: 'DELETE',
+        }).catch(err => console.warn('Article delete API fallback:', err));
+      }
     }
   };
 

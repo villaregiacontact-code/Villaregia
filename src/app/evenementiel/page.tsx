@@ -16,10 +16,32 @@ export default function EventsPage() {
   const [clientPhone, setClientPhone] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+
+    try {
+      await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: clientName,
+          phone: clientPhone,
+          email: clientEmail,
+          source: 'Demande Événement',
+          universe: 'EVENT',
+          propertyTitle: `Événement: ${eventType} (${guestCount} invités le ${eventDate})`,
+          notes: `Type d'événement: ${eventType}. Date: ${eventDate}. Nombre d'invités: ${guestCount}. Remarques: ${notes || 'Aucune'}`,
+        }),
+      });
+    } catch (err) {
+      console.warn('Event quote inquiry submission fallback:', err);
+    } finally {
+      setIsSubmitting(false);
+      setSubmitted(true);
+    }
   };
 
   return (

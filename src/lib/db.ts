@@ -1,11 +1,13 @@
-import { Property, BookingRequest, Lead, OwnerSubmission, FilterState, EventQuoteRequest } from '@/types';
-import { INITIAL_PROPERTIES } from '@/data/properties';
+import { Property, BookingRequest, Lead, OwnerSubmission, FilterState, EventQuoteRequest, BlogPost } from '@/types';
+import { INITIAL_PROPERTIES, INITIAL_ARTICLES } from '@/data/properties';
 import { supabase, isSupabaseConfigured } from './supabase';
 
 import { ACCOUNTS_STORE, StoredUserAccount } from './authStore';
 
 // In-Memory Fallback State (persists during server runtime, syncs with browser localStorage on client)
 let localProperties: Property[] = [...INITIAL_PROPERTIES];
+
+let localArticles: BlogPost[] = [...INITIAL_ARTICLES];
 
 let localBookings: BookingRequest[] = [];
 
@@ -554,6 +556,104 @@ export async function deleteDbUser(email?: string, id?: string): Promise<boolean
     }
   }
 
+  return true;
+}
+
+// ----------------------------------------------------------------------------
+// BLOG & JOURNAL ARTICLES PERSISTENCE (DATABASE / SUPABASE & LOCAL ARTICLES)
+// ----------------------------------------------------------------------------
+
+export async function getArticles(category?: string): Promise<BlogPost[]> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      let query = supabase.from('articles').select('*').order('publishedAt', { ascending: false });
+      if (category && category !== 'ALL') {
+        query = query.eq('category', category);
+      }
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        return data as BlogPost[];
+      }
+    } catch (e) {
+      console.warn('Supabase fetch articles failed, fallback to memory state:', e);
+    }
+  }
+
+  if (category && category !== 'ALL') {
+    return localArticles.filter(a => a.category === category);
+  }
+  return [...localArticles];
+}
+
+export async function getArticleBySlug(slug: string): Promise<BlogPost | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('articles').select('*').eq('slug', slug).single();
+      if (!error && data) return data as BlogPost;
+    } catch (e) {
+      console.warn('Supabase fetch article by slug failed:', e);
+    }
+  }
+
+  return localArticles.find(a => a.slug === slug) || null;
+}
+
+export async function createArticle(articleData: Omit<BlogPost, 'id'> & { id?: string }): Promise<BlogPost> {
+  const newArticle: BlogPost = {
+    ...articleData,
+    id: articleData.id || `art-${Date.now()}`,
+    slug: articleData.slug || `art-${Date.now()}`,
+  };
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('articles').insert([newArticle]).select().single();
+      if (!error && data) {
+        localArticles.unshift(data as BlogPost);
+        return data as BlogPost;
+      }
+    } catch (e) {
+      console.warn('Supabase insert article failed:', e);
+    }
+  }
+
+  localArticles.unshift(newArticle);
+  return newArticle;
+}
+
+export async function updateArticle(id: string, updateData: Partial<BlogPost>): Promise<BlogPost | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('articles').update(updateData).eq('id', id).select().single();
+      if (!error && data) {
+        const idx = localArticles.findIndex(a => a.id === id);
+        if (idx >= 0) localArticles[idx] = data as BlogPost;
+        return data as BlogPost;
+      }
+    } catch (e) {
+      console.warn('Supabase update article failed:', e);
+    }
+  }
+
+  const idx = localArticles.findIndex(a => a.id === id);
+  if (idx >= 0) {
+    localArticles[idx] = { ...localArticles[idx], ...updateData };
+    return localArticles[idx];
+  }
+
+  return null;
+}
+
+export async function deleteArticle(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('articles').delete().eq('id', id);
+    } catch (e) {
+      console.warn('Supabase delete article failed:', e);
+    }
+  }
+
+  localArticles = localArticles.filter(a => a.id !== id);
   return true;
 }
 

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { INITIAL_PROPERTIES } from '@/data/properties';
+import { Property } from '@/types';
 import {
   Calendar as CalendarIcon,
   Users,
@@ -19,8 +20,26 @@ import {
 export default function LuxuryVillasPage() {
   const { t, language } = useLanguage();
 
-  const luxuryVillas = INITIAL_PROPERTIES.filter((p) => p.universe === 'LUXE');
-  const [selectedVilla, setSelectedVilla] = useState(luxuryVillas[0] || INITIAL_PROPERTIES[0]);
+  const [luxuryVillas, setLuxuryVillas] = useState<Property[]>(() =>
+    INITIAL_PROPERTIES.filter((p) => p.universe === 'LUXE')
+  );
+  const [selectedVilla, setSelectedVilla] = useState<Property>(() => luxuryVillas[0] || INITIAL_PROPERTIES[0]);
+
+  React.useEffect(() => {
+    async function loadLuxuryVillas() {
+      try {
+        const res = await fetch('/api/properties?universe=LUXE');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.properties) && data.properties.length > 0) {
+          setLuxuryVillas(data.properties);
+          setSelectedVilla((prev: Property) => data.properties.find((p: Property) => p.id === prev?.id) || data.properties[0]);
+        }
+      } catch (err) {
+        console.warn('Luxury villas live fetch fallback:', err);
+      }
+    }
+    loadLuxuryVillas();
+  }, []);
 
   const [checkIn, setCheckIn] = useState<string>('2026-09-10');
   const [checkOut, setCheckOut] = useState<string>('2026-09-14');

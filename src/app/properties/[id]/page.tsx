@@ -32,7 +32,26 @@ export default function PropertyDetailPage() {
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const propertyId = params?.id ? String(params.id) : '';
-  const property = INITIAL_PROPERTIES.find((p) => p.id === propertyId);
+  const [property, setProperty] = useState(() => INITIAL_PROPERTIES.find((p) => p.id === propertyId) || null);
+  const [isLoading, setIsLoading] = useState(!property);
+
+  React.useEffect(() => {
+    if (!propertyId) return;
+    async function loadLiveProperty() {
+      try {
+        const res = await fetch(`/api/properties/${propertyId}`);
+        const data = await res.json();
+        if (data.success && data.property) {
+          setProperty(data.property);
+        }
+      } catch (err) {
+        console.warn('Live property fetch fallback:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadLiveProperty();
+  }, [propertyId]);
 
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
@@ -44,6 +63,15 @@ export default function PropertyDetailPage() {
   const [inquiryMessage, setInquiryMessage] = useState('');
   const [inquirySending, setInquirySending] = useState(false);
   const [inquirySuccess, setInquirySuccess] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="pt-40 pb-24 text-center space-y-6 min-h-[60vh] flex flex-col items-center justify-center">
+        <div className="w-10 h-10 border-2 border-brand-gold border-t-transparent rounded-full animate-spin" />
+        <p className="text-brand-travertine text-xs uppercase tracking-widest font-mono">Chargement de la demeure d'exception...</p>
+      </div>
+    );
+  }
 
   if (!property) {
     return (

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ACCOUNTS_STORE } from '@/lib/authStore';
+import { getDbUserByEmail, updateDbUser } from '@/lib/db';
 
 export async function PUT(request: Request) {
   try {
@@ -14,21 +14,25 @@ export async function PUT(request: Request) {
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const account = ACCOUNTS_STORE.get(cleanEmail);
+    const account = await getDbUserByEmail(cleanEmail);
 
     if (!account) {
       return NextResponse.json(
-        { error: 'Compte introuvable.' },
+        { error: 'Compte introuvable en base de données.' },
         { status: 404 }
       );
     }
 
+    const updatePayload: any = {
+      email: cleanEmail,
+    };
+
     // ── UPDATE BASIC PROFILE INFO ──
     if (name && name.trim().length >= 2) {
-      account.name = name.trim();
+      updatePayload.name = name.trim();
     }
     if (phone !== undefined) {
-      account.phone = phone.trim();
+      updatePayload.phone = phone.trim();
     }
 
     // ── CHANGE PASSWORD (IF REQUESTED) ──
@@ -48,11 +52,18 @@ export async function PUT(request: Request) {
         );
       }
 
-      account.password = newPassword;
+      updatePayload.password = newPassword;
     }
 
-    // Save updated account back into store
-    ACCOUNTS_STORE.set(cleanEmail, account);
+    // Save updated account back into database
+    const updatedAccount = await updateDbUser(updatePayload);
+
+    if (!updatedAccount) {
+      return NextResponse.json(
+        { error: 'Erreur lors de la persistance en base de données.' },
+        { status: 500 }
+      );
+    }
 
     const safeUser = {
       id: account.id,

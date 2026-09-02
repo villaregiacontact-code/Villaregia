@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { INITIAL_ARTICLES } from '@/data/properties';
+import { BlogPost } from '@/types';
 import { ArrowLeft, Clock, Calendar, User, Share2 } from 'lucide-react';
 
 export default function ArticleDetailPage() {
@@ -14,7 +15,37 @@ export default function ArticleDetailPage() {
   const { language } = useLanguage();
 
   const slug = params?.slug ? String(params.slug) : '';
-  const article = INITIAL_ARTICLES.find((a) => a.slug === slug) || INITIAL_ARTICLES[0];
+  const [article, setArticle] = useState<BlogPost | null>(() =>
+    INITIAL_ARTICLES.find((a) => a.slug === slug) || INITIAL_ARTICLES[0]
+  );
+  const [loading, setLoading] = useState(!article);
+
+  useEffect(() => {
+    if (!slug) return;
+    async function loadSingleArticle() {
+      try {
+        const res = await fetch(`/api/articles/${slug}`);
+        const data = await res.json();
+        if (data.success && data.article) {
+          setArticle(data.article);
+        }
+      } catch (err) {
+        console.warn('Single article live fetch fallback:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSingleArticle();
+  }, [slug]);
+
+  if (loading || !article) {
+    return (
+      <div className="pt-40 pb-24 text-center min-h-[60vh] flex flex-col items-center justify-center">
+        <div className="w-10 h-10 border-2 border-brand-gold border-t-transparent rounded-full animate-spin" />
+        <p className="text-brand-travertine text-xs uppercase tracking-widest font-mono mt-4">Chargement de l'article...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-28 pb-24 bg-brand-navy min-h-screen">
