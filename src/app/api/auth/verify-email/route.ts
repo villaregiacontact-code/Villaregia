@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { PENDING_REGISTRATIONS } from '@/lib/authStore';
 import { createDbUser } from '@/lib/db';
 import { sendWelcomeEmail } from '@/lib/email';
+import { verifyVerificationToken } from '@/lib/authTokens';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, code } = body;
+    const { email, code, verificationToken, name, phone, password } = body;
 
     if (!email || !code) {
       return NextResponse.json(
@@ -17,19 +18,37 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.toLowerCase().trim();
     const cleanCode = code.trim();
-    const pending = PENDING_REGISTRATIONS.get(cleanEmail);
 
-    // Only allow activation with the strictly generated 6-digit email code
-    const isMatch = pending && pending.confirmationCode === cleanCode;
+    // 1. Check in-memory pending registrations
+    const pending = PENDING_REGISTRATIONS.get(cleanEmail);
+    let isMatch = pending && pending.confirmationCode === cleanCode;
+    let resolvedName = pending?.name || name || cleanEmail.split('@')[0];
+    let resolvedPhone = pending?.phone || phone || '+216 -- --- ---';
+    let resolvedPassword = pending?.password || password;
+
+    // 2. If memory was lost (e.g. serverless instance switch), verify stateless token
+    if (!isMatch && verificationToken) {
+      const tokenPayload = verifyVerificationToken(verificationToken);
+      if (
+        tokenPayload &&
+        tokenPayload.email === cleanEmail &&
+        tokenPayload.code === cleanCode
+      ) {
+        isMatch = true;
+        resolvedName = tokenPayload.name || resolvedName;
+        resolvedPhone = tokenPayload.phone || resolvedPhone;
+        resolvedPassword = tokenPayload.password || resolvedPassword;
+      }
+    }
 
     if (isMatch) {
       // Create permanent active user account and persist in database
       const activatedUser = await createDbUser({
         id: `user-${Date.now()}`,
-        name: pending?.name || cleanEmail.split('@')[0],
+        name: resolvedName,
         email: cleanEmail,
-        phone: pending?.phone || '+216 -- --- ---',
-        password: pending?.password,
+        phone: resolvedPhone,
+        password: resolvedPassword,
         role: 'CLIENT',
         twoFactorEnabled: false,
         emailVerified: true,

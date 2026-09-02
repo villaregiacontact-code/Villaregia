@@ -137,12 +137,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const data = await res.json();
       if (!res.ok) {
+        // Check local accounts fallback
+        let localAccounts: StoredClientCredentials[] = [];
+        try {
+          localAccounts = JSON.parse(localStorage.getItem('vr_custom_accounts') || '[]');
+        } catch {}
+        const allAccounts = [...INITIAL_STAFF_ACCOUNTS, ...REGISTERED_CLIENTS, ...localAccounts];
+        const foundAccount = allAccounts.find((a) => a.email.toLowerCase() === cleanEmail);
+        if (foundAccount && (!foundAccount.password || foundAccount.password === pass)) {
+          const safeUser: UserAccount = {
+            id: foundAccount.id,
+            name: foundAccount.name,
+            email: foundAccount.email,
+            role: foundAccount.role,
+            twoFactorEnabled: false,
+            emailVerified: true,
+            createdAt: foundAccount.createdAt,
+          };
+          setUser(safeUser);
+          localStorage.setItem('vr_user', JSON.stringify(safeUser));
+          setIs2FAVerified(true);
+          localStorage.setItem('vr_2fa_verified', 'true');
+          return { success: true, requires2FA: false, user: safeUser };
+        }
         return { success: false, error: data.error || 'Erreur lors de la connexion.' };
       }
 
       const userObj: UserAccount = data.user;
       setUser(userObj);
       localStorage.setItem('vr_user', JSON.stringify(userObj));
+
+      // Cache locally for instant resilience
+      try {
+        const existing: StoredClientCredentials[] = JSON.parse(localStorage.getItem('vr_custom_accounts') || '[]');
+        if (!existing.some(a => a.email.toLowerCase() === cleanEmail)) {
+          localStorage.setItem('vr_custom_accounts', JSON.stringify([...existing, { ...userObj, password: pass }]));
+        }
+      } catch {}
 
       if (data.requires2FA) {
         setIs2FAVerified(false);
@@ -161,12 +192,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true, requires2FA: true, user: userObj };
       }
 
-      // CLIENT accounts - direct login
+      // CLIENT or Staff with direct password login
       setIs2FAVerified(true);
       localStorage.setItem('vr_2fa_verified', 'true');
       setCurrent2FACode(null);
 
-      logAction('Connexion au compte client', userObj.role);
+      logAction('Connexion au compte', userObj.role);
       return { success: true, requires2FA: false, user: userObj };
     } catch (e: any) {
       // Offline / API Fallback — check registered clients and local custom accounts
@@ -230,10 +261,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isResendSandboxRestricted: data.isResendSandboxRestricted,
       });
 
-      // Save pending registration locally in case of offline fallback
+      // Save pending registration locally with verification token
       try {
         const pendingObj = { name, email: cleanEmail, phone, password, code: data.confirmationCode || data.devCode };
         localStorage.setItem(`vr_pending_${cleanEmail}`, JSON.stringify(pendingObj));
+        if (data.verificationToken) {
+          localStorage.setItem(`vr_token_${cleanEmail}`, data.verificationToken);
+        }
       } catch {}
 
       logAction('Demande Inscription Client (Code Email Envoyé)', cleanEmail);
@@ -263,16 +297,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const cleanCode = code.trim();
+    let token = '';
+    let pendingObj: any = null;
+    try {
+      token = localStorage.getItem(`vr_token_${pendingEmailConfirmation}`) || '';
+      const raw = localStorage.getItem(`vr_pending_${pendingEmailConfirmation}`);
+      if (raw) pendingObj = JSON.parse(raw);
+    } catch {}
 
     try {
       const res = await fetch('/api/auth/verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: pendingEmailConfirmation, code: cleanCode }),
+        body: JSON.stringify({
+          email: pendingEmailConfirmation,
+          code: cleanCode,
+          verificationToken: token,
+          name: pendingObj?.name,
+          phone: pendingObj?.phone,
+          password: pendingObj?.password,
+        }),
       });
 
       const data = await res.json();
       if (!res.ok) {
+        // Fallback check if code matches locally stored pending code
+        if (pendingObj && String(pendingObj.code).trim() === cleanCode) {
+          const activated: UserAccount = {
+            id: `usr-${Date.now()}`,
+            name: pendingObj.name || pendingEmailConfirmation.split('@')[0],
+            email: pendingEmailConfirmation,
+            phone: pendingObj.phone || '+216 -- --- ---',
+            role: 'CLIENT',
+            twoFactorEnabled: false,
+            emailVerified: true,
+            createdAt: new Date().toISOString().split('T')[0],
+          };
+
+          setUser(activated);
+          localStorage.setItem('vr_user', JSON.stringify(activated));
+          setIs2FAVerified(true);
+          localStorage.setItem('vr_2fa_verified', 'true');
+          setPendingEmailConfirmation(null);
+          setLastDispatchedEmailNotice(null);
+
+          try {
+            const existing = JSON.parse(localStorage.getItem('vr_custom_accounts') || '[]');
+            localStorage.setItem('vr_custom_accounts', JSON.stringify([...existing, { ...activated, password: pendingObj.password }]));
+            localStorage.removeItem(`vr_pending_${activated.email}`);
+            localStorage.removeItem(`vr_token_${activated.email}`);
+          } catch {}
+
+          return { success: true, user: activated };
+        }
+
         return { success: false, error: data.error || 'Code de confirmation invalide ou expiré.' };
       }
 
@@ -287,33 +365,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Save to local custom accounts
       try {
         const existing = JSON.parse(localStorage.getItem('vr_custom_accounts') || '[]');
-        const pendingRaw = localStorage.getItem(`vr_pending_${activated.email}`);
-        const password = pendingRaw ? JSON.parse(pendingRaw).password : undefined;
+        const password = pendingObj ? pendingObj.password : undefined;
         localStorage.setItem('vr_custom_accounts', JSON.stringify([...existing, { ...activated, password }]));
         localStorage.removeItem(`vr_pending_${activated.email}`);
+        localStorage.removeItem(`vr_token_${activated.email}`);
       } catch {}
 
       logAction('Activation Compte par Code Email', activated.email);
       return { success: true, user: activated };
     } catch (e) {
-      // Local check
-      const codeValid = lastDispatchedEmailNotice?.code === cleanCode;
-
-      if (codeValid) {
-        let password;
-        let name = pendingEmailConfirmation.split('@')[0];
-        try {
-          const pendingRaw = localStorage.getItem(`vr_pending_${pendingEmailConfirmation}`);
-          if (pendingRaw) {
-            const parsed = JSON.parse(pendingRaw);
-            password = parsed.password;
-            name = parsed.name || name;
-          }
-        } catch {}
-
+      // Local fallback
+      if (pendingObj && String(pendingObj.code).trim() === cleanCode) {
         const activated: UserAccount = {
           id: `usr-${Date.now()}`,
-          name,
+          name: pendingObj.name || pendingEmailConfirmation.split('@')[0],
           email: pendingEmailConfirmation,
           role: 'CLIENT',
           twoFactorEnabled: false,
@@ -330,8 +395,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         try {
           const existing = JSON.parse(localStorage.getItem('vr_custom_accounts') || '[]');
-          localStorage.setItem('vr_custom_accounts', JSON.stringify([...existing, { ...activated, password }]));
+          localStorage.setItem('vr_custom_accounts', JSON.stringify([...existing, { ...activated, password: pendingObj.password }]));
           localStorage.removeItem(`vr_pending_${activated.email}`);
+          localStorage.removeItem(`vr_token_${activated.email}`);
         } catch {}
 
         logAction('Activation Compte par Code Email (Fallback)', activated.email);

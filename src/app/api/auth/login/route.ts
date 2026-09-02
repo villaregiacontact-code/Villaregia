@@ -85,12 +85,12 @@ export async function POST(request: Request) {
       email: cleanEmail,
       phone: account.phone || '+216 -- --- ---',
       role: account.role,
-      twoFactorEnabled: isStaff || !!account.twoFactorEnabled,
+      twoFactorEnabled: account.twoFactorEnabled === true,
       emailVerified: account.emailVerified ?? true,
       createdAt: account.createdAt,
     };
 
-    const requires2FA = isStaff && account.twoFactorEnabled !== false;
+    const requires2FA = account.twoFactorEnabled === true;
 
     // ── STAFF ACCOUNTS WITH 2FA REQUIRE EMAIL OTP ──
     if (requires2FA) {

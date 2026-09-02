@@ -3,8 +3,9 @@ import { INITIAL_PROPERTIES, INITIAL_ARTICLES } from '@/data/properties';
 import { supabase, isSupabaseConfigured } from './supabase';
 
 import { ACCOUNTS_STORE, StoredUserAccount } from './authStore';
+import { loadPersistedUsers, savePersistedUsers } from './fileStorage';
 
-// In-Memory Fallback State (persists during server runtime, syncs with browser localStorage on client)
+// In-Memory & Persisted State (persists to JSON file on disk, Supabase if configured, syncs with runtime)
 let localProperties: Property[] = [...INITIAL_PROPERTIES];
 
 let localArticles: BlogPost[] = [...INITIAL_ARTICLES];
@@ -15,19 +16,33 @@ let localLeads: Lead[] = [];
 
 let localSubmissions: OwnerSubmission[] = [];
 
-let localUsers: StoredUserAccount[] = [
-  {
-    id: 'user-superadmin-01',
-    name: 'Yassine Aloulou (Directeur Général)',
-    email: 'yassinealoulou6@gmail.com',
-    phone: '+216 98 000 000',
-    password: 'Yassine.123',
-    role: 'SUPER_ADMIN',
-    twoFactorEnabled: false,
-    emailVerified: true,
-    createdAt: '2026-09-02',
-  },
-];
+const DEFAULT_SUPERADMIN: StoredUserAccount = {
+  id: 'user-superadmin-01',
+  name: 'Yassine Aloulou (Directeur Général)',
+  email: 'yassinealoulou6@gmail.com',
+  phone: '+216 98 000 000',
+  password: 'Yassine.123',
+  role: 'SUPER_ADMIN',
+  twoFactorEnabled: false,
+  emailVerified: true,
+  createdAt: '2026-09-02',
+};
+
+// Initialize users from disk storage
+const persistedUsers = loadPersistedUsers();
+let localUsers: StoredUserAccount[] = persistedUsers.length > 0
+  ? persistedUsers
+  : [DEFAULT_SUPERADMIN];
+
+// Ensure DEFAULT_SUPERADMIN is always present
+if (!localUsers.some(u => u.email.toLowerCase() === DEFAULT_SUPERADMIN.email)) {
+  localUsers.unshift(DEFAULT_SUPERADMIN);
+}
+
+// Populate ACCOUNTS_STORE from localUsers
+localUsers.forEach(u => {
+  ACCOUNTS_STORE.set(u.email.toLowerCase().trim(), u);
+});
 
 // Helper functions for properties
 export async function getProperties(filters?: Partial<FilterState>): Promise<Property[]> {
@@ -479,6 +494,9 @@ export async function createDbUser(userData: Omit<StoredUserAccount, 'id' | 'cre
     }
   }
 
+  // 4. Persist to disk JSON storage
+  savePersistedUsers(localUsers);
+
   return newUser;
 }
 
@@ -518,6 +536,9 @@ export async function updateDbUser(updateData: Partial<StoredUserAccount> & { em
     }
   }
 
+  // Persist to disk JSON storage
+  savePersistedUsers(localUsers);
+
   return updatedUser;
 }
 
@@ -555,6 +576,9 @@ export async function deleteDbUser(email?: string, id?: string): Promise<boolean
       console.warn('Supabase user delete failed:', e);
     }
   }
+
+  // Persist to disk JSON storage
+  savePersistedUsers(localUsers);
 
   return true;
 }

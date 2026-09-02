@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sendSecurityEmail } from '@/lib/email';
 import { ACCOUNTS_STORE, PENDING_REGISTRATIONS } from '@/lib/authStore';
+import { getDbUserByEmail } from '@/lib/db';
+import { createVerificationToken } from '@/lib/authTokens';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -33,8 +35,9 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // ── SECURITY CHECK: ACCOUNT ALREADY EXISTS ──
-    if (ACCOUNTS_STORE.has(cleanEmail)) {
+    // ── SECURITY CHECK: ACCOUNT ALREADY EXISTS IN DATABASE ──
+    const existingDbUser = await getDbUserByEmail(cleanEmail);
+    if (existingDbUser || ACCOUNTS_STORE.has(cleanEmail)) {
       return NextResponse.json(
         { error: 'Un compte existe déjà avec cette adresse email. Veuillez vous connecter.' },
         { status: 409 }
@@ -46,6 +49,15 @@ export async function POST(request: Request) {
 
     // Generate 6-digit verification code
     const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Generate tamper-proof stateless verification token (15 mins expiry)
+    const verificationToken = createVerificationToken({
+      email: cleanEmail,
+      code: confirmationCode,
+      name: name.trim(),
+      phone: phone?.trim() || '+216 -- --- ---',
+      password,
+    });
 
     // Store in pending registrations with password
     PENDING_REGISTRATIONS.set(cleanEmail, {
@@ -80,6 +92,7 @@ export async function POST(request: Request) {
         ? `Code d'activation généré pour ${cleanEmail}. (Mode Sandbox Resend : email délivré à villaregia.contact@gmail.com).`
         : `Votre code d'activation à 6 chiffres a été généré et envoyé à votre adresse email ${cleanEmail}.`,
       email: cleanEmail,
+      verificationToken,
       isResendSandboxRestricted: isSandboxRestricted,
       devCode: isSandboxRestricted ? confirmationCode : undefined,
       previewUrl: emailResult?.previewUrl || null,
