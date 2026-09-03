@@ -146,7 +146,15 @@ export const Navbar: React.FC = () => {
 
               {/* Auth User Login / Profile Trigger */}
               <button
-                onClick={() => (user ? setProfileModalOpen(true) : setAuthModalOpen(true))}
+                onClick={() => {
+                  if (user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role)) {
+                    window.location.href = '/admin';
+                  } else if (user) {
+                    setProfileModalOpen(true);
+                  } else {
+                    setAuthModalOpen(true);
+                  }
+                }}
                 className="flex items-center gap-2 px-3 py-1.5 rounded border border-brand-gold/30 hover:border-brand-gold text-xs text-brand-travertine transition-all glass-card hover:bg-white/5"
               >
                 {user ? (

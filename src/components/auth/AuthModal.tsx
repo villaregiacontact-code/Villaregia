@@ -148,7 +148,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   const handleStaffRedirect = (role: UserRole) => {
     if (['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(role)) {
-      router.push('/admin');
+      window.location.href = '/admin';
     }
   };
 
@@ -173,9 +173,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       if (result.requires2FA) {
         setResendTimer(60);
       } else {
-        // Direct login success
+        // Direct login success: Admin goes directly to admin page
         if (result.user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(result.user.role)) {
-          router.push('/admin');
+          window.location.href = '/admin';
+          return;
         }
         onClose();
       }
@@ -189,8 +190,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setTwoFactorError(null);
     const valid = verify2FACode(pinCode);
     if (valid) {
-      if (user) {
-        handleStaffRedirect(user.role);
+      if (user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role)) {
+        window.location.href = '/admin';
+        return;
       }
       onClose();
     } else {
@@ -206,6 +208,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setIsLoading(false);
 
     if (result.success) {
+      if (result.user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(result.user.role)) {
+        window.location.href = '/admin';
+        return;
+      }
       onClose();
     } else {
       setActivationError(result.error || 'Code de confirmation invalide ou expiré.');

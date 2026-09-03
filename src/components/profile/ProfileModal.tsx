@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -25,6 +27,10 @@ import {
   EyeOff,
   AlertCircle,
   RefreshCw,
+  Building2,
+  ExternalLink,
+  MessageCircle,
+  FileText,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -39,12 +45,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
   const { favorites, toggleFavorite } = useFavorites();
   const { language, setLanguage } = useLanguage();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'favorites' | 'history'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'bookings' | 'submissions' | 'favorites' | 'security'>('profile');
 
   // Profile Form
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
-  const [currency, setCurrency] = useState('TND');
   const [isSaved, setIsSaved] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -58,20 +63,64 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
   const [passLoading, setPassLoading] = useState(false);
   const [passSuccess, setPassSuccess] = useState<string | null>(null);
   const [passError, setPassError] = useState<string | null>(null);
-  const [propertiesList, setPropertiesList] = useState<any[]>(INITIAL_PROPERTIES);
 
+  // Live data states
+  const [propertiesList, setPropertiesList] = useState<any[]>(INITIAL_PROPERTIES);
+  const [userBookings, setUserBookings] = useState<any[]>([]);
+  const [userSubmissions, setUserSubmissions] = useState<any[]>([]);
+  const [userLeads, setUserLeads] = useState<any[]>([]);
+  const [isLoadingRealData, setIsLoadingRealData] = useState(false);
+
+  // Fetch all live properties and user's specific records from DB
   useEffect(() => {
-    async function loadProps() {
+    if (!isOpen || !user) return;
+    const currentUser = user;
+
+    async function loadUserData() {
+      setIsLoadingRealData(true);
+      const emailLower = currentUser.email.toLowerCase().trim();
+
       try {
-        const res = await fetch('/api/properties');
-        const data = await res.json();
-        if (data.success && Array.isArray(data.properties)) {
-          setPropertiesList(data.properties);
+        const [propsRes, bookRes, subRes, crmRes] = await Promise.all([
+          fetch('/api/properties').then((r) => r.json()).catch(() => null),
+          fetch('/api/bookings').then((r) => r.json()).catch(() => null),
+          fetch('/api/submissions').then((r) => r.json()).catch(() => null),
+          fetch('/api/admin/crm').then((r) => r.json()).catch(() => null),
+        ]);
+
+        if (propsRes?.success && Array.isArray(propsRes.properties)) {
+          setPropertiesList(propsRes.properties);
         }
-      } catch {}
+
+        if (bookRes?.success && Array.isArray(bookRes.bookings)) {
+          const userOnlyBookings = bookRes.bookings.filter(
+            (b: any) => b.guestEmail && b.guestEmail.toLowerCase().trim() === emailLower
+          );
+          setUserBookings(userOnlyBookings);
+        }
+
+        if (subRes?.success && Array.isArray(subRes.submissions)) {
+          const userOnlySubs = subRes.submissions.filter(
+            (s: any) => s.ownerEmail && s.ownerEmail.toLowerCase().trim() === emailLower
+          );
+          setUserSubmissions(userOnlySubs);
+        }
+
+        if (crmRes?.success && Array.isArray(crmRes.leads)) {
+          const userOnlyLeads = crmRes.leads.filter(
+            (l: any) => l.email && l.email.toLowerCase().trim() === emailLower
+          );
+          setUserLeads(userOnlyLeads);
+        }
+      } catch (err) {
+        console.warn('Profile real data load error:', err);
+      } finally {
+        setIsLoadingRealData(false);
+      }
     }
-    loadProps();
-  }, []);
+
+    loadUserData();
+  }, [isOpen, user]);
 
   useEffect(() => {
     if (user) {
@@ -81,6 +130,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
   }, [user]);
 
   if (!isOpen || !user) return null;
+
+  const isStaff = ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role);
 
   // Save profile info (Name, Phone)
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -106,7 +157,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         return;
       }
 
-      // Update local state and storage
       user.name = name.trim();
       user.phone = phone.trim();
       localStorage.setItem('vr_user', JSON.stringify(user));
@@ -114,7 +164,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 3500);
     } catch (err) {
-      // Fallback
       user.name = name.trim();
       user.phone = phone.trim();
       localStorage.setItem('vr_user', JSON.stringify(user));
@@ -179,7 +228,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="glass-navy p-6 sm:p-8 rounded-2xl max-w-2xl w-full border border-brand-gold/30 shadow-2xl relative space-y-6 max-h-[92vh] overflow-y-auto"
+        className="glass-navy p-6 sm:p-8 rounded-2xl max-w-3xl w-full border border-brand-gold/30 shadow-2xl relative space-y-6 max-h-[92vh] overflow-y-auto"
       >
         {/* Close Button */}
         <button
@@ -191,7 +240,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         </button>
 
         {/* User Header Badge */}
-        <div className="flex items-center gap-4 pb-6 border-b border-white/10">
+        <div className="flex items-center gap-4 pb-4 border-b border-white/10">
           <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-gold/30 to-brand-gold text-brand-navy flex items-center justify-center font-bold text-xl border border-brand-gold/50 shadow-lg shrink-0">
             {user.name.charAt(0).toUpperCase()}
           </div>
@@ -207,24 +256,51 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                   ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
                   : 'bg-brand-gold/15 text-brand-gold border-brand-gold/30'
               }`}>
-                {user.role === 'SUPER_ADMIN' ? 'Directeur Général (Super Admin)' : user.role}
+                {user.role === 'SUPER_ADMIN' ? 'Direction Générale (Super Admin)' : user.role === 'ADMIN' ? 'Administrateur' : user.role === 'AGENT' ? 'Conseiller Immobilier' : 'Membre Club Villa Regia'}
               </span>
             </div>
-            <p className="text-xs text-brand-travertine/60 font-mono flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-brand-gold" />
-              <span>{user.email}</span>
-              <span className="text-[10px] bg-emerald-500/15 text-emerald-400 px-2 py-0.2 rounded border border-emerald-500/20 font-bold">Vérifié</span>
+            <p className="text-xs text-brand-travertine/60 font-mono flex items-center gap-2 flex-wrap">
+              <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-brand-gold" /> {user.email}</span>
+              <span className="text-[10px] bg-emerald-500/15 text-emerald-400 px-2 py-0.2 rounded border border-emerald-500/20 font-bold flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> Compte Vérifié
+              </span>
             </p>
           </div>
         </div>
 
+        {/* Executive Staff Access Banner (If Admin / Staff) */}
+        {isStaff && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-brand-gold/20 via-brand-gold/10 to-transparent border border-brand-gold/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg shadow-brand-gold/5">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-brand-gold uppercase tracking-wider">
+                <ShieldCheck className="w-4 h-4 text-brand-gold" />
+                <span>Portail de Gestion & Direction</span>
+              </div>
+              <p className="text-xs text-brand-travertine/80 font-light">
+                Vous disposez des privilèges administrateur complets pour piloter le catalogue, le CRM et les réservations.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                onClose();
+                window.location.href = '/admin';
+              }}
+              className="px-4 py-2.5 rounded-xl bg-brand-gold hover:bg-amber-400 text-brand-navy font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 shrink-0 shadow-lg"
+            >
+              <span>Accéder à l'Espace Admin</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Tab Navigation Header */}
-        <div className="flex border-b border-white/10 gap-2 overflow-x-auto pb-1">
+        <div className="flex border-b border-white/10 gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {[
             { id: 'profile', label: 'Mon Profil', icon: User },
-            { id: 'security', label: 'Sécurité & Mot de Passe', icon: KeyRound },
+            { id: 'bookings', label: `Mes Séjours (${userBookings.length})`, icon: Calendar },
+            { id: 'submissions', label: `Mes Biens (${userSubmissions.length})`, icon: Building2 },
             { id: 'favorites', label: `Mes Favoris (${favorites.length})`, icon: Heart },
-            { id: 'history', label: 'Historique & Dossiers', icon: Calendar },
+            { id: 'security', label: 'Sécurité', icon: KeyRound },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -232,7 +308,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-brand-gold text-brand-navy shadow-md font-bold'
                     : 'text-brand-travertine/70 hover:bg-white/5 hover:text-white'
@@ -245,271 +321,356 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
           })}
         </div>
 
-        {/* ── TAB 1: PROFILE EDIT ── */}
+        {/* ── TAB 1: PROFILE EDIT & VIP MEMBERSHIP CARD ── */}
         {activeTab === 'profile' && (
-          <form onSubmit={handleSaveProfile} className="space-y-4">
-            {isSaved && (
-              <div className="p-3 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-mono border border-emerald-500/30 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                <span>Vos informations de profil ont été enregistrées avec succès !</span>
-              </div>
-            )}
-
-            {profileError && (
-              <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs font-mono border border-red-500/30 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-                <span>{profileError}</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
-                  Nom & Prénom
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-gold focus:outline-none transition-colors"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
-                  Téléphone Direct
-                </label>
-                <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-gold focus:outline-none font-mono transition-colors"
-                  placeholder="+216 -- --- ---"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
-                  Langue Préférée
-                </label>
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value as any)}
-                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:border-brand-gold focus:outline-none"
-                >
-                  <option value="fr">Français (FR)</option>
-                  <option value="ar">العربية (AR)</option>
-                  <option value="en">English (EN)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1 font-bold">
-                  Devise d'Affichage
-                </label>
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:border-brand-gold focus:outline-none"
-                >
-                  <option value="TND">TND (Dinar Tunisien)</option>
-                  <option value="EUR">EUR (€ Euro)</option>
-                  <option value="USD">USD ($ Dollar US)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={profileLoading}
-                className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {profileLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                <span>{profileLoading ? 'Enregistrement...' : 'Sauvegarder mes Informations'}</span>
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* ── TAB 2: SECURITY & PASSWORD CONFIGURATION ── */}
-        {activeTab === 'security' && (
           <div className="space-y-6">
-            {/* Password Change Form */}
-            <form onSubmit={handleChangePassword} className="space-y-4 p-4 rounded-xl bg-white/5 border border-white/10">
-              <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-                <Lock className="w-4 h-4 text-brand-gold" />
-                <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-brand-gold">
-                  Changer mon Mot de Passe
-                </h4>
+            {/* VIP Card */}
+            <div className="p-5 rounded-xl bg-gradient-to-br from-brand-navy via-brand-navy-light to-brand-navy border border-brand-gold/30 relative overflow-hidden shadow-xl">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-brand-gold/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-brand-gold block font-bold">
+                    Cercle Privilège Villa Regia
+                  </span>
+                  <h3 className="font-editorial text-xl font-light text-brand-travertine mt-0.5">
+                    Membre Résident & Propriétaire
+                  </h3>
+                </div>
+                <div className="relative w-20 h-6">
+                  <Image src="/images/logo-light.png" alt="Villa Regia" fill className="object-contain" />
+                </div>
               </div>
 
-              {passSuccess && (
-                <div className="p-3 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs font-mono border border-emerald-500/30 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                  <span>{passSuccess}</span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs font-mono border-t border-white/10 pt-4">
+                <div>
+                  <span className="text-white/40 block text-[10px]">Titulaire</span>
+                  <span className="text-white font-bold truncate block">{user.name}</span>
+                </div>
+                <div>
+                  <span className="text-white/40 block text-[10px]">Identifiant Client</span>
+                  <span className="text-brand-gold font-bold font-mono">VR-{user.id.slice(-6).toUpperCase()}</span>
+                </div>
+                <div>
+                  <span className="text-white/40 block text-[10px]">Conciergerie Dédiée</span>
+                  <a href="https://wa.me/21627745405" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline flex items-center gap-1">
+                    <MessageCircle className="w-3 h-3" /> +216 27 745 405
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Editable Info Form */}
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                Coordonnées Personnelles
+              </h4>
+
+              {profileError && (
+                <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono">
+                  {profileError}
                 </div>
               )}
 
-              {passError && (
-                <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs font-mono border border-red-500/30 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-                  <span>{passError}</span>
+              {isSaved && (
+                <div className="p-3 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs border border-emerald-500/30 font-mono flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>Vos informations personnelles ont été mises à jour avec succès.</span>
                 </div>
               )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-mono text-brand-travertine/70 mb-1">Nom Complet</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-brand-navy border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-brand-travertine/70 mb-1">Téléphone de Contact</label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+216 27 745 405"
+                    className="w-full bg-brand-navy border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold"
+                  />
+                </div>
+              </div>
 
               <div>
-                <label className="text-[10px] font-mono uppercase text-white/70 block mb-1">
-                  Mot de passe actuel
-                </label>
-                <div className="relative">
-                  <input
-                    type={showCurrentPass ? 'text' : 'password'}
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 pr-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPass(!showCurrentPass)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-brand-gold"
-                  >
-                    {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
+                <label className="block text-xs font-mono text-brand-travertine/70 mb-1">Adresse Email (Identifiant de Sécurité)</label>
+                <input
+                  type="email"
+                  value={user.email}
+                  disabled
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white/50 cursor-not-allowed font-mono"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-mono uppercase text-white/70 block mb-1">
-                    Nouveau mot de passe (min. 6 car.)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showNewPass ? 'text' : 'password'}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      required
-                      className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 pr-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPass(!showNewPass)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-brand-gold"
-                    >
-                      {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-mono uppercase text-white/70 block mb-1">
-                    Confirmer le nouveau mot de passe
-                  </label>
-                  <input
-                    type={showNewPass ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    required
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:border-brand-gold focus:outline-none font-mono"
-                  />
-                </div>
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={profileLoading}
+                  className="bg-brand-gold hover:bg-amber-400 text-brand-navy px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50"
+                >
+                  {profileLoading ? 'Enregistrement...' : 'Enregistrer les Modifications'}
+                </button>
               </div>
-
-              <button
-                type="submit"
-                disabled={passLoading || !newPassword}
-                className="w-full bg-brand-gold/20 hover:bg-brand-gold text-brand-gold hover:text-brand-navy border border-brand-gold/40 font-bold text-xs uppercase tracking-wider py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-40"
-              >
-                {passLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
-                <span>{passLoading ? 'Mise à jour...' : 'Mettre à jour mon mot de passe'}</span>
-              </button>
             </form>
-
-            {/* 2FA & Admin Redirect */}
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <ShieldCheck className="w-6 h-6 text-emerald-400" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Protection du Compte</h4>
-                    <p className="text-xs text-brand-travertine/60 font-mono">Chiffrement SSL 256-bit et protection anti-intrusion active</p>
-                  </div>
-                </div>
-                <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  ACTIF
-                </span>
-              </div>
-            </div>
-
-            {['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role) && (
-              <button
-                onClick={() => {
-                  router.push('/admin');
-                  onClose();
-                }}
-                className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl flex items-center justify-center gap-2"
-              >
-                <span>Accéder au Tableau de Bord Admin (Espace Staff)</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-
-            {/* Recent Security Logs */}
-            <div className="space-y-2">
-              <span className="text-[10px] font-mono uppercase text-brand-gold block font-bold">Dernières Connexions & Activités</span>
-              <div className="space-y-2 max-h-36 overflow-y-auto">
-                {auditLogs.slice(0, 3).map((log) => (
-                  <div key={log.id} className="p-2.5 rounded-lg bg-black/40 border border-white/5 flex items-center justify-between text-xs font-mono">
-                    <div>
-                      <span className="text-brand-gold font-bold">{log.action}</span>
-                      <span className="text-white/50 block text-[10px]">{log.target}</span>
-                    </div>
-                    <span className="text-white/40 text-[10px]">{log.timestamp}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
-        {/* ── TAB 3: SAVED FAVORITES ── */}
-        {activeTab === 'favorites' && (
+        {/* ── TAB 2: MES RÉSERVATIONS & SÉJOURS (REAL DATA FROM DB) ── */}
+        {activeTab === 'bookings' && (
           <div className="space-y-4">
-            {favorites.length === 0 ? (
-              <div className="text-center py-8 space-y-2">
-                <Heart className="w-10 h-10 text-white/20 mx-auto" />
-                <p className="text-xs text-white/50 font-mono">Aucun bien immobilier enregistré dans vos favoris pour le moment.</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                  Mes Réservations de Séjours & Villas
+                </h3>
+                <span className="text-[11px] text-white/50">Données synchronisées en temps réel avec le planning des concierges.</span>
+              </div>
+              <Link
+                href="/villas-de-luxe"
+                onClick={onClose}
+                className="text-xs text-brand-gold hover:underline font-mono flex items-center gap-1"
+              >
+                <span>Nouvelle réservation</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {isLoadingRealData ? (
+              <div className="py-12 text-center text-xs font-mono text-white/50 space-y-2">
+                <RefreshCw className="w-5 h-5 animate-spin mx-auto text-brand-gold" />
+                <p>Chargement de vos réservations...</p>
+              </div>
+            ) : userBookings.length === 0 ? (
+              <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center space-y-3">
+                <Calendar className="w-10 h-10 text-white/20 mx-auto" />
+                <p className="text-sm text-white/70 font-editorial">Vous n'avez aucune réservation de séjour pour le moment.</p>
+                <p className="text-xs text-white/40">Découvrez nos villas d'exception avec conciergerie privée à Sfax et réservez votre séjour.</p>
+                <Link
+                  href="/villas-de-luxe"
+                  onClick={onClose}
+                  className="inline-block px-5 py-2.5 rounded-xl bg-brand-gold text-brand-navy text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all mt-2"
+                >
+                  Explorer les Demeures de Prestige
+                </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
-                {favorites.map((favId) => {
-                  const property = propertiesList.find((p) => p.id === favId);
-                  return (
-                    <div key={favId} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2">
-                      <div className="space-y-0.5 truncate">
-                        <span className="text-xs font-bold text-brand-gold truncate block">
-                          {property
-                            ? (typeof property.title === 'string'
-                                ? property.title
-                                : (property.title[language] || property.title.fr))
-                            : `Bien ${favId}`}
-                        </span>
-                        <span className="text-[10px] text-white/50 font-mono block">
-                          {property ? `${property.location.district}, ${property.location.city}` : 'Sfax, Tunisie'}
+              <div className="space-y-3">
+                {userBookings.map((b) => (
+                  <div
+                    key={b.id}
+                    className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3 hover:border-brand-gold/30 transition-all"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-brand-gold font-bold text-sm">{b.propertyTitle || 'Villa de Luxe Villa Regia'}</span>
+                          <span className="text-[10px] font-mono text-white/50">#{b.id}</span>
+                        </div>
+                        <span className="text-xs text-white/70 font-mono flex items-center gap-1 mt-0.5">
+                          <Clock className="w-3 h-3 text-brand-gold" /> Du {b.checkIn} au {b.checkOut} ({b.totalNights || 1} nuit{b.totalNights > 1 ? 's' : ''})
                         </span>
                       </div>
-                      <button
-                        onClick={() => toggleFavorite(favId)}
-                        className="p-1.5 text-white/40 hover:text-red-400 transition-colors shrink-0"
-                        title="Supprimer des favoris"
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                        b.status === 'CONFIRMED'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : b.status === 'CANCELLED'
+                          ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      }`}>
+                        {b.status === 'CONFIRMED' ? 'Confirmé' : b.status === 'CANCELLED' ? 'Annulé' : 'En Attente de Validation'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-3 border-t border-white/10 text-xs font-mono">
+                      <span className="text-white/60">{b.guestsCount || b.guests || 2} Voyageur{(b.guestsCount || b.guests) > 1 ? 's' : ''}</span>
+                      <span className="text-brand-gold font-bold">{(b.totalAmount || b.price || 0).toLocaleString()} TND</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TAB 3: MES BIENS PROPOSÉS & DOSSIERS (REAL DATA FROM DB) ── */}
+        {activeTab === 'submissions' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                  Mes Dossiers Propriétaire Déposés
+                </h3>
+                <span className="text-[11px] text-white/50">Suivez l'avancement juridique et commercial de vos biens soumis.</span>
+              </div>
+              <Link
+                href="/proposer-un-bien"
+                onClick={onClose}
+                className="text-xs text-brand-gold hover:underline font-mono flex items-center gap-1"
+              >
+                <span>Nouveau bien</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {isLoadingRealData ? (
+              <div className="py-12 text-center text-xs font-mono text-white/50 space-y-2">
+                <RefreshCw className="w-5 h-5 animate-spin mx-auto text-brand-gold" />
+                <p>Chargement de vos dossiers...</p>
+              </div>
+            ) : userSubmissions.length === 0 ? (
+              <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center space-y-3">
+                <Building2 className="w-10 h-10 text-white/20 mx-auto" />
+                <p className="text-sm text-white/70 font-editorial">Aucun dossier propriétaire soumis avec cette adresse email.</p>
+                <p className="text-xs text-white/40">Vous possédez une villa, un domaine ou un duplex d'exception à Sfax ou Tunis ? Confiez-nous sa valorisation.</p>
+                <Link
+                  href="/proposer-un-bien"
+                  onClick={onClose}
+                  className="inline-block px-5 py-2.5 rounded-xl bg-brand-gold text-brand-navy text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all mt-2"
+                >
+                  Proposer un Bien à la Vente ou Location
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {userSubmissions.map((s) => (
+                  <div
+                    key={s.id}
+                    className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3 hover:border-brand-gold/30 transition-all"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-brand-gold font-bold text-sm">{s.propertyType} — {s.district || s.city || 'Sfax'}</span>
+                          <span className="text-[10px] font-mono text-white/50">Dossier #{s.refCode || s.id}</span>
+                        </div>
+                        <span className="text-xs text-white/70 font-mono block mt-0.5">
+                          Objectif: {s.objective} • Surface: {s.surfaceM2 || 'Non précisée'} m² • Titre: {s.titleType || 'En vérification'}
+                        </span>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                        s.status === 'APPROVED'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : s.status === 'REJECTED'
+                          ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      }`}>
+                        {s.status === 'APPROVED' ? 'Validé & Publié' : s.status === 'REJECTED' ? 'Dossier Refusé' : 'En Évaluation Juridique'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-3 border-t border-white/10 text-xs font-mono">
+                      <span className="text-white/60">Prix estimé: {(s.estimatedPrice || s.estimatedValue || 0).toLocaleString()} TND</span>
+                      <a
+                        href="https://wa.me/21627745405"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-400 hover:underline flex items-center gap-1 text-[11px]"
                       >
-                        <X className="w-4 h-4" />
-                      </button>
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Contacter le conseiller en charge</span>
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TAB 4: SAVED FAVORITES (FULL RICH PROPERTY CARDS) ── */}
+        {activeTab === 'favorites' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                Mes Demeures Enregistrées ({favorites.length})
+              </h3>
+              <Link
+                href="/properties"
+                onClick={onClose}
+                className="text-xs text-brand-gold hover:underline font-mono flex items-center gap-1"
+              >
+                <span>Catalogue complet</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {favorites.length === 0 ? (
+              <div className="text-center py-10 space-y-3 bg-white/5 rounded-2xl border border-white/10">
+                <Heart className="w-10 h-10 text-white/20 mx-auto" />
+                <p className="text-sm text-white/70 font-editorial">Aucun bien immobilier enregistré dans vos favoris.</p>
+                <p className="text-xs text-white/40">Cliquez sur le cœur d'une propriété pour la retrouver ici en un clin d'œil.</p>
+                <Link
+                  href="/properties"
+                  onClick={onClose}
+                  className="inline-block px-5 py-2.5 rounded-xl bg-brand-gold text-brand-navy text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all mt-2"
+                >
+                  Découvrir le Catalogue
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-1">
+                {favorites.map((favId) => {
+                  const property = propertiesList.find((p) => p.id === favId);
+                  const titleStr = property
+                    ? (typeof property.title === 'string'
+                        ? property.title
+                        : (property.title[language] || property.title.fr))
+                    : `Propriété d'Exception ${favId}`;
+
+                  const coverImg = property?.images?.[0]?.url || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9';
+
+                  return (
+                    <div
+                      key={favId}
+                      className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-brand-gold/40 transition-all flex flex-col justify-between gap-3 group"
+                    >
+                      <div className="flex gap-3">
+                        <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                          <Image src={coverImg} alt={titleStr} fill className="object-cover group-hover:scale-105 transition-transform" />
+                        </div>
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <span className="text-xs font-bold text-brand-gold truncate block">
+                            {titleStr}
+                          </span>
+                          <span className="text-[11px] text-white/60 font-mono block">
+                            {property ? `${property.location.district}, ${property.location.city}` : 'Sfax, Tunisie'}
+                          </span>
+                          {property?.price && (
+                            <span className="text-xs font-bold text-white font-mono block">
+                              {property.price.amount.toLocaleString()} {property.price.currency}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
+                        <Link
+                          href={`/properties/${favId}`}
+                          onClick={onClose}
+                          className="text-brand-gold hover:underline font-mono flex items-center gap-1 text-[11px]"
+                        >
+                          <span>Voir la fiche</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
+                        <button
+                          onClick={() => toggleFavorite(favId)}
+                          className="text-white/40 hover:text-red-400 p-1 transition-colors flex items-center gap-1 text-[11px]"
+                          title="Retirer des favoris"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          <span>Retirer</span>
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -518,40 +679,126 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
           </div>
         )}
 
-        {/* ── TAB 4: HISTORY & INQUIRIES ── */}
-        {activeTab === 'history' && (
-          <div className="space-y-3 font-mono text-xs">
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
-              <div>
-                <span className="text-brand-gold font-bold block">Réservation Stay Luxe #VR-8821</span>
-                <span className="text-white/50 text-[10px]">Villa Palais des Oliviers • Sfax Soukra</span>
-              </div>
-              <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-300 font-bold">CONFIRMÉ</span>
-            </div>
+        {/* ── TAB 5: SECURITY & PASSWORD CHANGE ── */}
+        {activeTab === 'security' && (
+          <div className="space-y-6">
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
+                Modifier mon Mot de Passe
+              </h4>
 
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+              {passError && (
+                <div className="p-3 rounded-lg bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono">
+                  {passError}
+                </div>
+              )}
+
+              {passSuccess && (
+                <div className="p-3 rounded-lg bg-emerald-500/20 text-emerald-300 text-xs border border-emerald-500/30 font-mono flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>{passSuccess}</span>
+                </div>
+              )}
+
               <div>
-                <span className="text-brand-gold font-bold block">Demande d'Estimation Propriétaire</span>
-                <span className="text-white/50 text-[10px]">Patrimoine Soukra Nord • Dossier Privé</span>
+                <label className="block text-xs font-mono text-brand-travertine/70 mb-1">Mot de Passe Actuel</label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPass ? 'text' : 'password'}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full bg-brand-navy border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPass(!showCurrentPass)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                  >
+                    {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 font-bold">EN ÉVALUATION</span>
-            </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-mono text-brand-travertine/70 mb-1">Nouveau Mot de Passe (min. 6 caractères)</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPass ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full bg-brand-navy border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold pr-10"
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPass(!showNewPass)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                    >
+                      {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-brand-travertine/70 mb-1">Confirmer le Nouveau Mot de Passe</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full bg-brand-navy border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={passLoading}
+                  className="bg-brand-gold hover:bg-amber-400 text-brand-navy px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50"
+                >
+                  {passLoading ? 'Mise à jour...' : 'Mettre à Jour le Mot de Passe'}
+                </button>
+              </div>
+            </form>
+
+            {/* Audit Logs */}
+            {auditLogs.length > 0 && (
+              <div className="space-y-2 pt-4 border-t border-white/10">
+                <span className="text-[10px] font-mono uppercase text-brand-gold block font-bold">Dernières Activités de Sécurité</span>
+                <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                  {auditLogs.slice(0, 4).map((log) => (
+                    <div key={log.id} className="p-2 rounded-lg bg-black/40 border border-white/5 flex items-center justify-between text-[11px] font-mono">
+                      <div>
+                        <span className="text-brand-gold font-bold">{log.action}</span>
+                        <span className="text-white/50 block text-[10px]">{log.target}</span>
+                      </div>
+                      <span className="text-white/40 text-[10px]">{log.timestamp}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Logout Footer */}
+        {/* Modal Footer with Logout and Branding */}
         <div className="pt-4 border-t border-white/10 flex justify-between items-center">
           <button
             onClick={() => {
               logout();
               onClose();
             }}
-            className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 font-bold uppercase tracking-wider"
+            className="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Se Déconnecter</span>
           </button>
-          <span className="text-[10px] text-white/40 font-mono">Villa Regia Flagship v1.0</span>
+          <span className="text-[10px] text-white/40 font-mono">Villa Regia Real Estates • Sfax</span>
         </div>
       </motion.div>
     </div>
