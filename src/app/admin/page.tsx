@@ -17,6 +17,7 @@ import {
   UniverseType,
   PropertyCategory,
   PropertyStatus,
+  OwnerSubmission,
 } from '@/types';
 import {
   Building2,
@@ -56,35 +57,6 @@ import {
   Radio,
   Activity,
 } from 'lucide-react';
-
-export interface OwnerSubmission {
-  id: string;
-  refCode: string;
-  propertyType: PropertyCategory;
-  objective: UniverseType;
-  gouvernorat?: string;
-  city: string;
-  district: string;
-  address?: string;
-  googleMapsLink?: string;
-  surfaceM2: number;
-  bedrooms?: number;
-  estimatedPrice: number;
-  estimatedValue?: number;
-  ownerName: string;
-  ownerPhone: string;
-  ownerEmail: string;
-  titleType?: string;
-  titleNumber?: string;
-  hasCertificate?: string;
-  hasBuildingPermit?: string;
-  tunisianLawCertified?: boolean;
-  specificDetails?: Record<string, any>;
-  details?: string;
-  photos?: string[];
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOUVEAU' | 'CONTACTE' | 'VISITE' | 'MANDAT_SIGNE';
-  createdAt: string;
-}
 
 const INITIAL_SUBMISSIONS: OwnerSubmission[] = [];
 
@@ -284,6 +256,13 @@ export default function AdminDashboardPage() {
   const [propDistrict, setPropDistrict] = useState('Route de la Soukra');
   const [propImageUrl, setPropImageUrl] = useState('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85');
   const [propDesc, setPropDesc] = useState('');
+  // Spécifiques Villa Semi-Construite & Commercial
+  const [propCompletionEstimate, setPropCompletionEstimate] = useState<number | undefined>(undefined);
+  const [propConstructionStage, setPropConstructionStage] = useState('');
+  const [propBusinessActivity, setPropBusinessActivity] = useState('');
+  const [propMonthlyRent, setPropMonthlyRent] = useState<number | undefined>(undefined);
+  const [propCommercialSurface, setPropCommercialSurface] = useState<number | undefined>(undefined);
+  const [propLinearFacade, setPropLinearFacade] = useState<number | undefined>(undefined);
 
   // --------------------------------------------------------------------------
   // OWNER SUBMISSION APPROVAL & CONVERSION
@@ -295,12 +274,22 @@ export default function AdminDashboardPage() {
 
     const newProp: Property = {
       id: `vr-prop-${Date.now()}`,
-      title: { fr: `${sub.propertyType} High Standing — ${sub.district}`, ar: `${sub.propertyType} — ${sub.district}`, en: `${sub.propertyType} — ${sub.district}` },
+      title: { fr: `${sub.propertyType} High Standing — ${sub.district || sub.city}`, ar: `${sub.propertyType} — ${sub.district || sub.city}`, en: `${sub.propertyType} — ${sub.district || sub.city}` },
       universe: sub.objective,
       category: sub.propertyType,
       price: { amount: sub.estimatedPrice || sub.estimatedValue || 0, currency: 'TND', period: 'total' },
-      location: { city: sub.city, district: sub.district, country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
-      specs: { surfaceM2: sub.surfaceM2, bedrooms: sub.bedrooms || 0, pool: true, garden: true },
+      location: { city: sub.city, district: sub.district || sub.city, country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
+      specs: {
+        surfaceM2: sub.surfaceM2,
+        bedrooms: sub.bedrooms || 0,
+        pool: true,
+        garden: true,
+        completionEstimate: sub.completionEstimate || sub.specificDetails?.completionEstimate,
+        constructionStage: sub.constructionStage || sub.specificDetails?.constructionStage,
+        businessActivity: sub.businessActivity || sub.specificDetails?.businessActivity,
+        commercialSurfaceM2: sub.commercialSurfaceM2 || sub.specificDetails?.commercialSurfaceM2,
+        monthlyRentTND: sub.monthlyRentTND || sub.specificDetails?.monthlyRentTND,
+      },
       images: imagesList,
       description: { fr: sub.details || 'Prestigieuse demeure soumise par son propriétaire et vérifiée par l’équipe Villa Regia.', ar: sub.details || '', en: sub.details || '' },
       amenities: ['Climatisation centralisée', sub.titleType || 'Titre foncier individuel', 'Parking sécurisé', 'Marbre noble'],
@@ -372,6 +361,12 @@ export default function AdminDashboardPage() {
     setPropDistrict('Route de la Soukra');
     setPropImageUrl('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85');
     setPropDesc('Spacieuse demeure contemporaine avec prestations haut de gamme à Sfax.');
+    setPropCompletionEstimate(undefined);
+    setPropConstructionStage('');
+    setPropBusinessActivity('');
+    setPropMonthlyRent(undefined);
+    setPropCommercialSurface(undefined);
+    setPropLinearFacade(undefined);
     setPropertyModalOpen(true);
   };
 
@@ -387,6 +382,12 @@ export default function AdminDashboardPage() {
     setPropDistrict(p.location.district);
     setPropImageUrl(p.images[0]?.url || '');
     setPropDesc(p.description.fr);
+    setPropCompletionEstimate(p.specs.completionEstimate);
+    setPropConstructionStage(p.specs.constructionStage || '');
+    setPropBusinessActivity(p.specs.businessActivity || '');
+    setPropMonthlyRent(p.specs.monthlyRentTND);
+    setPropCommercialSurface(p.specs.commercialSurfaceM2);
+    setPropLinearFacade(p.specs.linearFacadeMeters);
     setPropertyModalOpen(true);
   };
 
@@ -421,7 +422,17 @@ export default function AdminDashboardPage() {
               category: propCategory,
               price: { ...item.price, amount: Number(propPrice) },
               location: { ...item.location, city: propCity, district: propDistrict },
-              specs: { ...item.specs, surfaceM2: Number(propSurface), bedrooms: Number(propBedrooms) },
+              specs: {
+                ...item.specs,
+                surfaceM2: Number(propSurface),
+                bedrooms: Number(propBedrooms),
+                completionEstimate: propCompletionEstimate,
+                constructionStage: propConstructionStage || undefined,
+                businessActivity: propBusinessActivity || undefined,
+                monthlyRentTND: propMonthlyRent,
+                commercialSurfaceM2: propCommercialSurface,
+                linearFacadeMeters: propLinearFacade,
+              },
               description: { fr: propDesc, ar: propDesc, en: propDesc },
               images: [{ url: propImageUrl, alt: propTitle, isCover: true }],
               updatedAt: new Date().toISOString().split('T')[0],
@@ -448,7 +459,18 @@ export default function AdminDashboardPage() {
         category: propCategory,
         price: { amount: Number(propPrice), currency: 'TND', period: propUniverse === 'LUXE' ? 'nuit' : 'total' },
         location: { city: propCity, district: propDistrict, country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
-        specs: { surfaceM2: Number(propSurface), bedrooms: Number(propBedrooms), pool: true, garden: true },
+        specs: {
+          surfaceM2: Number(propSurface),
+          bedrooms: Number(propBedrooms),
+          pool: true,
+          garden: true,
+          completionEstimate: propCompletionEstimate,
+          constructionStage: propConstructionStage || undefined,
+          businessActivity: propBusinessActivity || undefined,
+          monthlyRentTND: propMonthlyRent,
+          commercialSurfaceM2: propCommercialSurface,
+          linearFacadeMeters: propLinearFacade,
+        },
         images: [{ url: propImageUrl, alt: propTitle, isCover: true }],
         description: { fr: propDesc, ar: propDesc, en: propDesc },
         amenities: ['Climatisation centralisée', 'Piscine privée', 'Parking sécurisé', 'Marbre noble'],
@@ -2590,6 +2612,9 @@ export default function AdminDashboardPage() {
                     className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white"
                   >
                     <option value="Villa">Villa</option>
+                    <option value="Villa Semi-Construite">Villa Semi-Construite</option>
+                    <option value="Espace Commercial">Espace Commercial</option>
+                    <option value="Fonds de Commerce">Fonds de Commerce</option>
                     <option value="Appartement">Appartement</option>
                     <option value="Duplex">Duplex</option>
                     <option value="Penthouse">Penthouse</option>
@@ -2597,6 +2622,91 @@ export default function AdminDashboardPage() {
                   </select>
                 </div>
               </div>
+
+              {/* Spécifique Villa Semi-Construite */}
+              {propCategory === 'Villa Semi-Construite' && (
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                  <div className="flex items-center gap-2 text-amber-400 text-xs font-mono font-bold uppercase">
+                    <span>🏗️ Paramètres Villa Semi-Construite</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-mono uppercase text-amber-300 block mb-1 font-bold">
+                        Budget estimé pour achever la construction (TND) *
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={propCompletionEstimate || ''}
+                        onChange={(e) => setPropCompletionEstimate(e.target.value ? Number(e.target.value) : undefined)}
+                        placeholder="ex: 210000"
+                        className="w-full bg-brand-navy border border-amber-500/30 rounded-xl px-3 py-2 text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-mono uppercase text-amber-300 block mb-1 font-bold">
+                        Stade actuel des travaux
+                      </label>
+                      <input
+                        type="text"
+                        value={propConstructionStage}
+                        onChange={(e) => setPropConstructionStage(e.target.value)}
+                        placeholder="ex: Gros œuvre achevé (65%)"
+                        className="w-full bg-brand-navy border border-amber-500/30 rounded-xl px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Spécifique Commercial & Fonds de Commerce */}
+              {(propCategory === 'Espace Commercial' || propCategory === 'Fonds de Commerce') && (
+                <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/30 space-y-3">
+                  <div className="flex items-center gap-2 text-sky-400 text-xs font-mono font-bold uppercase">
+                    <span>🏢 Paramètres Actif Commercial</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-[10px] font-mono uppercase text-sky-300 block mb-1 font-bold">
+                        Vocation / Activité autorisée
+                      </label>
+                      <input
+                        type="text"
+                        value={propBusinessActivity}
+                        onChange={(e) => setPropBusinessActivity(e.target.value)}
+                        placeholder="ex: Showroom, Restauration..."
+                        className="w-full bg-brand-navy border border-sky-500/30 rounded-xl px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-mono uppercase text-sky-300 block mb-1 font-bold">
+                        Loyer murs mensuel (TND/m)
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={propMonthlyRent || ''}
+                        onChange={(e) => setPropMonthlyRent(e.target.value ? Number(e.target.value) : undefined)}
+                        placeholder="ex: 2400"
+                        className="w-full bg-brand-navy border border-sky-500/30 rounded-xl px-3 py-2 text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-mono uppercase text-sky-300 block mb-1 font-bold">
+                        Linéaire Vitrine (m)
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={propLinearFacade || ''}
+                        onChange={(e) => setPropLinearFacade(e.target.value ? Number(e.target.value) : undefined)}
+                        placeholder="ex: 16"
+                        className="w-full bg-brand-navy border border-sky-500/30 rounded-xl px-3 py-2 text-xs text-white font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div>
@@ -3319,6 +3429,37 @@ export default function AdminDashboardPage() {
                     {(inspectingSubmission.estimatedPrice || inspectingSubmission.estimatedValue || 0).toLocaleString('fr-FR')} TND
                   </span>
                 </div>
+
+                {/* Spécificités Villa Semi-Construite / Commercial */}
+                {(inspectingSubmission.completionEstimate || inspectingSubmission.specificDetails?.completionEstimate) && (
+                  <div className="pt-2 border-t border-amber-500/20 bg-amber-500/10 p-3 rounded-lg flex items-center justify-between text-amber-300">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase block text-amber-400 font-bold">Estimation Travaux d'Achèvement :</span>
+                      <span className="font-mono text-xs text-white/70">
+                        {inspectingSubmission.constructionStage || inspectingSubmission.specificDetails?.constructionStage || 'En cours de travaux'}
+                      </span>
+                    </div>
+                    <span className="text-base font-bold font-mono text-amber-300">
+                      + {(inspectingSubmission.completionEstimate || inspectingSubmission.specificDetails?.completionEstimate || 0).toLocaleString('fr-FR')} TND
+                    </span>
+                  </div>
+                )}
+
+                {(inspectingSubmission.businessActivity || inspectingSubmission.specificDetails?.businessActivity) && (
+                  <div className="pt-2 border-t border-sky-500/20 bg-sky-500/10 p-3 rounded-lg flex items-center justify-between text-sky-300">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase block text-sky-400 font-bold">Vocation Commerciale :</span>
+                      <span className="font-mono text-xs text-white/80">
+                        {inspectingSubmission.businessActivity || inspectingSubmission.specificDetails?.businessActivity}
+                      </span>
+                    </div>
+                    {(inspectingSubmission.monthlyRentTND || inspectingSubmission.specificDetails?.monthlyRentTND) && (
+                      <span className="text-xs font-bold font-mono text-sky-300">
+                        Loyer murs: {(inspectingSubmission.monthlyRentTND || inspectingSubmission.specificDetails?.monthlyRentTND || 0).toLocaleString('fr-FR')} TND/mois
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {inspectingSubmission.details && (
                   <div className="pt-2 border-t border-white/5 text-xs text-brand-travertine/80 leading-relaxed bg-black/20 p-3 rounded-lg">

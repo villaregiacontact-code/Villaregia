@@ -28,12 +28,18 @@ import {
   ChevronDown,
   RotateCcw,
   Waves,
+  Hammer,
+  Store,
+  Briefcase,
 } from 'lucide-react';
 
 // ─── Category definitions ──────────────────────────────────────────────────
 const CATEGORIES: { value: PropertyCategory | 'ALL'; label: string; icon: React.ElementType; count?: number }[] = [
   { value: 'ALL', label: 'Tout le Catalogue', icon: Sparkles },
   { value: 'Villa', label: 'Villas', icon: Home },
+  { value: 'Villa Semi-Construite', label: 'Villas Semi-Construites', icon: Hammer },
+  { value: 'Espace Commercial', label: 'Espaces Commerciaux', icon: Store },
+  { value: 'Fonds de Commerce', label: 'Fonds de Commerce', icon: Briefcase },
   { value: 'Appartement', label: 'Appartements', icon: Building2 },
   { value: 'Duplex', label: 'Duplex', icon: Layers },
   { value: 'Penthouse', label: 'Penthouses', icon: Crown },
@@ -58,12 +64,15 @@ const SORT_OPTIONS = [
 
 // ─── Category icon background ─────────────────────────────────────────────
 const CAT_ACTIVE: Record<string, string> = {
-  ALL: 'from-brand-gold/30 to-brand-gold/10 border-brand-gold/50 text-brand-gold',
-  Villa: 'from-amber-500/25 to-amber-600/10 border-amber-500/40 text-amber-300',
-  Appartement: 'from-sky-500/25 to-sky-600/10 border-sky-500/40 text-sky-300',
-  Duplex: 'from-violet-500/25 to-violet-600/10 border-violet-500/40 text-violet-300',
-  Penthouse: 'from-rose-500/25 to-rose-600/10 border-rose-500/40 text-rose-300',
-  'Domaine Événementiel': 'from-emerald-500/25 to-emerald-600/10 border-emerald-500/40 text-emerald-300',
+  ALL: 'from-brand-gold/30 to-brand-gold-dark/20 border-brand-gold/50 text-brand-gold',
+  Villa: 'from-amber-500/30 to-amber-600/20 border-amber-500/50 text-amber-300',
+  'Villa Semi-Construite': 'from-orange-500/30 to-orange-600/20 border-orange-500/50 text-orange-300',
+  'Espace Commercial': 'from-sky-500/30 to-sky-600/20 border-sky-500/50 text-sky-300',
+  'Fonds de Commerce': 'from-teal-500/30 to-teal-600/20 border-teal-500/50 text-teal-300',
+  Appartement: 'from-sky-500/30 to-sky-600/20 border-sky-500/50 text-sky-300',
+  Duplex: 'from-violet-500/30 to-violet-600/20 border-violet-500/50 text-violet-300',
+  Penthouse: 'from-rose-500/30 to-rose-600/20 border-rose-500/50 text-rose-300',
+  'Domaine Événementiel': 'from-purple-500/30 to-purple-600/20 border-purple-500/50 text-purple-300',
 };
 
 function CatalogContent() {
@@ -483,7 +492,7 @@ function CatalogContent() {
 
                     <div className="space-y-3">
                       {/* Specs row */}
-                      <div className="flex items-center gap-4 text-xs text-white/50">
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-white/50">
                         <span className="flex items-center gap-1">
                           <Maximize2 className="w-3.5 h-3.5 text-brand-gold/60" />
                           {prop.specs.surfaceM2} m²
@@ -500,7 +509,36 @@ function CatalogContent() {
                             Piscine
                           </span>
                         )}
+                        {prop.specs.linearFacadeMeters && (
+                          <span className="flex items-center gap-1 text-sky-300">
+                            Vitrine: {prop.specs.linearFacadeMeters}m
+                          </span>
+                        )}
                       </div>
+
+                      {/* Semi-constructed / Commercial specific cards */}
+                      {prop.specs.completionEstimate && (
+                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-2.5 space-y-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-amber-300/80 font-mono text-[10px] uppercase">Travaux d'achèvement :</span>
+                            <span className="font-bold text-amber-300 font-mono">+{prop.specs.completionEstimate.toLocaleString('fr-TN')} TND</span>
+                          </div>
+                          {prop.specs.constructionStage && (
+                            <span className="text-[10px] text-white/50 block font-mono">
+                              État: {prop.specs.constructionStage}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {prop.specs.businessActivity && (
+                        <div className="bg-sky-500/10 border border-sky-500/30 rounded-xl p-2 text-[11px] text-sky-300 flex items-center justify-between">
+                          <span className="font-mono text-[10px] uppercase truncate max-w-[180px]">{prop.specs.businessActivity}</span>
+                          {prop.specs.monthlyRentTND && (
+                            <span className="font-bold font-mono shrink-0">{prop.specs.monthlyRentTND.toLocaleString('fr-TN')} TND/m</span>
+                          )}
+                        </div>
+                      )}
 
                       {/* Price + CTA */}
                       <div className="flex items-center justify-between pt-3 border-t border-white/8">

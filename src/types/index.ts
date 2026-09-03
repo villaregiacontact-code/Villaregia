@@ -2,6 +2,9 @@ export type UniverseType = 'VENTE' | 'RESIDENCE' | 'LUXE' | 'EVENT';
 
 export type PropertyCategory = 
   | 'Villa'
+  | 'Villa Semi-Construite'
+  | 'Espace Commercial'
+  | 'Fonds de Commerce'
   | 'Appartement'
   | 'Duplex'
   | 'Penthouse'
@@ -75,6 +78,15 @@ export interface Property {
     guestCapacity?: number;
     pool?: boolean;
     garden?: boolean;
+    // Spécificités Villa Semi-Construite
+    completionEstimate?: number; // Valeur d'estimation pour achever la construction (en TND)
+    constructionStage?: string; // Stade actuel des travaux (ex: Gros œuvre achevé 65%, Hors d'eau/Hors d'air)
+    // Spécificités Commercial & Fonds de commerce
+    businessActivity?: string; // Vocation ou activité commerciale autorisée
+    commercialSurfaceM2?: number; // Surface utile commerciale
+    monthlyRentTND?: number; // Loyer mensuel des murs (TND / mois)
+    linearFacadeMeters?: number; // Linéaire de vitrine (mètres)
+    licenseIncluded?: boolean; // Licence commerciale incluse
   };
   images: {
     url: string;
@@ -170,6 +182,12 @@ export interface OwnerSubmission {
   specificDetails?: Record<string, any>;
   details?: string;
   photos?: string[];
+  // Spécificités Villa Semi-Construite & Commercial
+  completionEstimate?: number;
+  constructionStage?: string;
+  businessActivity?: string;
+  commercialSurfaceM2?: number;
+  monthlyRentTND?: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOUVEAU' | 'CONTACTE' | 'VISITE' | 'MANDAT_SIGNE';
   createdAt: string;
 }

@@ -24,6 +24,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
+  Hammer,
+  Store,
+  Briefcase,
 } from 'lucide-react';
 
 export default function PropertyDetailPage() {
@@ -279,6 +282,109 @@ export default function PropertyDetailPage() {
               ))}
             </div>
           </div>
+
+          {/* ── VILLA SEMI-CONSTRUITE : CARTE D'ESTIMATION DES TRAVAUX D'ACHÈVEMENT ── */}
+          {(property.category === 'Villa Semi-Construite' || property.specs.completionEstimate) && (
+            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-amber-500/15 via-brand-navy-dark to-amber-600/10 border-2 border-brand-gold/50 shadow-2xl space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2.5 text-brand-gold">
+                  <div className="p-2 rounded-lg bg-brand-gold/15 border border-brand-gold/30">
+                    <Hammer className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-editorial text-xl text-brand-travertine font-light">Estimation d'Achèvement des Travaux</h4>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-white/50 block">Dossier technique & métré chiffré par expert</span>
+                  </div>
+                </div>
+                {property.specs.constructionStage && (
+                  <span className="px-3.5 py-1.5 bg-amber-500/20 text-amber-300 text-xs font-mono font-bold uppercase rounded-full border border-amber-500/40">
+                    🏗️ {property.specs.constructionStage}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-1">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono uppercase text-brand-travertine/60 block">1. Prix d'Acquisition Actuel</span>
+                  <div className="font-editorial text-2xl sm:text-3xl text-brand-travertine">
+                    {property.price.amount.toLocaleString('fr-FR')} {property.price.currency}
+                  </div>
+                  <span className="text-[10px] text-white/40 block">Terrain + Gros œuvre réalisé</span>
+                </div>
+
+                {property.specs.completionEstimate && (
+                  <div className="space-y-1 border-t sm:border-t-0 sm:border-l border-white/10 sm:pl-6 pt-3 sm:pt-0">
+                    <span className="text-[10px] font-mono uppercase text-amber-400 block font-bold">2. Budget Travaux de Finition</span>
+                    <div className="font-editorial text-2xl sm:text-3xl text-brand-gold font-bold">
+                      + {property.specs.completionEstimate.toLocaleString('fr-FR')} TND
+                    </div>
+                    <span className="text-[10px] text-brand-gold/70 block">Devis métré artisans partenaires</span>
+                  </div>
+                )}
+
+                {property.specs.completionEstimate && (
+                  <div className="space-y-1 border-t sm:border-t-0 sm:border-l border-white/10 sm:pl-6 pt-3 sm:pt-0">
+                    <span className="text-[10px] font-mono uppercase text-emerald-400 block font-bold">3. Coût Global Clé en Main</span>
+                    <div className="font-editorial text-2xl sm:text-3xl text-emerald-400 font-bold">
+                      ≈ {(property.price.amount + property.specs.completionEstimate).toLocaleString('fr-FR')} TND
+                    </div>
+                    <span className="text-[10px] text-emerald-300/60 block">Économie patrimoniale substantielle</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── ESPACE COMMERCIAL & FONDS DE COMMERCE : SPÉCIFICITÉS INVESTISSEMENT ── */}
+          {(property.category === 'Espace Commercial' || property.category === 'Fonds de Commerce') && (
+            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-sky-500/15 via-brand-navy-dark to-sky-600/10 border-2 border-sky-500/40 shadow-2xl space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2.5 text-sky-300">
+                  <div className="p-2 rounded-lg bg-sky-500/15 border border-sky-500/30">
+                    {property.category === 'Fonds de Commerce' ? <Briefcase className="w-5 h-5" /> : <Store className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <h4 className="font-editorial text-xl text-brand-travertine font-light">Actif Professionnel & Commercial</h4>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-sky-200/50 block">Investissement & Implantation Entreprise</span>
+                  </div>
+                </div>
+                <span className="px-3.5 py-1.5 bg-sky-500/20 text-sky-300 text-xs font-mono font-bold uppercase rounded-full border border-sky-500/40">
+                  🏢 {property.category}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-1">
+                {property.specs.businessActivity && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono uppercase text-brand-travertine/60 block">Vocation / Activité</span>
+                    <div className="font-editorial text-lg sm:text-xl text-white font-medium leading-snug">
+                      {property.specs.businessActivity}
+                    </div>
+                  </div>
+                )}
+
+                {property.specs.monthlyRentTND !== undefined && (
+                  <div className="space-y-1 border-t sm:border-t-0 sm:border-l border-white/10 sm:pl-6 pt-3 sm:pt-0">
+                    <span className="text-[10px] font-mono uppercase text-sky-400 block font-bold">Loyer Mensuel des Murs</span>
+                    <div className="font-editorial text-2xl sm:text-3xl text-sky-300 font-bold">
+                      {property.specs.monthlyRentTND.toLocaleString('fr-FR')} TND
+                    </div>
+                    <span className="text-[10px] text-white/40 block">Bail commercial protégé 3-6-9</span>
+                  </div>
+                )}
+
+                {property.specs.linearFacadeMeters && (
+                  <div className="space-y-1 border-t sm:border-t-0 sm:border-l border-white/10 sm:pl-6 pt-3 sm:pt-0">
+                    <span className="text-[10px] font-mono uppercase text-brand-gold block font-bold">Linéaire Vitrine</span>
+                    <div className="font-editorial text-2xl sm:text-3xl text-brand-gold">
+                      {property.specs.linearFacadeMeters} Mètres
+                    </div>
+                    <span className="text-[10px] text-white/40 block">Visibilité et flux passant N°1</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Key Specifications Grid */}
           <div className="p-6 rounded-xl glass-card border border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">

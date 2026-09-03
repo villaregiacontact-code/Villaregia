@@ -608,6 +608,191 @@ export const INITIAL_PROPERTIES: Property[] = [
     createdAt: '2026-08-18',
     updatedAt: '2026-08-30',
   },
+  // ── VILLA SEMI-CONSTRUITE AVEC ESTIMATION TRAVAUX ──────────────────────────
+  {
+    id: 'vr-villa-semi-gremda-11',
+    title: {
+      fr: "Villa d'Architecte Semi-Construite — Route Gremda Km 4, Sfax",
+      ar: 'فيلا تحت الإنشاء نصف مبنية مع تقدير التكملة — طريق قرمدة كلم 4 صفاقس',
+      en: 'Architect-Designed Semi-Finished Villa — Route Gremda Km 4, Sfax',
+    },
+    universe: 'VENTE',
+    category: 'Villa Semi-Construite',
+    price: {
+      amount: 540000,
+      currency: 'TND',
+      period: 'total',
+    },
+    location: {
+      city: 'Sfax',
+      district: 'Route de Gremda Km 4',
+      country: 'Tunisie',
+      lat: 34.7550,
+      lng: 10.7300,
+      isExactPosition: false,
+    },
+    specs: {
+      surfaceM2: 440,
+      bedrooms: 5,
+      bathrooms: 4,
+      livingRooms: 2,
+      parkingSpaces: 3,
+      pool: true,
+      garden: true,
+      completionEstimate: 210000, // Estimation certifiée pour achever la construction
+      constructionStage: 'Gros œuvre & Cloisonnement achevés (65%)',
+    },
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1600&q=85',
+        alt: 'Structure contemporaine béton et volumes villa semi-construite Sfax',
+        isCover: true,
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1600&q=85',
+        alt: 'Volumes intérieurs double hauteur salon et patio',
+      },
+    ],
+    description: {
+      fr: "Exceptionnelle opportunité patrimoniale à Route Gremda Km 4. Cette villa d'architecte contemporaine de 440 m² bâtie sur un terrain clôturé de 780 m² bénéficie d'une structure en béton armé antisismique intégralement achevée. Permis de construire en règle et dossier d'exécution complet. L'estimation certifiée des travaux de finition (fluides, marbre thala, menuiserie aluminium double vitrage et piscine) s'élève à 210 000 TND, offrant une valeur finale clé en main particulièrement avantageuse.",
+      ar: 'فرصة عقارية ممتازة بطريق قرمدة كلم 4 صفاقس. فيلا عصرية نصف مبنية بمساحة 440 متر مربع على أرض 780 متر مربع. الهيكل الخرساني مكتمل ورخصة البناء قانونية. القيمة المقدرة لإنهاء الأشغال هي 210 ألف دينار.',
+      en: 'Rare architectural opportunity on Route Gremda Km 4. This 440 m² semi-constructed modern villa on a 780 m² plot features completed reinforced concrete structure and municipal building permit. Estimated completion cost is 210,000 TND with architect plans and quantity surveyor quotes available.',
+    },
+    amenities: [
+      'Gros œuvre & dalle achevés',
+      'Permis de bâtir municipal approuvé',
+      'Plans architecte & métré d’exécution inclus',
+      'Emplacement piscine creusé',
+      'Terrain clôturé 780 m² avec Titre Bleu',
+      'Raccordements Sonede & Steg disponibles',
+    ],
+    status: 'DISPONIBLE',
+    isFeatured: true,
+    isNew: true,
+    createdAt: '2026-09-01',
+    updatedAt: '2026-09-03',
+  },
+  // ── ESPACE COMMERCIAL ──────────────────────────────────────────────────────
+  {
+    id: 'vr-com-boulila-12',
+    title: {
+      fr: 'Showroom & Espace Commercial Prestige — Avenue Majida Boulila, Sfax',
+      ar: 'مساحة تجارية وصالة عرض راقية — شارع مجيدة بوليلة صفاقس',
+      en: 'Prestige Commercial Showroom & Retail Space — Majida Boulila Ave, Sfax',
+    },
+    universe: 'VENTE',
+    category: 'Espace Commercial',
+    price: {
+      amount: 1250000,
+      currency: 'TND',
+      period: 'total',
+    },
+    location: {
+      city: 'Sfax',
+      district: 'Majida Boulila',
+      country: 'Tunisie',
+      lat: 34.7380,
+      lng: 10.7550,
+      isExactPosition: true,
+    },
+    specs: {
+      surfaceM2: 380,
+      commercialSurfaceM2: 380,
+      parkingSpaces: 6,
+      linearFacadeMeters: 16,
+      businessActivity: 'Showroom de Luxe, Siège de Société, Clinique / Laboratoire ou Retail Premium',
+    },
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=85',
+        alt: 'Façade vitrée moderne espace commercial Avenue Majida Boulila Sfax',
+        isCover: true,
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1600&q=85',
+        alt: 'Plateau commercial ouvert haut standing',
+      },
+    ],
+    description: {
+      fr: "Local commercial de prestige occupant l'angle d'une artère majeure de Sfax (Avenue Majida Boulila). Doté de 16 mètres linéaires de vitrine haute visibilité en double vitrage sécurit et d'une hauteur sous plafond de 4,5 mètres avec mezzanine autorisée. Idéal pour enseigne internationale, showroom médical, agence bancaire privée ou siège d'entreprise d'envergure.",
+      ar: 'محل تجاري فاخر بموقع استراتيجي على زاوية شارع مجيدة بوليلة بصفاقس. واجهة زجاجية عريضة 16 متر مع علو سقف 4.5 متر. مثالي لصالة عرض راقية أو مقر شركة.',
+      en: 'Prime commercial property located on a high-visibility corner of Majida Boulila Avenue, Sfax. Features 16 meters of armored glass frontage and 4.5m ceiling height. Ideal for flagship retail, medical center, or corporate headquarters.',
+    },
+    amenities: [
+      'Façade vitrée linéaire 16 mètres',
+      'Hauteur sous plafond 4.5m avec mezzanine',
+      'Emplacement commercial N°1 angle de rue',
+      '6 Places de parking clientèle réservées',
+      'Climatisation centrale gainable VRV',
+      'Système anti-incendie & alarme aux normes',
+    ],
+    status: 'DISPONIBLE',
+    isFeatured: true,
+    isNew: true,
+    createdAt: '2026-08-28',
+    updatedAt: '2026-09-03',
+  },
+  // ── FONDS DE COMMERCE ──────────────────────────────────────────────────────
+  {
+    id: 'vr-fdc-mansour-13',
+    title: {
+      fr: 'Fonds de Commerce Restaurant Lounge & Terrasse Bord de Mer — Route Sidi Mansour, Sfax',
+      ar: 'أصل تجاري لمطعم راقٍ ومقهى مع شرفة بحرية — طريق سيدي منصور صفاقس',
+      en: 'Seaside Restaurant & Lounge Business Asset (Fonds de Commerce) — Sidi Mansour, Sfax',
+    },
+    universe: 'VENTE',
+    category: 'Fonds de Commerce',
+    price: {
+      amount: 390000,
+      currency: 'TND',
+      period: 'total',
+    },
+    location: {
+      city: 'Sfax',
+      district: 'Sidi Mansour',
+      country: 'Tunisie',
+      lat: 34.7800,
+      lng: 10.7900,
+      isExactPosition: false,
+    },
+    specs: {
+      surfaceM2: 320,
+      commercialSurfaceM2: 240,
+      parkingSpaces: 10,
+      monthlyRentTND: 2400, // Loyer mensuel des murs
+      businessActivity: 'Restauration Gastronomique, Salon de Thé & Événements Privés',
+      licenseIncluded: true,
+    },
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=85',
+        alt: 'Salle de restaurant élégante vue mer Sidi Mansour Sfax',
+        isCover: true,
+      },
+      {
+        url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1600&q=85',
+        alt: 'Terrasse lounge extérieure aménagée',
+      },
+    ],
+    description: {
+      fr: "Cession d'un fonds de commerce de haute réputation situé sur la côte de Sidi Mansour à Sfax. Établissement entièrement équipé et décoré par un cabinet d'architecture d'intérieur renommé. Capacité de 140 couverts (80 en salle intérieure climatisée et 60 sur terrasse panoramique vue mer). Bail commercial en cours avec loyer des murs très modéré de 2 400 TND / mois. Matériel de cuisine professionnelle inox aux normes d'hygiène internationales, logiciel de caisse, et clientèle fidèle établie.",
+      ar: 'بيع أصل تجاري لمطعم وفضاء شاي معروف على طريق سيدي منصور بصفاقس. مجهز بالكامل مع ديكور راقٍ ويتسع لـ 140 مقعدًا مع شرفة بحرية. عقد كراء تجاري سارٍ بمعلوم كراء مناسب 2400 دينار شهرياً.',
+      en: 'Turnkey business asset sale for a renowned beachfront restaurant & lounge in Sidi Mansour, Sfax. Fully fitted commercial kitchen, 140 guest capacity with scenic ocean terrace, and existing favorable commercial lease at 2,400 TND/month.',
+    },
+    amenities: [
+      'Licence d’exploitation & registre de commerce en règle',
+      'Terrasse extérieure panoramique vue mer',
+      'Cuisine professionnelle inox complète',
+      'Bail commercial 3-6-9 protégé (loyer 2400 TND/mois)',
+      'Capacité 140 places assises',
+      'Système d’encaissement & sonorisation Bose',
+    ],
+    status: 'DISPONIBLE',
+    isFeatured: true,
+    isNew: true,
+    createdAt: '2026-08-20',
+    updatedAt: '2026-09-03',
+  },
 ];
 
 

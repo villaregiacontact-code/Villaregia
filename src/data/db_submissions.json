@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "propertyType": "Villa Semi-Construite",
+    "objective": "VENTE",
+    "surfaceM2": 460,
+    "bedrooms": 5,
+    "estimatedPrice": 620000,
+    "completionEstimate": 190000,
+    "constructionStage": "Gros oeuvre acheve (65%)",
+    "city": "Sfax",
+    "district": "Route Gremda",
+    "ownerName": "M. Hedi Triki",
+    "ownerPhone": "+216 25 111 222",
+    "ownerEmail": "hedi.triki@test.tn",
+    "titleType": "Titre Bleu Individuel",
+    "tunisianLawCertified": true,
+    "id": "prop-sub-1788459370991",
+    "refCode": "DOS-2026-7364",
+    "status": "PENDING",
+    "createdAt": "2026-09-03T18:16:10.991Z"
+  }
+]

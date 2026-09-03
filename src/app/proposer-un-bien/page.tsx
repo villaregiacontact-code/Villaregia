@@ -34,6 +34,9 @@ import {
   ChevronDown,
   ImagePlus,
   AlertTriangle,
+  Hammer,
+  Store,
+  Briefcase,
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────
@@ -41,6 +44,9 @@ import {
 // ─────────────────────────────────────────────
 const PROPERTY_ICONS: Record<PropertyCategory, React.ElementType> = {
   Villa: Home,
+  'Villa Semi-Construite': Hammer,
+  'Espace Commercial': Store,
+  'Fonds de Commerce': Briefcase,
   Appartement: Building2,
   Duplex: Layers,
   Penthouse: Crown,
@@ -52,6 +58,9 @@ const PROPERTY_ICONS: Record<PropertyCategory, React.ElementType> = {
 
 const PROPERTY_COLORS: Record<PropertyCategory, string> = {
   Villa: 'from-amber-500/20 to-amber-600/10 border-amber-500/30',
+  'Villa Semi-Construite': 'from-orange-500/20 to-orange-600/10 border-orange-500/30',
+  'Espace Commercial': 'from-sky-500/20 to-sky-600/10 border-sky-500/30',
+  'Fonds de Commerce': 'from-teal-500/20 to-teal-600/10 border-teal-500/30',
   Appartement: 'from-sky-500/20 to-sky-600/10 border-sky-500/30',
   Duplex: 'from-violet-500/20 to-violet-600/10 border-violet-500/30',
   Penthouse: 'from-rose-500/20 to-rose-600/10 border-rose-500/30',
@@ -62,7 +71,7 @@ const PROPERTY_COLORS: Record<PropertyCategory, string> = {
 };
 
 type SpecificDetails = {
-  // Villa
+  // Villa & Villa Semi-Construite
   hasPool?: boolean;
   hasGarden?: boolean;
   hasGarage?: boolean;
@@ -70,6 +79,19 @@ type SpecificDetails = {
   poolType?: string;
   hasTerrace?: boolean;
   titreType?: string;
+  completionEstimate?: number; // Valeur d'estimation pour achever la construction (en TND)
+  constructionStage?: string; // Stade des travaux (Gros œuvre, Hors d'eau/air...)
+  hasPermitApproved?: boolean;
+  hasArchitectPlans?: boolean;
+  landSurfaceM2?: number;
+  builtSurfaceM2?: number;
+  // Commercial & Fonds de commerce
+  businessActivity?: string; // Type d'activité commerciale autorisée
+  commercialSurfaceM2?: number;
+  monthlyRentTND?: number; // Loyer des murs
+  linearFacadeMeters?: number; // Linéaire vitrine
+  licenseIncluded?: boolean;
+  primeLocation?: boolean;
   // Appartement
   floor?: number;
   totalFloors?: number;
@@ -723,6 +745,11 @@ export default function SubmitPropertyPage() {
       details,
       specificDetails: specific,
       photos: uploadedPhotos.map((p) => p.url),
+      completionEstimate: specific.completionEstimate,
+      constructionStage: specific.constructionStage,
+      businessActivity: specific.businessActivity,
+      commercialSurfaceM2: specific.commercialSurfaceM2,
+      monthlyRentTND: specific.monthlyRentTND,
     };
 
     try {
@@ -955,6 +982,199 @@ export default function SubmitPropertyPage() {
             </div>
           </div>
         );
+
+      case 'Villa Semi-Construite':
+        return (
+          <div className="space-y-5">
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+              <Hammer className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div className="text-xs text-white/80 leading-relaxed">
+                <span className="font-bold text-amber-400 block mb-0.5">Villa en cours de construction</span>
+                Renseignez le stade actuel et l'estimation budgétaire pour compléter les travaux. Cela permettra aux acquéreurs d'apprécier la valeur globale du projet.
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Stade d'avancement des travaux *</label>
+                <div className="relative">
+                  <select
+                    className={inputCls + ' appearance-none pr-10'}
+                    value={specific.constructionStage || ''}
+                    onChange={(e) => setSp('constructionStage', e.target.value)}
+                  >
+                    <option value="">Sélectionner le stade...</option>
+                    <option value="Gros œuvre achevé (structure béton & dalles)">Gros œuvre achevé (structure béton & dalles)</option>
+                    <option value="Hors d'eau / Hors d'air (murs & toiture terminés)">Hors d'eau / Hors d'air (murs & toiture terminés)</option>
+                    <option value="Second œuvre en cours (plâtrerie, fluides)">Second œuvre en cours (plâtrerie, fluides)</option>
+                    <option value="Finitions & revêtements à réaliser (80%)">Finitions & revêtements à réaliser (80%)</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className={labelCls}>Budget estimé pour compléter la construction (TND) *</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={0}
+                    className={inputCls + ' font-mono'}
+                    placeholder="ex: 210000"
+                    value={specific.completionEstimate || ''}
+                    onChange={(e) => setSp('completionEstimate', Number(e.target.value))}
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-white/40">TND</span>
+                </div>
+                {specific.completionEstimate ? (
+                  <span className="text-[10px] text-brand-gold font-mono block mt-1">
+                    ≈ {Number(specific.completionEstimate).toLocaleString('fr-TN')} TND pour livraison finie
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Surface du terrain (m²)</label>
+                <input
+                  type="number"
+                  min={0}
+                  className={inputCls}
+                  placeholder="ex: 750"
+                  value={specific.landSurfaceM2 || ''}
+                  onChange={(e) => setSp('landSurfaceM2', Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Surface couverte bâtie (m²)</label>
+                <input
+                  type="number"
+                  min={0}
+                  className={inputCls}
+                  placeholder="ex: 420"
+                  value={specific.builtSurfaceM2 || ''}
+                  onChange={(e) => setSp('builtSurfaceM2', Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div>
+              <p className={labelCls}>Conformité Juridique & Dossier d'Exécution</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSp('hasPermitApproved', !specific.hasPermitApproved)}
+                  className={toggleCls(!!specific.hasPermitApproved)}
+                >
+                  ✓ Permis de bâtir municipal approuvé en règle
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSp('hasArchitectPlans', !specific.hasArchitectPlans)}
+                  className={toggleCls(!!specific.hasArchitectPlans)}
+                >
+                  ✓ Plans d'architecte & métré d'exécution disponibles
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'Espace Commercial':
+      case 'Fonds de Commerce':
+        return (
+          <div className="space-y-5">
+            <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-start gap-3">
+              <Store className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
+              <div className="text-xs text-white/80 leading-relaxed">
+                <span className="font-bold text-sky-400 block mb-0.5">Actif Commercial & Professionnel</span>
+                Renseignez la vocation de votre local ou les spécificités du fonds de commerce.
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Vocation / Activité commerciale autorisée *</label>
+                <input
+                  type="text"
+                  className={inputCls}
+                  placeholder="ex: Showroom, Restaurant, Bureaux, Siège..."
+                  value={specific.businessActivity || ''}
+                  onChange={(e) => setSp('businessActivity', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Linéaire de vitrine / façade (mètres)</label>
+                <input
+                  type="number"
+                  min={0}
+                  className={inputCls}
+                  placeholder="ex: 16"
+                  value={specific.linearFacadeMeters || ''}
+                  onChange={(e) => setSp('linearFacadeMeters', Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            {propertyType === 'Fonds de Commerce' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Loyer mensuel actuel des murs (TND/mois)</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={0}
+                      className={inputCls + ' font-mono'}
+                      placeholder="ex: 2400"
+                      value={specific.monthlyRentTND || ''}
+                      onChange={(e) => setSp('monthlyRentTND', Number(e.target.value))}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-white/40">TND/m</span>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>Surface commerciale utile (m²)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    className={inputCls}
+                    placeholder="ex: 240"
+                    value={specific.commercialSurfaceM2 || ''}
+                    onChange={(e) => setSp('commercialSurfaceM2', Number(e.target.value))}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <p className={labelCls}>Avantages Commerciaux</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSp('primeLocation', !specific.primeLocation)}
+                  className={toggleCls(!!specific.primeLocation)}
+                >
+                  ★ Emplacement commercial N°1 / Grande artère
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSp('licenseIncluded', !specific.licenseIncluded)}
+                  className={toggleCls(!!specific.licenseIncluded)}
+                >
+                  ✓ Licence commerciale & autorisations incluses
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="space-y-4">
+            <p className="text-xs text-white/60">Renseignez les prestations et équipements majeurs dans la section description.</p>
+          </div>
+        );
     }
   };
 
@@ -1070,14 +1290,14 @@ export default function SubmitPropertyPage() {
                     <div>
                       <p className={labelCls}>Catégorie du Bien</p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {(['Villa', 'Appartement', 'Duplex', 'Penthouse'] as PropertyCategory[]).map((cat) => {
+                        {(['Villa', 'Villa Semi-Construite', 'Espace Commercial', 'Fonds de Commerce', 'Appartement', 'Duplex', 'Penthouse', 'Domaine Événementiel'] as PropertyCategory[]).map((cat) => {
                           const Icon = PROPERTY_ICONS[cat] || Home;
                           const isActive = propertyType === cat;
                           return (
                             <button key={cat} type="button" onClick={() => setPropertyType(cat)}
-                              className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${isActive ? `bg-gradient-to-b ${PROPERTY_COLORS[cat]} shadow-lg` : 'bg-white/5 border-white/8 hover:border-white/20'}`}>
+                              className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${isActive ? `bg-gradient-to-b ${PROPERTY_COLORS[cat]} shadow-lg border-brand-gold/60` : 'bg-white/5 border-white/8 hover:border-white/20'}`}>
                               <Icon className={`w-6 h-6 ${isActive ? 'text-brand-gold' : 'text-white/40'}`} />
-                              <span className={`text-xs font-bold uppercase tracking-wider ${isActive ? 'text-white' : 'text-white/50'}`}>{cat}</span>
+                              <span className={`text-xs font-bold uppercase tracking-wider text-center ${isActive ? 'text-white' : 'text-white/50'}`}>{cat}</span>
                             </button>
                           );
                         })}
