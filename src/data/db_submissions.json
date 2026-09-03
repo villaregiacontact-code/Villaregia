@@ -1,0 +1,22 @@
+[
+  {
+    "ownerName": "Kamel Triki",
+    "ownerPhone": "+216 27 745 405",
+    "ownerEmail": "kamel.triki@gmail.com",
+    "propertyType": "Villa",
+    "objective": "VENTE",
+    "gouvernorat": "Sfax",
+    "city": "Sfax",
+    "district": "Route Gremda km 4",
+    "surfaceM2": 520,
+    "bedrooms": 5,
+    "estimatedPrice": 1850000,
+    "titleType": "Titre Bleu (Conservation Foncière)",
+    "titleNumber": "TN-45892",
+    "details": "Magnifique propriété avec jardin arboré et piscine privée.",
+    "id": "prop-sub-1788430858598",
+    "refCode": "DOS-2026-7239",
+    "status": "PENDING",
+    "createdAt": "2026-09-03T10:20:58.598Z"
+  }
+]
