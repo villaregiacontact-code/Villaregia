@@ -252,6 +252,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: data.error || "Erreur lors de l'inscription." };
       }
 
+      if (data.user) {
+        setUser(data.user);
+        setIs2FAVerified(true);
+        try {
+          localStorage.setItem('vr_user', JSON.stringify(data.user));
+          window.dispatchEvent(new Event('auth-change'));
+        } catch {}
+      }
+
       setPendingEmailConfirmation(cleanEmail);
       setLastDispatchedEmailNotice({
         type: 'CONFIRMATION',
@@ -270,7 +279,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch {}
 
-      logAction('Demande Inscription Client (Code Email Envoyé)', cleanEmail);
+      logAction('Création & Activation Compte Client', cleanEmail);
       return { success: true };
     } catch (e: any) {
       // Local fallback

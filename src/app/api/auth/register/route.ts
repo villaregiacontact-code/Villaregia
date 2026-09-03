@@ -71,7 +71,23 @@ export async function POST(request: Request) {
       savePersistedPendingRegistrations(diskPending);
     } catch {}
 
-    // ── DISPATCH VERIFICATION EMAIL VIA RESEND ──
+    // ── CREATE OR UPDATE USER IN DATABASE IMMEDIATELY ──
+    const { createDbUser } = await import('@/lib/db');
+    const createdUser = await createDbUser({
+      id: existingDbUser?.id || `user-${Date.now()}`,
+      name: name.trim(),
+      email: cleanEmail,
+      phone: phone?.trim() || '+216 -- --- ---',
+      password,
+      role,
+      twoFactorEnabled: role !== 'CLIENT' && role !== 'SUPER_ADMIN',
+      emailVerified: true,
+      createdAt: existingDbUser?.createdAt || new Date().toISOString().split('T')[0],
+    });
+
+    const { password: _, ...safeUser } = createdUser;
+
+    // ── DISPATCH VERIFICATION & WELCOME EMAIL VIA RESEND ──
     let emailResult: any = { previewUrl: null };
     try {
       emailResult = await sendSecurityEmail({
@@ -82,16 +98,15 @@ export async function POST(request: Request) {
         type: 'CONFIRMATION',
       });
     } catch (mailErr) {
-      console.warn('Could not dispatch external email, code generated for local/fallback verification:', mailErr);
+      console.warn('Could not dispatch external email, account activated locally:', mailErr);
     }
 
     const isSandboxRestricted = Boolean(emailResult?.isResendSandboxRestricted);
 
     return NextResponse.json({
       success: true,
-      message: isSandboxRestricted
-        ? `Code d'activation généré pour ${cleanEmail}. (Mode Sandbox Resend : email délivré à villaregia.contact@gmail.com).`
-        : `Votre code d'activation à 6 chiffres a été généré et envoyé à votre adresse email ${cleanEmail}.`,
+      message: `Votre compte a été créé avec succès et un email de confirmation a été envoyé à ${cleanEmail}.`,
+      user: safeUser,
       email: cleanEmail,
       confirmationCode,
       verificationToken,

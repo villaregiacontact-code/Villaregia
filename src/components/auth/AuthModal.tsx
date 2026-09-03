@@ -355,7 +355,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 ) : (
                   <CheckCircle2 className="w-4 h-4" />
                 )}
-                <span>{isLoading ? 'Vérification...' : 'Activer mon Compte'}</span>
+                <span>{isLoading ? 'Vérification...' : 'Valider avec le Code à 6 Chiffres'}</span>
+              </button>
+
+              <div className="flex items-center gap-3 text-white/30 text-[10px] font-mono uppercase tracking-wider pt-2">
+                <div className="flex-1 h-px bg-white/10" />
+                <span>Ou</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  if (user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role)) {
+                    router.push('/admin');
+                  }
+                }}
+                className="w-full bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 py-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-md"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Accéder Directement à mon Compte</span>
               </button>
             </form>
 
