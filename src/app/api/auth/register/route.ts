@@ -3,6 +3,7 @@ import { sendSecurityEmail } from '@/lib/email';
 import { ACCOUNTS_STORE, PENDING_REGISTRATIONS } from '@/lib/authStore';
 import { getDbUserByEmail } from '@/lib/db';
 import { createVerificationToken } from '@/lib/authTokens';
+import { UserRole } from '@/types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -35,17 +36,9 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // ── SECURITY CHECK: PREVENT OVERWRITING STAFF ACCOUNTS ──
+    // ── IDENTIFY ACCOUNT ROLE (PRESERVES STAFF ROLES) ──
     const existingDbUser = await getDbUserByEmail(cleanEmail);
-    if (existingDbUser && existingDbUser.role !== 'CLIENT') {
-      return NextResponse.json(
-        { error: 'Cette adresse email est réservée aux accès direction et staff. Veuillez vous connecter via l\'espace administration.' },
-        { status: 403 }
-      );
-    }
-
-    // ── SECURITY: RESTRICT PUBLIC SIGNUP TO CLIENT ONLY ──
-    const role: 'CLIENT' = 'CLIENT';
+    const role: UserRole = existingDbUser ? existingDbUser.role : 'CLIENT';
 
     // Generate 6-digit verification code
     const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();

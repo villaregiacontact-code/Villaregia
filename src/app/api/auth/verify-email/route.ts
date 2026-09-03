@@ -50,17 +50,21 @@ export async function POST(request: Request) {
     }
 
     if (isMatch) {
+      const { getDbUserByEmail } = await import('@/lib/db');
+      const existingDbUser = await getDbUserByEmail(cleanEmail);
+      const userRole = existingDbUser ? existingDbUser.role : (pending?.role || 'CLIENT');
+
       // Create or update permanent active user account and persist in database
       const activatedUser = await createDbUser({
-        id: `user-${Date.now()}`,
-        name: resolvedName,
+        id: existingDbUser?.id || `user-${Date.now()}`,
+        name: resolvedName || existingDbUser?.name || cleanEmail.split('@')[0],
         email: cleanEmail,
-        phone: resolvedPhone,
-        password: resolvedPassword,
-        role: 'CLIENT',
-        twoFactorEnabled: false,
+        phone: resolvedPhone || existingDbUser?.phone || '+216 -- --- ---',
+        password: resolvedPassword || existingDbUser?.password,
+        role: userRole,
+        twoFactorEnabled: userRole !== 'CLIENT' && userRole !== 'SUPER_ADMIN',
         emailVerified: true,
-        createdAt: new Date().toISOString().split('T')[0],
+        createdAt: existingDbUser?.createdAt || new Date().toISOString().split('T')[0],
       });
 
       // Clean up pending registration in memory and disk

@@ -31,12 +31,14 @@ export const ACCOUNTS_STORE = new Map<string, StoredUserAccount>([
   ],
 ]);
 
+import { UserRole } from '@/types';
+
 export const PENDING_REGISTRATIONS = new Map<string, {
   name: string;
   email: string;
   phone: string;
   password?: string;
-  role: 'CLIENT';
+  role: UserRole;
   confirmationCode: string;
   expiresAt: number;
 }>();
