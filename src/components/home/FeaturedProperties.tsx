@@ -1,18 +1,38 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFavorites } from '@/context/FavoritesContext';
-import { INITIAL_PROPERTIES } from '@/data/properties';
+import { Property } from '@/types';
 import { Heart, MapPin, Maximize2, Bed, Bath, ArrowUpRight, Sparkles } from 'lucide-react';
 
 export const FeaturedProperties: React.FC = () => {
   const { t, language } = useLanguage();
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  const featured = INITIAL_PROPERTIES.filter((p) => p.isFeatured).slice(0, 3);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProperties() {
+      try {
+        const res = await fetch('/api/properties');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.properties)) {
+          setAllProperties(data.properties);
+        }
+      } catch (err) {
+        console.warn('FeaturedProperties: API fetch error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchProperties();
+  }, []);
+
+  const featured = allProperties.filter((p) => p.isFeatured).slice(0, 3);
 
   return (
     <section className="py-24 bg-brand-navy border-t border-brand-gold/15">

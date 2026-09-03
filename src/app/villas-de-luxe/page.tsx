@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import { INITIAL_PROPERTIES } from '@/data/properties';
 import { Property } from '@/types';
 import {
@@ -19,36 +20,44 @@ import {
 
 export default function LuxuryVillasPage() {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
 
   const [luxuryVillas, setLuxuryVillas] = useState<Property[]>(() =>
     INITIAL_PROPERTIES.filter((p) => p.universe === 'LUXE')
   );
   const [selectedVilla, setSelectedVilla] = useState<Property>(() => luxuryVillas[0] || INITIAL_PROPERTIES[0]);
+  const [loadingVillas, setLoadingVillas] = useState<boolean>(true);
 
   React.useEffect(() => {
     async function loadLuxuryVillas() {
       try {
+        setLoadingVillas(true);
         const res = await fetch('/api/properties?universe=LUXE');
         const data = await res.json();
-        if (data.success && Array.isArray(data.properties) && data.properties.length > 0) {
+        if (data.success && Array.isArray(data.properties)) {
           setLuxuryVillas(data.properties);
           setSelectedVilla((prev: Property) => data.properties.find((p: Property) => p.id === prev?.id) || data.properties[0]);
         }
       } catch (err) {
         console.warn('Luxury villas live fetch fallback:', err);
+      } finally {
+        setLoadingVillas(false);
       }
     }
     loadLuxuryVillas();
   }, []);
 
-  const [checkIn, setCheckIn] = useState<string>('2026-09-10');
-  const [checkOut, setCheckOut] = useState<string>('2026-09-14');
+  const todayStr = new Date().toISOString().split('T')[0];
+  const nextWeekStr = new Date(Date.now() + 4 * 86400000).toISOString().split('T')[0];
+
+  const [checkIn, setCheckIn] = useState<string>(todayStr);
+  const [checkOut, setCheckOut] = useState<string>(nextWeekStr);
   const [guests, setGuests] = useState<number>(4);
 
   const [bookingStep, setBookingStep] = useState<'IDLE' | 'REVIEW' | 'PAYMENT' | 'CONFIRMED'>('IDLE');
 
   const nights = Math.max(1, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 3600 * 24)));
-  const subtotal = selectedVilla.price.amount * nights;
+  const subtotal = (selectedVilla?.price?.amount || 1450) * nights;
   const deposit = Math.round(subtotal * 0.3); // 30% deposit
   const total = subtotal;
 
@@ -57,11 +66,19 @@ export default function LuxuryVillasPage() {
     setBookingStep('REVIEW');
   };
 
-  const [guestName, setGuestName] = useState('Kamel Triki');
-  const [guestEmail, setGuestEmail] = useState('k.triki@business.tn');
-  const [guestPhone, setGuestPhone] = useState('+216 98 123 456');
+  const [guestName, setGuestName] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
   const [confirmedBookingId, setConfirmedBookingId] = useState('');
   const [isSavingBooking, setIsSavingBooking] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setGuestName(user.name || '');
+      setGuestEmail(user.email || '');
+      setGuestPhone(user.phone || '');
+    }
+  }, [user]);
 
   const handleConfirmPayment = async () => {
     setIsSavingBooking(true);

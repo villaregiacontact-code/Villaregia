@@ -1,14 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
-import { INITIAL_ARTICLES } from '@/data/properties';
+import { BlogPost } from '@/types';
 import { ArrowUpRight, BookOpen } from 'lucide-react';
 
 export const JournalSection: React.FC = () => {
   const { language } = useLanguage();
+  const [articles, setArticles] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadArticles() {
+      try {
+        const res = await fetch('/api/articles');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.articles)) {
+          setArticles(data.articles.slice(0, 2));
+        }
+      } catch (err) {
+        console.warn('Live articles fetch fallback:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadArticles();
+  }, []);
 
   return (
     <section className="py-24 bg-brand-navy border-t border-brand-gold/15">
@@ -35,7 +54,7 @@ export const JournalSection: React.FC = () => {
 
         {/* Article Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {INITIAL_ARTICLES.map((article) => (
+          {articles.map((article) => (
             <Link
               key={article.id}
               href={`/journal/${article.slug}`}

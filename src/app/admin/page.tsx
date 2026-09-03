@@ -109,19 +109,28 @@ export default function AdminDashboardPage() {
   // Active Tab State
   const [activeTab, setActiveTab] = useState<'kpi' | 'properties' | 'submissions' | 'crm' | 'reservations' | 'articles' | 'users' | 'audit'>('kpi');
 
-  // Functional Data States
-  const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES);
+  // Functional Data States (Live from DB)
+  const [properties, setProperties] = useState<Property[]>([]);
   const [submissions, setSubmissions] = useState<OwnerSubmission[]>(INITIAL_SUBMISSIONS);
   const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
   const [reservations, setReservations] = useState<BookingRequest[]>(INITIAL_RESERVATIONS);
-  const [articles, setArticles] = useState<BlogPost[]>(INITIAL_ARTICLES);
+  const [articles, setArticles] = useState<BlogPost[]>([]);
   const [staffUsers, setStaffUsers] = useState<UserAccount[]>(INITIAL_STAFF_ACCOUNTS);
   const [dbStats, setDbStats] = useState<any>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Real-time live sync state
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
   const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
+
+  // Admin Action Toast Notification
+  const [adminToast, setAdminToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setAdminToast({ message, type });
+    setTimeout(() => setAdminToast(null), 4000);
+  };
 
   // Sync data from live APIs & database
   const loadAdminData = useCallback(async (isSilent = false) => {
@@ -155,6 +164,7 @@ export default function AdminDashboardPage() {
       console.warn('Admin API load fallback:', err);
     } finally {
       if (!isSilent) setIsSyncing(false);
+      setIsInitialLoading(false);
     }
   }, []);
 
@@ -402,7 +412,10 @@ export default function AdminDashboardPage() {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(updatedProp),
-            }).then(() => loadAdminData(true)).catch(err => console.warn('Property update error:', err));
+            }).then(() => {
+              loadAdminData(true);
+              showToast('Propriété mise à jour avec succès dans la base de données');
+            }).catch(err => console.warn('Property update error:', err));
             return updatedProp;
           }
           return item;
@@ -433,7 +446,10 @@ export default function AdminDashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProp),
-      }).then(() => loadAdminData(true)).catch(err => console.warn('Property create error:', err));
+      }).then(() => {
+        loadAdminData(true);
+        showToast('Nouvelle propriété créée et synchronisée avec succès');
+      }).catch(err => console.warn('Property create error:', err));
     }
 
     setPropertyModalOpen(false);
@@ -449,7 +465,10 @@ export default function AdminDashboardPage() {
       logAction('Suppression propriété', title);
       fetch(`/api/properties/${id}`, {
         method: 'DELETE',
-      }).then(() => loadAdminData(true)).catch(err => console.warn('Property delete error:', err));
+      }).then(() => {
+        loadAdminData(true);
+        showToast(`Propriété "${title}" supprimée de la base`, 'info');
+      }).catch(err => console.warn('Property delete error:', err));
     }
   };
 
@@ -465,7 +484,10 @@ export default function AdminDashboardPage() {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: nextStatus }),
-    }).then(() => loadAdminData(true)).catch(err => console.warn('Property status update error:', err));
+    }).then(() => {
+      loadAdminData(true);
+      showToast(`Statut de "${title}" modifié en ${nextStatus}`);
+    }).catch(err => console.warn('Property status update error:', err));
   };
 
   const handleToggleFeatured = (id: string, isFeatured: boolean, title: string) => {
@@ -475,7 +497,10 @@ export default function AdminDashboardPage() {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isFeatured: !isFeatured }),
-    }).then(() => loadAdminData(true)).catch(err => console.warn('Property featured toggle error:', err));
+    }).then(() => {
+      loadAdminData(true);
+      showToast(`Propriété "${title}" ${!isFeatured ? 'mise en Une' : 'retirée de la Une'}`);
+    }).catch(err => console.warn('Property featured toggle error:', err));
   };
 
   const handleDuplicateProperty = (p: Property) => {
@@ -556,7 +581,10 @@ export default function AdminDashboardPage() {
         notes: leadNoteInput,
         assignedAgent: leadAgentInput,
       }),
-    }).then(() => loadAdminData(true)).catch(err => console.warn('Lead update error:', err));
+    }).then(() => {
+      loadAdminData(true);
+      showToast(`Lead "${activeLead.name}" mis à jour avec succès`);
+    }).catch(err => console.warn('Lead update error:', err));
   };
 
   const handleCreateNewLead = (e: React.FormEvent) => {
@@ -585,7 +613,10 @@ export default function AdminDashboardPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(created),
-    }).then(() => loadAdminData(true)).catch(err => console.warn('Lead create error:', err));
+    }).then(() => {
+      loadAdminData(true);
+      showToast(`Nouveau prospect "${created.name}" créé dans le CRM`);
+    }).catch(err => console.warn('Lead create error:', err));
   };
 
   const handleDeleteLead = (id: string, name: string) => {
@@ -594,7 +625,10 @@ export default function AdminDashboardPage() {
       logAction('Suppression lead', name);
       fetch(`/api/admin/crm?id=${id}`, {
         method: 'DELETE',
-      }).then(() => loadAdminData(true)).catch(err => console.warn('Lead delete error:', err));
+      }).then(() => {
+        loadAdminData(true);
+        showToast(`Lead "${name}" supprimé`, 'info');
+      }).catch(err => console.warn('Lead delete error:', err));
     }
   };
 
@@ -611,6 +645,7 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({ id: subId, status }),
       });
       loadAdminData(true);
+      showToast(`Statut du dossier mis à jour (${status})`);
     } catch (e) {
       console.warn('Submission status update error:', e);
     }
@@ -626,7 +661,10 @@ export default function AdminDashboardPage() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
-    }).then(() => loadAdminData(true)).catch(err => console.warn('Booking status update error:', err));
+    }).then(() => {
+      loadAdminData(true);
+      showToast(`Réservation mise à jour (${status})`);
+    }).catch(err => console.warn('Booking status update error:', err));
   };
 
   // --------------------------------------------------------------------------
@@ -681,7 +719,10 @@ export default function AdminDashboardPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedArticle),
-      }).then(() => loadAdminData(true)).catch(err => console.warn('Article update API fallback:', err));
+      }).then(() => {
+        loadAdminData(true);
+        showToast('Article du journal mis à jour');
+      }).catch(err => console.warn('Article update API fallback:', err));
     } else {
       const generatedSlug = artTitle
         .toLowerCase()
@@ -708,7 +749,10 @@ export default function AdminDashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newArt),
-      }).then(() => loadAdminData(true)).catch(err => console.warn('Article create API fallback:', err));
+      }).then(() => {
+        loadAdminData(true);
+        showToast('Nouvel article publié dans le journal');
+      }).catch(err => console.warn('Article create API fallback:', err));
     }
     setArticleModalOpen(false);
   };
@@ -722,7 +766,10 @@ export default function AdminDashboardPage() {
       if (art) {
         fetch(`/api/articles/${art.slug}`, {
           method: 'DELETE',
-        }).then(() => loadAdminData(true)).catch(err => console.warn('Article delete API fallback:', err));
+        }).then(() => {
+          loadAdminData(true);
+          showToast(`Article "${title}" supprimé`, 'info');
+        }).catch(err => console.warn('Article delete API fallback:', err));
       }
     }
   };
@@ -806,6 +853,7 @@ export default function AdminDashboardPage() {
           )
         );
         logAction('Mise à jour compte staff', `${newUserName} (${newUserRole})`);
+        showToast(`Compte de "${newUserName}" mis à jour`);
       } else {
         // Create new staff user with password
         const res = await fetch('/api/admin/users', {
@@ -837,6 +885,7 @@ export default function AdminDashboardPage() {
 
         setStaffUsers((prev) => [...prev, createdUser]);
         logAction('Création compte staff avec mot de passe', `${newUserName} (${newUserRole})`);
+        showToast(`Collaborateur "${newUserName}" ajouté avec succès`);
       }
 
       setUserModalOpen(false);
@@ -853,6 +902,7 @@ export default function AdminDashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: userId, email: userEmail, role: newRole }),
       });
+      showToast(`Rôle de "${userName}" modifié en ${newRole}`);
     } catch {}
     logAction(`Rôle modifié (${newRole})`, userName);
   };
@@ -863,6 +913,7 @@ export default function AdminDashboardPage() {
         await fetch(`/api/admin/users?email=${encodeURIComponent(userEmail)}&id=${userId}`, {
           method: 'DELETE',
         });
+        showToast(`Compte de "${userName}" révoqué`, 'info');
       } catch {}
       setStaffUsers((prev) => prev.filter((u) => u.id !== userId));
       logAction('Révocation compte staff', userName);
@@ -1061,7 +1112,26 @@ export default function AdminDashboardPage() {
   });
 
   return (
-    <div className="pt-24 pb-24 bg-brand-navy-dark min-h-screen text-brand-travertine">
+    <div className="pt-24 pb-24 bg-brand-navy-dark min-h-screen text-brand-travertine relative">
+      
+      {/* Real-time Action Feedback Toast */}
+      {adminToast && (
+        <div className="fixed top-24 right-6 z-[9999] transition-all">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border backdrop-blur-md text-xs font-mono animate-in fade-in slide-in-from-top-3 ${
+            adminToast.type === 'error'
+              ? 'bg-red-950/95 text-red-200 border-red-500/50 shadow-red-900/40'
+              : adminToast.type === 'info'
+              ? 'bg-sky-950/95 text-sky-200 border-sky-500/50 shadow-sky-900/40'
+              : 'bg-emerald-950/95 text-emerald-200 border-emerald-500/50 shadow-emerald-900/40'
+          }`}>
+            <span className="w-2 h-2 rounded-full bg-current animate-ping shrink-0" />
+            <span>{adminToast.message}</span>
+            <button onClick={() => setAdminToast(null)} className="opacity-60 hover:opacity-100 ml-2">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Top Executive Header Bar */}
       <div className="glass-navy border-b border-brand-gold/20 py-4 sm:py-5 px-4 sm:px-6 mb-6 sm:mb-8 shadow-2xl">
@@ -1877,9 +1947,22 @@ export default function AdminDashboardPage() {
                       </td>
                     </tr>
                   ))}
+                  {filteredProperties.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="text-center py-12 text-white/50 text-xs font-mono">
+                        {isInitialLoading ? 'Chargement des biens depuis la base de données...' : 'Aucune propriété enregistrée.'}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
+
+            {filteredProperties.length === 0 && (
+              <div className="p-8 text-center text-white/50 text-xs font-mono rounded-xl bg-white/5 border border-white/10 lg:hidden">
+                {isInitialLoading ? 'Chargement des biens...' : 'Aucune propriété enregistrée.'}
+              </div>
+            )}
 
           </div>
         )}

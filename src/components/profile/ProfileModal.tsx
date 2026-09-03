@@ -58,6 +58,20 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
   const [passLoading, setPassLoading] = useState(false);
   const [passSuccess, setPassSuccess] = useState<string | null>(null);
   const [passError, setPassError] = useState<string | null>(null);
+  const [propertiesList, setPropertiesList] = useState<any[]>(INITIAL_PROPERTIES);
+
+  useEffect(() => {
+    async function loadProps() {
+      try {
+        const res = await fetch('/api/properties');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.properties)) {
+          setPropertiesList(data.properties);
+        }
+      } catch {}
+    }
+    loadProps();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -474,7 +488,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
                 {favorites.map((favId) => {
-                  const property = INITIAL_PROPERTIES.find((p) => p.id === favId);
+                  const property = propertiesList.find((p) => p.id === favId);
                   return (
                     <div key={favId} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2">
                       <div className="space-y-0.5 truncate">

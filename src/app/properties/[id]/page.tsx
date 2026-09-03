@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFavorites } from '@/context/FavoritesContext';
+import { useAuth } from '@/context/AuthContext';
 import { INITIAL_PROPERTIES } from '@/data/properties';
 import {
   MapPin,
@@ -30,6 +31,7 @@ export default function PropertyDetailPage() {
   const router = useRouter();
   const { t, language } = useLanguage();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { user } = useAuth();
 
   const propertyId = params?.id ? String(params.id) : '';
   const [property, setProperty] = useState(() => INITIAL_PROPERTIES.find((p) => p.id === propertyId) || null);
@@ -63,6 +65,14 @@ export default function PropertyDetailPage() {
   const [inquiryMessage, setInquiryMessage] = useState('');
   const [inquirySending, setInquirySending] = useState(false);
   const [inquirySuccess, setInquirySuccess] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (!inquiryName) setInquiryName(user.name || '');
+      if (!inquiryEmail) setInquiryEmail(user.email || '');
+      if (!inquiryPhone) setInquiryPhone(user.phone || '');
+    }
+  }, [user]);
 
   if (isLoading) {
     return (

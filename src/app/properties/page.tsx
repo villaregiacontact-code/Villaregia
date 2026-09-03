@@ -87,7 +87,7 @@ function CatalogContent() {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [propertiesList, setPropertiesList] = useState<Property[]>(INITIAL_PROPERTIES);
-  const [loadingProperties, setLoadingProperties] = useState<boolean>(false);
+  const [loadingProperties, setLoadingProperties] = useState<boolean>(true);
 
   React.useEffect(() => {
     async function fetchLiveProperties() {
@@ -95,7 +95,7 @@ function CatalogContent() {
         setLoadingProperties(true);
         const res = await fetch('/api/properties');
         const data = await res.json();
-        if (data.success && Array.isArray(data.properties) && data.properties.length > 0) {
+        if (data.success && Array.isArray(data.properties)) {
           setPropertiesList(data.properties);
         }
       } catch (err) {
@@ -388,7 +388,22 @@ function CatalogContent() {
         </div>
 
         {/* ── Property Grid / List ── */}
-        {filteredAndSorted.length === 0 ? (
+        {loadingProperties && propertiesList.length === 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((idx) => (
+              <div key={idx} className="rounded-2xl overflow-hidden bg-white/5 border border-white/10 p-4 space-y-4 animate-pulse">
+                <div className="w-full h-56 bg-white/10 rounded-xl" />
+                <div className="h-4 bg-white/10 rounded w-1/3" />
+                <div className="h-6 bg-white/10 rounded w-3/4" />
+                <div className="h-4 bg-white/10 rounded w-1/2" />
+                <div className="pt-4 border-t border-white/10 flex justify-between">
+                  <div className="h-4 bg-white/10 rounded w-1/4" />
+                  <div className="h-5 bg-white/10 rounded w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredAndSorted.length === 0 ? (
           <div className="rounded-2xl p-16 text-center space-y-4 bg-white/3 border border-white/8">
             <p className="font-editorial text-2xl text-white/60">Aucun bien ne correspond à ces critères.</p>
             <p className="text-xs text-white/30">Modifiez vos filtres ou réinitialisez la recherche.</p>

@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import { MapPin, Phone, Mail, MessageCircle, Send, Check, Instagram, Facebook } from 'lucide-react';
 
 export default function ContactPage() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [submitted, setSubmitted] = useState(false);
 
   const [name, setName] = useState('');
@@ -14,6 +16,14 @@ export default function ContactPage() {
   const [subject, setSubject] = useState('Acquisition d’un bien');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (!name) setName(user.name || '');
+      if (!email) setEmail(user.email || '');
+      if (!phone) setPhone(user.phone || '');
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
