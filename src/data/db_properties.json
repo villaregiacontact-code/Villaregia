@@ -1,0 +1,676 @@
+[
+  {
+    "id": "vr-prop-1788436549493",
+    "title": {
+      "fr": "Domaine Carthage",
+      "ar": "فيلا قرطاج",
+      "en": "Carthage Estate"
+    },
+    "slug": "villa-test-debug",
+    "category": "VILLAS",
+    "universe": "EXCLUSIVE",
+    "type": "Vente",
+    "status": "DISPONIBLE",
+    "price": {
+      "amount": 3500000,
+      "currency": "TND",
+      "display": "3 500 000 TND",
+      "isPriceOnDemand": false
+    },
+    "location": {
+      "city": "Tunis",
+      "district": "Carthage",
+      "coordinates": {
+        "lat": 36.85,
+        "lng": 10.32
+      }
+    },
+    "specs": {
+      "surfaceHabitable": 650,
+      "surfaceTerrain": 1500,
+      "chambres": 5,
+      "sallesDeBain": 6,
+      "suites": 3
+    },
+    "features": [
+      "Piscine à débordement",
+      "Vue mer panoramique"
+    ],
+    "images": [
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811"
+    ],
+    "isFeatured": true,
+    "createdAt": "2026-09-03T11:55:49.493Z",
+    "updatedAt": "2026-09-03T11:55:49.493Z"
+  },
+  {
+    "id": "vr-soukra-01",
+    "title": {
+      "fr": "Domaine de la Soukra — Villa de Maître & Piscine Oliviers",
+      "ar": "قصر السكرة — فيلا فاخرة وحمام سباحة بين الزيتون",
+      "en": "La Soukra Estate — Master Villa & Olive Pool"
+    },
+    "universe": "LUXE",
+    "category": "Villa",
+    "price": {
+      "amount": 1450,
+      "currency": "TND",
+      "period": "nuit"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "Route de la Soukra",
+      "country": "Tunisie",
+      "lat": 34.7431,
+      "lng": 10.7412,
+      "isExactPosition": false
+    },
+    "specs": {
+      "surfaceM2": 680,
+      "bedrooms": 5,
+      "bathrooms": 5,
+      "livingRooms": 3,
+      "parkingSpaces": 4,
+      "pool": true,
+      "garden": true,
+      "guestCapacity": 12
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Façade contemporaine Villa la Soukra Sfax",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Piscine à débordement illuminée de nuit"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Grand salon baigné de lumière méditerranéenne"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Suite parentale vue sur le jardin sec"
+      }
+    ],
+    "description": {
+      "fr": "Une résidence d’exception nichée au cœur d’un parc privé d’oliviers centenaires sur la Route de la Soukra à Sfax. Alliant architecture épurée méditerranéenne et touches de marbre noble, ce domaine propose 5 suites somptueuses, une piscine à débordement chauffée et un service de conciergerie privée.",
+      "ar": "إقامة استثنائية تقع في قلب حديقة خاصة من أشجار الزيتون المعمرة على طريق السكرة بصفاقس. يجمع القصر بين الهندسة المعمارية المتوسطية الأنيقة والرخام الفاخر، ويضم 5 أجنحة فخمة ومسبحًا دافئًا.",
+      "en": "An exceptional residence nestled in the heart of a private park of century-old olive trees on Route de la Soukra, Sfax. Blending sleek Mediterranean architecture and noble marble, this estate features 5 luxurious suites, a heated infinity pool, and private concierge service."
+    },
+    "story": {
+      "fr": "Conçue autour du principe du dialogue continu entre ombres et lumière, cette villa capte la brise marine de Sfax tout en offrant une intimité absolue. Les baies vitrées de 4 mètres de hauteur s’effacent pour transformer le salon intérieur en une vaste terrasse couverte donnant sur les oliviers.",
+      "ar": "تم تصميم هذه الفيلا حول ميزة الحوار المستمر بين الضوء والظلال، وهي تستقبل نسيم البحر مع توفير خصوصية مطلقة.",
+      "en": "Designed around continuous dialogue between light and shade, this villa captures Sfax sea breezes while maintaining complete privacy."
+    },
+    "amenities": [
+      "Piscine à débordement chauffée",
+      "Parc d'oliviers centenaires (3500 m²)",
+      "Chef cuisinier sur demande",
+      "Système domotique complet",
+      "Garages sécurisés 4 véhicules",
+      "Sécurité 24/7 & alarme",
+      "Wi-Fi haut débit fibre"
+    ],
+    "status": "DISPONIBLE",
+    "isFeatured": true,
+    "isNew": true,
+    "createdAt": "2026-08-15",
+    "updatedAt": "2026-08-30"
+  },
+  {
+    "id": "vr-maamoura-02",
+    "title": {
+      "fr": "Palais El Maamoura — Demeure d’Architecte Thyna",
+      "ar": "قصر المعمورة — تحفة معمارية بطينة صفاقس",
+      "en": "El Maamoura Palace — Architectural Villa Thyna"
+    },
+    "universe": "VENTE",
+    "category": "Villa",
+    "price": {
+      "amount": 2850000,
+      "currency": "TND",
+      "period": "total"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "Thyna Coast",
+      "country": "Tunisie",
+      "lat": 34.6852,
+      "lng": 10.7125,
+      "isExactPosition": true
+    },
+    "specs": {
+      "surfaceM2": 850,
+      "bedrooms": 6,
+      "bathrooms": 6,
+      "livingRooms": 4,
+      "parkingSpaces": 6,
+      "pool": true,
+      "garden": true,
+      "constructible": true
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Palais El Maamoura Thyna Sfax",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Entrée majestueuse en pierre naturelle et colonnades"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Vue panoramique depuis le solarium rooftop"
+      }
+    ],
+    "description": {
+      "fr": "Une œuvre architecturale contemporaine de 850 m² habitables érigée sur un terrain de 2800 m². Le Palais El Maamoura incarne le prestige immobilier de Sfax avec son patio central baigné de lumière, son marbre blanc d’Italie et ses baies coulissantes sur mesure.",
+      "ar": "تحفة معمارية معاصرة بمساحة 850 متر مربع مبنية على أرض مساحتها 2800 متر مربع. يجسد قصر المعمورة الفخامة العقارية في صفاقس.",
+      "en": "A contemporary architectural masterpiece offering 850 m² of living space set on a 2800 m² plot. El Maamoura Palace embodies top-tier luxury real estate in Sfax with central glass patio, Italian white marble, and bespoke finishes."
+    },
+    "story": {
+      "fr": "Inspiré de l’architecture néo-méditerranéenne, ce bien d’exception allie volumes monumentaux et raffinement artisanal. Chaque pierre a été sculptée sur place par des maîtres artisans sfaxiens.",
+      "ar": "مستوحى من المعمار الأورومتوسطي الحديث، يجمع هذا العقار الاستثنائي بين الفخامة الحرفية والتصميم المبتكر.",
+      "en": "Inspired by neo-Mediterranean architecture, this flagship property fuses monumental volumes with local artisanal craftsmanship."
+    },
+    "amenities": [
+      "Patio intérieur bioclimatique",
+      "Piscine olympique miroir",
+      "Titre foncier individuel vierge",
+      "Ascenseur privé panoramique",
+      "Cave à vin climatisée",
+      "Suite invités indépendante"
+    ],
+    "status": "DISPONIBLE",
+    "isFeatured": true,
+    "isNew": false,
+    "createdAt": "2026-07-10",
+    "updatedAt": "2026-08-28"
+  },
+  {
+    "id": "vr-mirage-03",
+    "title": {
+      "fr": "Résidence Le Mirage — Duplex Vue Mer Sidi Mansour",
+      "ar": "إقامة السراب — دوبلكس فاخر مطل على البحر بسيدي منصور",
+      "en": "Le Mirage Residence — Sea-Front Duplex Sidi Mansour"
+    },
+    "universe": "RESIDENCE",
+    "category": "Duplex",
+    "price": {
+      "amount": 3200,
+      "currency": "TND",
+      "period": "mois"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "Sidi Mansour Km 7",
+      "country": "Tunisie",
+      "lat": 34.7812,
+      "lng": 10.8245,
+      "isExactPosition": true
+    },
+    "specs": {
+      "surfaceM2": 240,
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "livingRooms": 2,
+      "parkingSpaces": 2,
+      "pool": false,
+      "garden": false
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Duplex vue mer Sidi Mansour",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Salon élégant meublé avec terrasse vue mer"
+      }
+    ],
+    "description": {
+      "fr": "Au bord du littoral de Sidi Mansour, ce duplex haut de gamme entièrement meublé offre une expérience résidentielle sereine. Finitions épurées, double hauteur sous plafond et loggia orientée vers l’horizon maritime.",
+      "ar": "على شاطئ سيدي منصور، يقدم هذا الدوبلكس الفاخر المجهز بالكامل تجربة سكنية مريحة مع إطلالة مباشرة على البحر.",
+      "en": "Along the Sidi Mansour coastline, this fully furnished high-end duplex offers a serene residential lifestyle featuring double-height ceilings and sea-facing loggia."
+    },
+    "amenities": [
+      "Meublé haut de gamme design",
+      "Vue mer panoramique directe",
+      "Parking sous-sol double",
+      "Sécurité & gardiennage 24/7",
+      "Climatisation centrale VRV"
+    ],
+    "status": "DISPONIBLE",
+    "isFeatured": false,
+    "isNew": true,
+    "createdAt": "2026-08-01",
+    "updatedAt": "2026-08-25"
+  },
+  {
+    "id": "vr-event-palm-04",
+    "title": {
+      "fr": "Domaine Événementiel Palm Grove Sfax",
+      "ar": "مجمع واحة النخيل للمناسبات الفاخرة بصفاقس",
+      "en": "Palm Grove Event Domain Sfax"
+    },
+    "universe": "EVENT",
+    "category": "Domaine Événementiel",
+    "price": {
+      "amount": 4500,
+      "currency": "TND",
+      "period": "total"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "Route de Gabès Km 4",
+      "country": "Tunisie",
+      "lat": 34.712,
+      "lng": 10.729,
+      "isExactPosition": false
+    },
+    "specs": {
+      "surfaceM2": 5000,
+      "guestCapacity": 450,
+      "parkingSpaces": 120,
+      "pool": true,
+      "garden": true
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Espace Événementiel Palm Grove illuminé de nuit",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Jardin avec palmiers et éclairage architectural"
+      }
+    ],
+    "description": {
+      "fr": "Le cadre ultime pour vos mariages d’exception, soirées de gala et événements d’entreprise à Sfax. Un parc paysager de 5000 m² abritant une esplanade en marbre, un bassin d’eau miroir et une infrastructure traiteur complète.",
+      "ar": "المكان الأمثل لحفلات الزفاف الفاخرة، المؤتمرات، والأمسيات الخاصة بصفاقس. حديقة بمساحة 5000 متر مربع.",
+      "en": "The ultimate backdrop for luxury weddings, corporate galas, and private events in Sfax. A landscaped 5000 m² estate with marble esplanade and mirror pool."
+    },
+    "amenities": [
+      "Capacité jusqu'à 450 invités",
+      "Pistes de danse en marbre extérieur",
+      "Cuisine professionnelle traiteur",
+      "Parking privé sécurisé 120 places",
+      "Espace mariés / loge VIP privée",
+      "Éclairage architectural personnalisable"
+    ],
+    "status": "DISPONIBLE",
+    "isFeatured": true,
+    "isNew": false,
+    "createdAt": "2026-06-20",
+    "updatedAt": "2026-08-20"
+  },
+  {
+    "id": "vr-belvedere-05",
+    "title": {
+      "fr": "Penthouse Le Belvédère — Centre Ville Sfax",
+      "ar": "بنتهاوس البلفيدير — وسط مدينة صفاقس",
+      "en": "Le Belvédère Penthouse — Sfax Downtown"
+    },
+    "universe": "VENTE",
+    "category": "Penthouse",
+    "price": {
+      "amount": 980000,
+      "currency": "TND",
+      "period": "total"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "Centre Ville Boulevard Majida Boulila",
+      "country": "Tunisie",
+      "lat": 34.738,
+      "lng": 10.758,
+      "isExactPosition": true
+    },
+    "specs": {
+      "surfaceM2": 320,
+      "bedrooms": 4,
+      "bathrooms": 4,
+      "livingRooms": 2,
+      "parkingSpaces": 2,
+      "pool": false,
+      "garden": false,
+      "constructible": false
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1567496898669-ee935f5f647a?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Penthouse contemporain avec terrasse panoramique",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Terrasse rooftop aménagée vue sur la ville"
+      }
+    ],
+    "description": {
+      "fr": "Survolant les toits de Sfax, ce penthouse d’exception occupe l’intégralité du dernier étage d’un immeuble de standing. Terrasse de 110 m² avec jacuzzi privé, parquet en chêne massif et finitions minimalistes.",
+      "ar": "بنتهاوس استثنائي في أعلى طابق مع شرفة واسعة بمساحة 110 متر مربع وجاكوزي خاص في قلب صفاقس.",
+      "en": "Overlooking Sfax skyline, this penthouse covers the entire top floor. Features a 110 m² terrace with private jacuzzi and oak wood flooring."
+    },
+    "amenities": [
+      "Terrasse rooftop 110 m²",
+      "Jacuzzi extérieur privé",
+      "Accès par ascenseur privé à badge",
+      "Domotique intégrée",
+      "2 Emplacements sous-sol"
+    ],
+    "status": "SOUS OFFRE",
+    "isFeatured": false,
+    "isNew": false,
+    "createdAt": "2026-05-12",
+    "updatedAt": "2026-08-10"
+  },
+  {
+    "id": "vr-gammarth-06",
+    "title": {
+      "fr": "Villa Riviera Gold — Cliffside Gammarth",
+      "ar": "فيلا ريفيرا غولد — هضبة قمرت الفاخرة",
+      "en": "Villa Riviera Gold — Cliffside Gammarth"
+    },
+    "universe": "VENTE",
+    "category": "Villa",
+    "price": {
+      "amount": 4200000,
+      "currency": "TND",
+      "period": "total"
+    },
+    "location": {
+      "city": "Tunis / Gammarth",
+      "district": "Gammarth Superior",
+      "country": "Tunisie",
+      "lat": 36.915,
+      "lng": 10.285,
+      "isExactPosition": false
+    },
+    "specs": {
+      "surfaceM2": 780,
+      "bedrooms": 5,
+      "bathrooms": 6,
+      "livingRooms": 3,
+      "parkingSpaces": 4,
+      "pool": true,
+      "garden": true,
+      "constructible": true
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Villa de prestige à Gammarth vue mer",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Piscine chauffée suspendue"
+      }
+    ],
+    "description": {
+      "fr": "Propriété iconique posée sur la falaise de Gammarth. Vues imprenables sur le Golfe de Tunis, architecture sculpturale blanche et aménagement d’intérieur réalisé par un cabinet international.",
+      "ar": "فيلا أيقونية على هضبة قمرت المطلة على خليج تونس، بتصميم معماري حديث وتشطيبات عالمية.",
+      "en": "Iconic cliffside property in Gammarth overlooking the Gulf of Tunis. White sculptural architecture and international luxury interior design."
+    },
+    "amenities": [
+      "Vue mer 180° imprenable",
+      "Piscine à débordement chauffée",
+      "Spa privé & hammam traditionnel",
+      "Cinéma privé 10 sièges",
+      "Sécurité militaire & caméras"
+    ],
+    "status": "DISPONIBLE",
+    "isFeatured": true,
+    "isNew": true,
+    "createdAt": "2026-08-10",
+    "updatedAt": "2026-08-31"
+  },
+  {
+    "id": "vr-apt-soukra-07",
+    "title": {
+      "fr": "Appartement Prestige — Résidence Les Jasins Soukra",
+      "ar": "شقة فاخرة — إقامة الياسمين السكرة",
+      "en": "Prestige Apartment — Les Jasins Residence Soukra"
+    },
+    "universe": "VENTE",
+    "category": "Appartement",
+    "price": {
+      "amount": 480000,
+      "currency": "TND",
+      "period": "total"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "Route de la Soukra Km 2",
+      "country": "Tunisie",
+      "lat": 34.744,
+      "lng": 10.739,
+      "isExactPosition": true
+    },
+    "specs": {
+      "surfaceM2": 165,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "livingRooms": 1,
+      "parkingSpaces": 1,
+      "pool": false,
+      "garden": false
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Appartement moderne Résidence Les Jasins Soukra Sfax",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Cuisine équipée moderne"
+      }
+    ],
+    "description": {
+      "fr": "Au cœur de la Résidence sécurisée Les Jasins, cet appartement haut standing de 165 m² offre une vue dégagée et des finitions soignées. Parquet chêne, cuisine intégrée Siematic, triple vitrage et domotique.",
+      "ar": "في قلب إقامة الياسمين الآمنة، تقدم هذه الشقة الراقية بمساحة 165 متر مربع إطلالة مفتوحة وتشطيبات راقية.",
+      "en": "In the heart of the secured Les Jasins residence, this 165 m² high-standing apartment features open views, oak parquet, integrated Siematic kitchen, and home automation."
+    },
+    "amenities": [
+      "Résidence sécurisée avec gardien",
+      "Ascenseur",
+      "Parking sous-sol",
+      "Parquet chêne massif",
+      "Cuisine Siematic intégrée",
+      "Triple vitrage"
+    ],
+    "status": "DISPONIBLE",
+    "isFeatured": false,
+    "isNew": true,
+    "createdAt": "2026-08-20",
+    "updatedAt": "2026-08-30"
+  },
+  {
+    "id": "vr-apt-centre-08",
+    "title": {
+      "fr": "Appartement Haussmann — Immeuble du Siècle Centre-Ville",
+      "ar": "شقة هوسمان — مبنى الكنز وسط المدينة",
+      "en": "Haussmann Apartment — Heritage Building City Center"
+    },
+    "universe": "RESIDENCE",
+    "category": "Appartement",
+    "price": {
+      "amount": 2200,
+      "currency": "TND",
+      "period": "mois"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "Centre-Ville Avenue Bourguiba",
+      "country": "Tunisie",
+      "lat": 34.7399,
+      "lng": 10.7602,
+      "isExactPosition": true
+    },
+    "specs": {
+      "surfaceM2": 130,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "livingRooms": 1,
+      "parkingSpaces": 1,
+      "pool": false,
+      "garden": false
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Appartement Haussmann charme ancien centre-ville Sfax",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Salon avec moulures et cheminée d'époque"
+      }
+    ],
+    "description": {
+      "fr": "Appartement entièrement rénové dans un immeuble de caractère en plein centre de Sfax. Hauts plafonds à moulures, parquet en point de Hongrie et vue sur l'Avenue Bourguiba. Idéal pour une expatriation premium.",
+      "ar": "شقة مجددة بالكامل في مبنى من الطراز الكلاسيكي في قلب مدينة صفاقس. أسقف عالية، باركيه تقليدي وإطلالة على شارع بورقيبة.",
+      "en": "Fully renovated apartment in a heritage building in central Sfax. High ceilings with original moldings, herringbone parquet, and views of Avenue Bourguiba."
+    },
+    "amenities": [
+      "Haut plafond 3.2m avec moulures",
+      "Parquet point de Hongrie",
+      "Cheminée décorative",
+      "Interphone vidéo",
+      "Cave à vin"
+    ],
+    "status": "DISPONIBLE",
+    "isFeatured": false,
+    "isNew": false,
+    "createdAt": "2026-07-15",
+    "updatedAt": "2026-08-22"
+  },
+  {
+    "id": "vr-pent-soukra-09",
+    "title": {
+      "fr": "Penthouse Élysium — Toit-Terrasse & Piscine Privée Route Soukra",
+      "ar": "بنتهاوس إليزيوم — سطح مع مسبح خاص طريق السكرة",
+      "en": "Élysium Penthouse — Rooftop Pool Route de la Soukra"
+    },
+    "universe": "VENTE",
+    "category": "Penthouse",
+    "price": {
+      "amount": 1450000,
+      "currency": "TND",
+      "period": "total"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "Route de la Soukra Km 5",
+      "country": "Tunisie",
+      "lat": 34.7455,
+      "lng": 10.736,
+      "isExactPosition": false
+    },
+    "specs": {
+      "surfaceM2": 380,
+      "bedrooms": 4,
+      "bathrooms": 4,
+      "livingRooms": 2,
+      "parkingSpaces": 3,
+      "pool": true,
+      "garden": false
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Penthouse Élysium terrasse piscine privée Route Soukra",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1567496898669-ee935f5f647a?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Piscine rooftop avec vue panoramique"
+      }
+    ],
+    "description": {
+      "fr": "Au sommet d'une résidence de standing, ce penthouse d'exception offre 380 m² de vie sur deux niveaux, couronné d'une terrasse de 200 m² avec piscine privée chauffée. Vue imprenable sur l'horizon sfaxien.",
+      "ar": "على قمة إقامة راقية، يوفر هذا البنتهاوس الاستثنائي 380 متر مربع على طابقين، مع سطح 200 متر مربع ومسبح خاص مدفأ.",
+      "en": "Atop a prestigious residence, this exceptional penthouse spans 380 m² across two levels, crowned by a 200 m² rooftop with heated private pool and sweeping panoramic views."
+    },
+    "amenities": [
+      "Piscine privée chauffée rooftop 200m²",
+      "Ascenseur privatif à badge",
+      "Conciergerie dédiée",
+      "Cuisine professionnelle ouverte",
+      "3 Parkings VIP sous-sol",
+      "Jacuzzi extérieur"
+    ],
+    "status": "DISPONIBLE",
+    "isFeatured": true,
+    "isNew": true,
+    "createdAt": "2026-08-25",
+    "updatedAt": "2026-08-31"
+  },
+  {
+    "id": "vr-duplex-ain-10",
+    "title": {
+      "fr": "Duplex Signature — El Ain Haut Standing & Rooftop",
+      "ar": "دوبلكس سيغنتشر — العين المرتفع مع سطح",
+      "en": "Signature Duplex — El Ain High Standing & Rooftop"
+    },
+    "universe": "VENTE",
+    "category": "Duplex",
+    "price": {
+      "amount": 750000,
+      "currency": "TND",
+      "period": "total"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "El Ain",
+      "country": "Tunisie",
+      "lat": 34.7501,
+      "lng": 10.7483,
+      "isExactPosition": false
+    },
+    "specs": {
+      "surfaceM2": 280,
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "livingRooms": 2,
+      "parkingSpaces": 2,
+      "pool": false,
+      "garden": false
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Duplex El Ain vue urbaine Sfax",
+        "isCover": true
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1505873242700-f289a29e1724?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Terrasse rooftop aménagée avec pergola"
+      }
+    ],
+    "description": {
+      "fr": "Duplex contemporain de 280 m² sur deux niveaux dans le quartier résidentiel prisé d'El Ain. Double hauteur sous plafond dans le salon, cuisine américaine ouverte, et accès direct à un rooftop terrasse de 90 m² avec pergola.",
+      "ar": "دوبلكس معاصر بمساحة 280 متر مربع في حي العين المرغوب. ارتفاع مزدوج في الصالة، مطبخ مفتوح، وشرفة علوية بمساحة 90 متر مربع.",
+      "en": "Contemporary 280 m² duplex across two levels in the sought-after El Ain neighborhood. Double-height living room, open-plan kitchen, and private 90 m² rooftop terrace with pergola."
+    },
+    "amenities": [
+      "Rooftop terrasse 90m² avec pergola",
+      "Double hauteur salon 5m",
+      "Cuisine américaine Hacker",
+      "Parking double sous-sol",
+      "Home cinema intégré"
+    ],
+    "status": "DISPONIBLE",
+    "isFeatured": false,
+    "isNew": true,
+    "createdAt": "2026-08-18",
+    "updatedAt": "2026-08-30"
+  }
+]

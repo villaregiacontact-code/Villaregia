@@ -1,0 +1,50 @@
+[
+  {
+    "id": "art-01",
+    "slug": "architecture-bioclimatique-sfax-lumiere",
+    "title": {
+      "fr": "L’Architecture Bioclimatique à Sfax : Capturer la Lumière sans la Chaleur",
+      "ar": "المعمار البيئي في صفاقس: التقاط الضوء بدون حرارة",
+      "en": "Bioclimatic Architecture in Sfax: Harnessing Light Without Heat"
+    },
+    "excerpt": {
+      "fr": "Comment les demeures modernes de Sfax réinventent le patio traditionnel pour offrir une fraîcheur naturelle et un confort thermique d’exception.",
+      "ar": "كيف تعيد المنازل الحديثة بصفاقس اكتشاف الفناء الداخلي التقليدي لتوفير انتعاش طبيعي وراحة حرارية.",
+      "en": "How modern Sfax residences reinvent the traditional patio for natural cooling and thermal elegance."
+    },
+    "content": {
+      "fr": "\n# L’Architecture Bioclimatique à Sfax\n\nLa tradition architecturale de la région de Sfax a toujours reposé sur une grande sagesse environnementale. Aujourd’hui, Villa Regia sélectionne des résidences qui marient cet héritage ancestral aux exigences contemporaines.\n\n## Le Patio Central Reconcilié\nEn plaçant le patio au cœur de la villa moderne, les architectes créent une cheminée thermique naturelle. L'air chaud s'échappe par la partie supérieure tandis que l'air frais venant des jardins ombragés circule librement dans les pièces de vie.\n\n## Matériaux Nobles et Inertie Thermique\nL'utilisation de la pierre de taille locale et du marbre blanc permet de conserver la fraîcheur nocturne durant les heures les plus chaudes de la journée sfaxienne.\n      ",
+      "ar": "\n# المعمار البيئي في صفاقس\n\nطالما اعتمدت التقاليد المعمارية في منطقة صفاقس على حكمة بيئية عظيمة. اليوم، تختار فيلا ريجيا منازل تجمع بين هذا التراث والعمارة الحديثة.\n      ",
+      "en": "\n# Bioclimatic Architecture in Sfax\n\nThe architectural tradition of the Sfax region has always rested upon environmental wisdom. Today, Villa Regia selects residences blending this heritage with modern standards.\n      "
+    },
+    "category": "Architecture",
+    "coverImage": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+    "readTime": "5 min",
+    "publishedAt": "2026-08-20",
+    "author": "Yassine Triki — Architecte Consultant"
+  },
+  {
+    "id": "art-02",
+    "slug": "investissement-immobilier-sfax-2026",
+    "title": {
+      "fr": "Investir dans l’Immobilier de Prestige à Sfax en 2026 : Le Guide Stratégique",
+      "ar": "الاستثمار في العقارات الفاخرة بصفاقس 2026: الدليل الاستراتيجي",
+      "en": "Investing in Luxury Real Estate in Sfax in 2026: Strategic Outlook"
+    },
+    "excerpt": {
+      "fr": "Analyse des zones à forte valeur ajoutée : Soukra, Thyna Littoral et Sidi Mansour. Rendements, valorisation patrimoniale et tendances.",
+      "ar": "تحليل المناطق ذات القيمة المضافة العالية: طريق السكرة، شاطئ طينة وسيدي منصور.",
+      "en": "Analysis of high-yield sectors: Soukra, Thyna Coast, and Sidi Mansour. Yields, capital gains, and market trends."
+    },
+    "content": {
+      "fr": "\n# Investir dans l’Immobilier de Prestige à Sfax\n\nSfax connaît un renouvellement urbain et architectural majeur. Le marché immobilier d'exception y fait preuve d'une résilience remarquable et d'un potentiel de valorisation soutenu.\n\n## La Route de la Soukra : L'Écrin des Villas de Maître\nConnue pour ses parcs d'oliviers et sa tranquillité, la Soukra demeure l'adresse de référence pour les grandes propriétés familiales et les résidences secondaires de standing.\n      ",
+      "ar": "\n# الاستثمار في العقارات الفاخرة بصفاقس\n\nتشهد صفاقس تجديدًا حضريًا ومعماريًا كبيرًا. يتميز سوق العقارات الفاخرة بقوة استثمارية استثنائية.\n      ",
+      "en": "\n# Luxury Real Estate Investment in Sfax\n\nSfax is undergoing significant architectural renewal. The luxury property market displays strong resilience and appreciation potential.\n      "
+    },
+    "category": "Investissement",
+    "coverImage": "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80",
+    "readTime": "7 min",
+    "publishedAt": "2026-08-05",
+    "author": "Villa Regia Intelligence Group"
+  }
+]
