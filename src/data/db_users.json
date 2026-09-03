@@ -1,38 +1,5 @@
 [
   {
-    "id": "user-1788435665853",
-    "name": "Yassine Aloulou Updated",
-    "email": "yassine.client1788435663031@villaregiarealestates.com",
-    "phone": "+216 27 745 405",
-    "password": "NewPassword.2026",
-    "role": "CLIENT",
-    "twoFactorEnabled": false,
-    "emailVerified": true,
-    "createdAt": "2026-09-03"
-  },
-  {
-    "id": "user-1788435122478",
-    "name": "Client Test Sfax",
-    "email": "client.test1788435121279@villaregiarealestates.com",
-    "phone": "+216 27 745 405",
-    "password": "Password.123",
-    "role": "CLIENT",
-    "twoFactorEnabled": false,
-    "emailVerified": true,
-    "createdAt": "2026-09-03"
-  },
-  {
-    "id": "user-1788384784458",
-    "name": "Amine Trabelsi",
-    "email": "testclient_1788384781958@gmail.com",
-    "phone": "+216 27 745 405",
-    "password": "SecurePassword123",
-    "role": "CLIENT",
-    "twoFactorEnabled": false,
-    "emailVerified": true,
-    "createdAt": "2026-09-02"
-  },
-  {
     "id": "user-superadmin-01",
     "name": "Yassine Aloulou (Directeur Général)",
     "email": "yassinealoulou6@gmail.com",

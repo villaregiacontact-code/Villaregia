@@ -1,49 +1,5 @@
 [
   {
-    "id": "vr-prop-1788436549493",
-    "title": {
-      "fr": "Domaine Carthage",
-      "ar": "فيلا قرطاج",
-      "en": "Carthage Estate"
-    },
-    "slug": "villa-test-debug",
-    "category": "VILLAS",
-    "universe": "EXCLUSIVE",
-    "type": "Vente",
-    "status": "DISPONIBLE",
-    "price": {
-      "amount": 3500000,
-      "currency": "TND",
-      "display": "3 500 000 TND",
-      "isPriceOnDemand": false
-    },
-    "location": {
-      "city": "Tunis",
-      "district": "Carthage",
-      "coordinates": {
-        "lat": 36.85,
-        "lng": 10.32
-      }
-    },
-    "specs": {
-      "surfaceHabitable": 650,
-      "surfaceTerrain": 1500,
-      "chambres": 5,
-      "sallesDeBain": 6,
-      "suites": 3
-    },
-    "features": [
-      "Piscine à débordement",
-      "Vue mer panoramique"
-    ],
-    "images": [
-      "https://images.unsplash.com/photo-1613490493576-7fde63acd811"
-    ],
-    "isFeatured": true,
-    "createdAt": "2026-09-03T11:55:49.493Z",
-    "updatedAt": "2026-09-03T11:55:49.493Z"
-  },
-  {
     "id": "vr-soukra-01",
     "title": {
       "fr": "Domaine de la Soukra — Villa de Maître & Piscine Oliviers",
