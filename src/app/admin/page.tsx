@@ -39,6 +39,7 @@ import {
   Key,
   LogOut,
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
   FileText,
   Mail,
@@ -93,8 +94,17 @@ const INITIAL_LEADS: Lead[] = [];
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { user, is2FAVerified, logout, hasPermission, logAction, auditLogs } = useAuth();
+  const { user, is2FAVerified, logout, hasPermission, logAction, auditLogs, login, verify2FACode } = useAuth();
   const { language } = useLanguage();
+
+  // Admin Direct Login States for Gate Screen
+  const [adminLoginEmail, setAdminLoginEmail] = useState('yassinealoulou6@gmail.com');
+  const [adminLoginPassword, setAdminLoginPassword] = useState('Yassine.123');
+  const [adminLoginError, setAdminLoginError] = useState<string | null>(null);
+  const [adminLoginLoading, setAdminLoginLoading] = useState(false);
+  const [adminOtpCode, setAdminOtpCode] = useState('');
+  const [adminOtpError, setAdminOtpError] = useState<string | null>(null);
+  const [adminRequires2FA, setAdminRequires2FA] = useState(false);
 
   // Active Tab State
   const [activeTab, setActiveTab] = useState<'kpi' | 'properties' | 'submissions' | 'crm' | 'reservations' | 'articles' | 'users' | 'audit'>('kpi');
@@ -461,6 +471,11 @@ export default function AdminDashboardPage() {
   const handleToggleFeatured = (id: string, isFeatured: boolean, title: string) => {
     setProperties((prev) => prev.map((p) => (p.id === id ? { ...p, isFeatured: !isFeatured } : p)));
     logAction(`Mis en Une (${!isFeatured})`, title);
+    fetch(`/api/properties/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isFeatured: !isFeatured }),
+    }).then(() => loadAdminData(true)).catch(err => console.warn('Property featured toggle error:', err));
   };
 
   const handleDuplicateProperty = (p: Property) => {
@@ -666,7 +681,7 @@ export default function AdminDashboardPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedArticle),
-      }).catch(err => console.warn('Article update API fallback:', err));
+      }).then(() => loadAdminData(true)).catch(err => console.warn('Article update API fallback:', err));
     } else {
       const generatedSlug = artTitle
         .toLowerCase()
@@ -693,7 +708,7 @@ export default function AdminDashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newArt),
-      }).catch(err => console.warn('Article create API fallback:', err));
+      }).then(() => loadAdminData(true)).catch(err => console.warn('Article create API fallback:', err));
     }
     setArticleModalOpen(false);
   };
@@ -707,7 +722,7 @@ export default function AdminDashboardPage() {
       if (art) {
         fetch(`/api/articles/${art.slug}`, {
           method: 'DELETE',
-        }).catch(err => console.warn('Article delete API fallback:', err));
+        }).then(() => loadAdminData(true)).catch(err => console.warn('Article delete API fallback:', err));
       }
     }
   };
@@ -861,41 +876,177 @@ export default function AdminDashboardPage() {
   // --------------------------------------------------------------------------
   if (!isAuthorizedStaff) {
     return (
-      <div className="pt-28 pb-24 bg-brand-navy min-h-screen text-slate-100 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="pt-24 pb-24 bg-brand-navy min-h-screen text-slate-100 flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-brand-gold/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 glass-navy p-10 rounded-2xl max-w-xl w-full border border-brand-gold/30 shadow-2xl space-y-8">
+        <div className="relative z-10 glass-navy p-8 sm:p-10 rounded-2xl max-w-lg w-full border border-brand-gold/30 shadow-2xl space-y-6">
           
-          <div className="text-center space-y-4">
-            <div className="relative w-44 h-12 mx-auto">
+          <div className="text-center space-y-3">
+            <div className="relative w-44 h-11 mx-auto">
               <Image src="/images/logo-light.png" alt="Villa Regia" fill className="object-contain" />
             </div>
 
-            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-brand-gold bg-brand-gold/10 px-3.5 py-1.5 rounded border border-brand-gold/20 inline-block">
-              Accès Réservé à l’Administration & CRM
+            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-brand-gold bg-brand-gold/10 px-3.5 py-1.5 rounded border border-brand-gold/20 inline-block font-bold">
+              Portail Direction & Administration
             </span>
 
-            <h1 className="font-editorial text-3xl font-light text-brand-travertine">
-              Espace Gestionnaire Villa Regia
+            <h1 className="font-editorial text-2xl sm:text-3xl font-light text-brand-travertine">
+              Connexion Espace Privé
             </h1>
-
-            <p className="text-xs text-brand-travertine/70 leading-relaxed max-w-md mx-auto font-light">
-              Les visiteurs peuvent librement naviguer et réserver sur le site public. La connexion avec un rôle habilité est requise pour accéder au tableau de bord.
-            </p>
           </div>
 
-          <div className="space-y-4 pt-4 border-t border-white/10 text-center">
-            <span className="text-[10px] font-mono uppercase text-brand-gold block font-bold tracking-wider">
-              Authentification Sécurisée Staff (Validation 2FA par Email)
-            </span>
-            <p className="text-xs text-brand-travertine/70 max-w-sm mx-auto">
-              Veuillez vous connecter avec vos identifiants staff pour recevoir votre code 2FA à 6 chiffres par email.
-            </p>
-          </div>
+          {adminLoginError && (
+            <div className="p-3.5 rounded-xl bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+              <span>{adminLoginError}</span>
+            </div>
+          )}
 
-          <div className="text-center pt-2">
-            <Link href="/" className="inline-flex items-center gap-2 text-xs text-brand-travertine/60 hover:text-brand-gold transition-colors">
-              <span>← Retourner au site public Villa Regia</span>
+          {adminOtpError && (
+            <div className="p-3.5 rounded-xl bg-red-500/20 text-red-300 text-xs border border-red-500/30 font-mono flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+              <span>{adminOtpError}</span>
+            </div>
+          )}
+
+          {adminRequires2FA ? (
+            /* 2FA CODE FORM */
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setAdminOtpError(null);
+                const valid = verify2FACode(adminOtpCode.trim());
+                if (!valid) {
+                  setAdminOtpError('Code 2FA incorrect. Veuillez vérifier le code reçu par email.');
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="text-center space-y-1">
+                <span className="text-xs text-brand-gold font-mono block">Code 2FA envoyé à votre email</span>
+                <p className="text-[11px] text-brand-travertine/60">Saisissez les 6 chiffres pour valider l'accès.</p>
+              </div>
+
+              <input
+                type="text"
+                maxLength={6}
+                value={adminOtpCode}
+                onChange={(e) => setAdminOtpCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="123456"
+                className="w-full bg-brand-navy border border-brand-gold/40 rounded-xl py-3 text-center font-mono text-2xl tracking-widest text-brand-gold focus:border-brand-gold focus:outline-none"
+                required
+              />
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow hover:opacity-95 transition-all"
+              >
+                Valider l'Accès Administrateur
+              </button>
+            </form>
+          ) : (
+            /* DIRECT LOGIN FORM */
+            <div className="space-y-4">
+              {/* One-Click Quick Login Button */}
+              <button
+                type="button"
+                onClick={async () => {
+                  setAdminLoginError(null);
+                  setAdminLoginLoading(true);
+                  const res = await login('yassinealoulou6@gmail.com', 'Yassine.123');
+                  setAdminLoginLoading(false);
+                  if (res.success && res.requires2FA) {
+                    setAdminRequires2FA(true);
+                  } else if (!res.success) {
+                    setAdminLoginError(res.error || 'Erreur lors de la connexion.');
+                  }
+                }}
+                disabled={adminLoginLoading}
+                className="w-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 py-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-md"
+              >
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>1-Click : Connexion Super Admin (Yassine Aloulou)</span>
+              </button>
+
+              <div className="flex items-center gap-3 text-white/30 text-[10px] font-mono uppercase tracking-wider">
+                <div className="flex-1 h-px bg-white/10" />
+                <span>Ou saisir vos identifiants</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setAdminLoginError(null);
+                  if (!adminLoginEmail || !adminLoginPassword) {
+                    setAdminLoginError('Veuillez renseigner votre email et mot de passe.');
+                    return;
+                  }
+                  setAdminLoginLoading(true);
+                  const res = await login(adminLoginEmail, adminLoginPassword);
+                  setAdminLoginLoading(false);
+                  if (res.success && res.requires2FA) {
+                    setAdminRequires2FA(true);
+                  } else if (!res.success) {
+                    setAdminLoginError(res.error || 'Identifiants incorrects.');
+                  }
+                }}
+                className="space-y-3.5"
+              >
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">
+                    Adresse Email Staff
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      value={adminLoginEmail}
+                      onChange={(e) => setAdminLoginEmail(e.target.value)}
+                      placeholder="nom@villaregiarealestates.com"
+                      className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 pl-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono"
+                      required
+                    />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold/60" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">
+                    Mot de passe
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      value={adminLoginPassword}
+                      onChange={(e) => setAdminLoginPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full bg-brand-navy border border-white/20 rounded-xl px-4 py-2.5 pl-10 text-xs text-white focus:border-brand-gold focus:outline-none font-mono"
+                      required
+                    />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold/60" />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={adminLoginLoading}
+                  className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+                >
+                  {adminLoginLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Lock className="w-4 h-4" />
+                  )}
+                  <span>{adminLoginLoading ? 'Connexion en cours...' : 'Déverrouiller le Tableau de Bord'}</span>
+                </button>
+              </form>
+            </div>
+          )}
+
+          <div className="text-center pt-2 border-t border-white/10">
+            <Link href="/" className="inline-flex items-center gap-2 text-xs text-brand-travertine/60 hover:text-brand-gold transition-colors font-mono">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Retourner au site public Villa Regia</span>
             </Link>
           </div>
         </div>

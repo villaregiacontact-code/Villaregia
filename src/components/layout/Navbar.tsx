@@ -9,7 +9,7 @@ import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { ProfileModal } from '@/components/profile/ProfileModal';
-import { Heart, Globe, Menu, X, PlusCircle, ChevronDown, UserCheck, LogIn, User, Instagram, Facebook, MessageCircle } from 'lucide-react';
+import { Heart, Globe, Menu, X, PlusCircle, ChevronDown, UserCheck, LogIn, User, Instagram, Facebook, MessageCircle, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Navbar: React.FC = () => {
@@ -162,6 +162,18 @@ export const Navbar: React.FC = () => {
                   </>
                 )}
               </button>
+
+              {/* If staff user is logged in, show direct Admin link */}
+              {user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role) && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-brand-gold text-brand-navy hover:opacity-95 transition-all text-xs font-mono font-bold shadow-md"
+                  title="Accéder au Tableau de Bord Admin"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Admin</span>
+                </Link>
+              )}
 
               {/* Submit Property CTA */}
               <Link

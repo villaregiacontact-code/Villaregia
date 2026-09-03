@@ -494,29 +494,27 @@ export async function getAdminStats() {
 // ----------------------------------------------------------------------------
 
 export async function getDbUsers(): Promise<StoredUserAccount[]> {
-  // Sync in-memory map accounts into localUsers list
-  ACCOUNTS_STORE.forEach((acc) => {
-    const existing = localUsers.find(u => u.email.toLowerCase() === acc.email.toLowerCase());
-    if (!existing) {
-      localUsers.push(acc);
-    } else {
-      Object.assign(existing, acc);
-    }
-  });
+  // Refresh from disk to ensure cross-process consistency
+  const freshPersisted = loadPersistedUsers();
+  if (freshPersisted.length > 0) {
+    localUsers = freshPersisted;
+    freshPersisted.forEach(u => ACCOUNTS_STORE.set(u.email.toLowerCase().trim(), u));
+  }
 
+  // Ensure default superadmin exists
+  if (!localUsers.some(u => u.email.toLowerCase() === DEFAULT_SUPERADMIN.email)) {
+    localUsers.unshift(DEFAULT_SUPERADMIN);
+    ACCOUNTS_STORE.set(DEFAULT_SUPERADMIN.email, DEFAULT_SUPERADMIN);
+  }
+
+  // If Supabase is connected
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('users').select('*').order('createdAt', { ascending: false });
       if (!error && data && data.length > 0) {
-        // Sync Supabase users into ACCOUNTS_STORE
-        data.forEach((u: StoredUserAccount) => {
-          ACCOUNTS_STORE.set(u.email.toLowerCase(), u);
-          const idx = localUsers.findIndex(item => item.email.toLowerCase() === u.email.toLowerCase());
-          if (idx >= 0) {
-            localUsers[idx] = u;
-          } else {
-            localUsers.push(u);
-          }
+        localUsers = data as StoredUserAccount[];
+        localUsers.forEach(u => {
+          ACCOUNTS_STORE.set(u.email.toLowerCase().trim(), u);
         });
         return localUsers;
       }
@@ -540,6 +538,15 @@ export async function getDbUserByEmail(email: string): Promise<StoredUserAccount
   if (localUser) {
     ACCOUNTS_STORE.set(cleanEmail, localUser);
     return localUser;
+  }
+
+  // Reload from disk if not found in memory (in case saved by another thread or cold start)
+  const freshPersisted = loadPersistedUsers();
+  const diskUser = freshPersisted.find(u => u.email.toLowerCase() === cleanEmail);
+  if (diskUser) {
+    localUsers = freshPersisted;
+    ACCOUNTS_STORE.set(cleanEmail, diskUser);
+    return diskUser;
   }
 
   // Check Supabase if configured

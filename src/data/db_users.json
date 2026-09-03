@@ -1,5 +1,16 @@
 [
   {
+    "id": "user-1788435122478",
+    "name": "Client Test Sfax",
+    "email": "client.test1788435121279@villaregiarealestates.com",
+    "phone": "+216 27 745 405",
+    "password": "Password.123",
+    "role": "CLIENT",
+    "twoFactorEnabled": false,
+    "emailVerified": true,
+    "createdAt": "2026-09-03"
+  },
+  {
     "id": "user-1788384784458",
     "name": "Amine Trabelsi",
     "email": "testclient_1788384781958@gmail.com",
