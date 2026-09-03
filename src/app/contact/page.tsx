@@ -25,28 +25,55 @@ export default function ContactPage() {
     }
   }, [user]);
 
+  const [formError, setFormError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    if (!name.trim() || name.trim().length < 2) {
+      setFormError('Veuillez renseigner votre nom complet (minimum 2 caractères).');
+      return;
+    }
+    if (!phone.trim() || phone.trim().length < 8) {
+      setFormError('Veuillez renseigner un numéro de téléphone valide.');
+      return;
+    }
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setFormError('Veuillez saisir une adresse email valide.');
+      return;
+    }
+    if (!message.trim() || message.trim().length < 5) {
+      setFormError('Veuillez détailler votre message (minimum 5 caractères).');
+      return;
+    }
+
     setIsSending(true);
     try {
-      await fetch('/api/inquiries', {
+      const res = await fetch('/api/inquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          phone,
-          email,
+          name: name.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
           source: 'Formulaire Contact',
           universe: 'VENTE',
           propertyTitle: `Demande: ${subject}`,
-          message,
+          message: message.trim(),
         }),
       });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setFormError(data.error || 'Erreur lors de la transmission de votre message.');
+        setIsSending(false);
+        return;
+      }
+      setSubmitted(true);
     } catch (err) {
-      console.warn('Contact inquiry API error fallback:', err);
+      setSubmitted(true);
     } finally {
       setIsSending(false);
-      setSubmitted(true);
     }
   };
 
@@ -210,6 +237,12 @@ export default function ContactPage() {
                     <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Votre message</label>
                     <textarea required value={message} onChange={(e) => setMessage(e.target.value)} rows={4} placeholder="Détaillez votre projet ou votre question..." className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold" />
                   </div>
+
+                  {formError && (
+                    <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono">
+                      ⚠️ {formError}
+                    </div>
+                  )}
 
                   <button
                     disabled={isSending}

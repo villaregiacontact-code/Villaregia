@@ -35,6 +35,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    const hasTitle = body.title && (typeof body.title === 'string' ? body.title.trim() : body.title.fr?.trim());
+    if (!hasTitle || !body.universe || !body.category || !body.price?.amount || Number(body.price.amount) <= 0 || !body.location?.city) {
+      return NextResponse.json(
+        { success: false, error: 'Champs obligatoires manquants : titre, univers, catégorie, montant du prix (> 0) et ville sont requis.' },
+        { status: 400 }
+      );
+    }
+
     const property = await createProperty(body);
     return NextResponse.json({ success: true, property }, { status: 201 });
   } catch (error: any) {

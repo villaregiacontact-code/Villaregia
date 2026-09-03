@@ -33,6 +33,7 @@ import {
   Bath,
   ChevronDown,
   ImagePlus,
+  AlertTriangle,
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────
@@ -617,17 +618,84 @@ export default function SubmitPropertyPage() {
       { id: 'p-4', url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1200&q=80', name: 'Suite Principale' },
     ]);
 
-  // ─── Nav ───────────────────────────────────────────────────────────
+  // ─── Nav & Required Fields Validation ───────────────────────────
   const TOTAL_STEPS = 7;
-  const nextStep = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS));
-  const prevStep = () => setStep((s) => Math.max(s - 1, 1));
+  const [stepValidationError, setStepValidationError] = useState<string | null>(null);
+
+  const validateCurrentStep = (targetStep = step): boolean => {
+    setStepValidationError(null);
+    if (targetStep === 1) {
+      if (!propertyType) {
+        setStepValidationError('Veuillez sélectionner la typologie du bien (Villa, Appartement, etc.).');
+        return false;
+      }
+      if (!objective) {
+        setStepValidationError('Veuillez sélectionner l\'objectif (Vente, Résidence, Séjour Luxe, Événementiel).');
+        return false;
+      }
+    } else if (targetStep === 2) {
+      if (!gouvernorat || !city) {
+        setStepValidationError('Veuillez sélectionner le gouvernorat et la ville où se situe le bien.');
+        return false;
+      }
+    } else if (targetStep === 3) {
+      if (!surfaceM2 || Number(surfaceM2) <= 0) {
+        setStepValidationError('Veuillez indiquer une surface habitable valide supérieure à 0 m².');
+        return false;
+      }
+    } else if (targetStep === 5) {
+      if (!titleType) {
+        setStepValidationError('Veuillez spécifier la nature du titre foncier de la propriété.');
+        return false;
+      }
+    } else if (targetStep === 6) {
+      if (!ownerName || ownerName.trim().length < 2) {
+        setStepValidationError('Veuillez renseigner votre nom complet (minimum 2 caractères).');
+        return false;
+      }
+      if (!ownerPhone || ownerPhone.trim().length < 8) {
+        setStepValidationError('Veuillez renseigner un numéro de téléphone valide (minimum 8 chiffres).');
+        return false;
+      }
+      if (!ownerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail.trim())) {
+        setStepValidationError('Veuillez renseigner une adresse email valide pour le suivi du dossier.');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const nextStep = () => {
+    if (!validateCurrentStep()) return;
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+  };
+  const prevStep = () => {
+    setStepValidationError(null);
+    setStep((s) => Math.max(s - 1, 1));
+  };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dynamicWhatsappUrl, setDynamicWhatsappUrl] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step < TOTAL_STEPS) { nextStep(); return; }
+    if (step < TOTAL_STEPS) {
+      nextStep();
+      return;
+    }
+
+    // Full validation before submitting
+    if (!ownerName?.trim() || !ownerPhone?.trim() || !ownerEmail?.trim()) {
+      setStep(6);
+      setStepValidationError('Veuillez compléter vos coordonnées de contact obligatoires.');
+      return;
+    }
+
+    if (!surfaceM2 || Number(surfaceM2) <= 0) {
+      setStep(3);
+      setStepValidationError('Veuillez renseigner la surface du bien.');
+      return;
+    }
 
     const refCode = `DOS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     setDossierRef(refCode);
@@ -644,9 +712,9 @@ export default function SubmitPropertyPage() {
       district,
       address,
       googleMapsLink,
-      ownerName: ownerName || 'Propriétaire Anonyme',
-      ownerPhone: ownerPhone || '+216 27 745 405',
-      ownerEmail: ownerEmail || '',
+      ownerName: ownerName.trim(),
+      ownerPhone: ownerPhone.trim(),
+      ownerEmail: ownerEmail.trim(),
       titleType,
       titleNumber,
       hasCertificate,
@@ -1464,6 +1532,14 @@ export default function SubmitPropertyPage() {
                       <textarea rows={4} className={inputCls} value={details} onChange={e => setDetails(e.target.value)}
                         placeholder={`Décrivez votre ${propertyType}: prestations marquantes, titre foncier, rénovations récentes, équipements exclusifs...`} />
                     </div>
+                  </div>
+                )}
+
+                {/* ── Validation Error Message ── */}
+                {stepValidationError && (
+                  <div className="p-3.5 rounded-xl bg-red-500/15 border border-red-500/40 text-red-300 text-xs flex items-center gap-2.5 shadow-lg">
+                    <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="font-semibold">{stepValidationError}</span>
                   </div>
                 )}
 

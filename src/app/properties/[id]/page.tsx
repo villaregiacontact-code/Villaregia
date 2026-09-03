@@ -65,6 +65,7 @@ export default function PropertyDetailPage() {
   const [inquiryMessage, setInquiryMessage] = useState('');
   const [inquirySending, setInquirySending] = useState(false);
   const [inquirySuccess, setInquirySuccess] = useState(false);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -108,22 +109,43 @@ export default function PropertyDetailPage() {
 
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setInquiryError(null);
+
+    if (!inquiryName.trim() || inquiryName.trim().length < 2) {
+      setInquiryError('Veuillez renseigner votre nom complet.');
+      return;
+    }
+    if (!inquiryPhone.trim() || inquiryPhone.trim().length < 8) {
+      setInquiryError('Veuillez renseigner un numéro de téléphone valide.');
+      return;
+    }
+    if (!inquiryEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inquiryEmail.trim())) {
+      setInquiryError('Veuillez renseigner une adresse email valide.');
+      return;
+    }
+
     setInquirySending(true);
 
     try {
-      await fetch('/api/inquiries', {
+      const res = await fetch('/api/inquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: inquiryName,
-          phone: inquiryPhone,
-          email: inquiryEmail,
+          name: inquiryName.trim(),
+          phone: inquiryPhone.trim(),
+          email: inquiryEmail.trim(),
           source: 'Demande Visite',
           universe: property.universe,
           propertyTitle: property.title[language],
-          message: inquiryMessage || `Demande de visite pour : ${property.title[language]}`,
+          message: inquiryMessage?.trim() || `Demande de visite pour : ${property.title[language]}`,
         }),
       });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setInquiryError(data.error || 'Erreur lors de l\'envoi de la demande.');
+        setInquirySending(false);
+        return;
+      }
       setInquirySuccess(true);
       setTimeout(() => {
         setInquirySuccess(false);
@@ -450,6 +472,13 @@ export default function PropertyDetailPage() {
                   <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Message</label>
                   <textarea rows={3} value={inquiryMessage} onChange={(e) => setInquiryMessage(e.target.value)} placeholder={`Je souhaite réserver une visite privée pour : ${property.title[language]}`} className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-gold" />
                 </div>
+
+                {inquiryError && (
+                  <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono">
+                    ⚠️ {inquiryError}
+                  </div>
+                )}
+
                 <button disabled={inquirySending} type="submit" className="w-full bg-brand-gold text-brand-navy py-3 rounded text-xs font-bold uppercase tracking-widest mt-2 hover:bg-amber-400 transition-colors disabled:opacity-50">
                   {inquirySending ? 'Envoi en cours...' : 'Envoyer la demande'}
                 </button>

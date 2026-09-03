@@ -14,10 +14,25 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Simple server validation
-    if (!body.propertyId || !body.guestName || !body.guestEmail || !body.checkIn || !body.checkOut) {
+    // Strict server validation
+    if (
+      !body.propertyId?.trim() ||
+      !body.guestName?.trim() ||
+      !body.guestEmail?.trim() ||
+      !body.guestPhone?.trim() ||
+      !body.checkIn ||
+      !body.checkOut
+    ) {
       return NextResponse.json(
-        { success: false, error: 'Champs de réservation obligatoires manquants.' },
+        { success: false, error: 'Champs de réservation obligatoires manquants : villa, nom, email, téléphone, dates d\'arrivée et départ.' },
+        { status: 400 }
+      );
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(body.guestEmail.trim())) {
+      return NextResponse.json(
+        { success: false, error: 'Format d\'adresse email du voyageur invalide.' },
         { status: 400 }
       );
     }

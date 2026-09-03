@@ -226,8 +226,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       setError('Veuillez renseigner votre nom complet (minimum 2 caractères).');
       return;
     }
-    if (!regEmail.trim() || !regEmail.includes('@')) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regEmail.trim() || !emailRegex.test(regEmail.trim())) {
       setError('Veuillez saisir une adresse email valide.');
+      return;
+    }
+    if (!regPhone.trim() || regPhone.trim().length < 8) {
+      setError('Veuillez renseigner un numéro de téléphone valide (minimum 8 chiffres).');
       return;
     }
     if (!regPassword || regPassword.length < 6) {
@@ -240,7 +245,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
 
     setIsLoading(true);
-    const result = await register(regName, regEmail, regPhone || '+216 -- --- ---', 'CLIENT', regPassword);
+    const result = await register(regName.trim(), regEmail.trim(), regPhone.trim(), 'CLIENT', regPassword);
     setIsLoading(false);
 
     if (result.success) {

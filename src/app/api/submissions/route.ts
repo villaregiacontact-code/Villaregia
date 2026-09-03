@@ -15,9 +15,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    if (!body.ownerName || !body.ownerPhone || !body.propertyType || !body.objective) {
+    if (
+      !body.ownerName?.trim() ||
+      !body.ownerPhone?.trim() ||
+      !body.propertyType?.trim() ||
+      !body.objective?.trim() ||
+      !body.city?.trim() ||
+      !body.surfaceM2 ||
+      Number(body.surfaceM2) <= 0
+    ) {
       return NextResponse.json(
-        { success: false, error: 'Informations de formulaire incomplètes.' },
+        { success: false, error: 'Champs obligatoires manquants : nom, téléphone, catégorie, objectif, ville et surface (> 0).' },
         { status: 400 }
       );
     }

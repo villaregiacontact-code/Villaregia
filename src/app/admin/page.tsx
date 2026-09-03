@@ -397,6 +397,19 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    if (!propTitle.trim()) {
+      showToast('Le titre de la propriété est obligatoire.', 'error');
+      return;
+    }
+    if (!propPrice || Number(propPrice) <= 0) {
+      showToast('Le montant du prix doit être strictement supérieur à 0.', 'error');
+      return;
+    }
+    if (!propCity.trim()) {
+      showToast('La ville est obligatoire.', 'error');
+      return;
+    }
+
     if (editingProperty) {
       setProperties((prev) =>
         prev.map((item) => {
@@ -594,14 +607,23 @@ export default function AdminDashboardPage() {
 
   const handleCreateNewLead = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newLeadName.trim()) {
+      showToast('Le nom du client est obligatoire.', 'error');
+      return;
+    }
+    if (!newLeadPhone.trim()) {
+      showToast('Le numéro de téléphone du client est obligatoire.', 'error');
+      return;
+    }
+
     const created: Lead = {
       id: `lead-${Date.now()}`,
-      name: newLeadName || 'Nouveau Client',
-      phone: newLeadPhone || '+216 98 000 000',
-      email: newLeadEmail || 'client@villaregia.tn',
+      name: newLeadName.trim(),
+      phone: newLeadPhone.trim(),
+      email: newLeadEmail.trim() || 'client@villaregia.tn',
       source: 'Formulaire Contact',
       universe: newLeadUniverse,
-      propertyTitle: newLeadPropTitle || 'Demande Générale',
+      propertyTitle: newLeadPropTitle.trim() || 'Demande Générale',
       status: 'Nouveau',
       assignedAgent: user?.name || 'Agent Villa Regia',
       notes: 'Lead ajouté par le conseiller staff.',
@@ -700,9 +722,18 @@ export default function AdminDashboardPage() {
 
   const handleSaveArticle = (e: React.FormEvent) => {
     e.preventDefault();
-    const titleObj = { fr: artTitle, ar: artTitle, en: artTitle };
-    const excerptObj = { fr: artExcerpt, ar: artExcerpt, en: artExcerpt };
-    const contentObj = { fr: artContent, ar: artContent, en: artContent };
+    if (!artTitle.trim()) {
+      showToast('Le titre de l\'article est obligatoire.', 'error');
+      return;
+    }
+    if (!artContent.trim()) {
+      showToast('Le contenu de l\'article est obligatoire.', 'error');
+      return;
+    }
+
+    const titleObj = { fr: artTitle.trim(), ar: artTitle.trim(), en: artTitle.trim() };
+    const excerptObj = { fr: artExcerpt.trim() || artContent.slice(0, 150), ar: artExcerpt.trim() || artContent.slice(0, 150), en: artExcerpt.trim() || artContent.slice(0, 150) };
+    const contentObj = { fr: artContent.trim(), ar: artContent.trim(), en: artContent.trim() };
 
     if (editingArticle) {
       const updatedArticle: BlogPost = {

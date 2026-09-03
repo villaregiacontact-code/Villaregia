@@ -5,14 +5,25 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    if (!body.name || !body.phone) {
-      return NextResponse.json({ success: false, error: 'Nom et téléphone requis.' }, { status: 400 });
+    if (!body.name?.trim() || !body.phone?.trim() || !body.email?.trim()) {
+      return NextResponse.json(
+        { success: false, error: 'Champs obligatoires manquants : nom, téléphone et email sont requis.' },
+        { status: 400 }
+      );
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(body.email.trim())) {
+      return NextResponse.json(
+        { success: false, error: 'Format d\'adresse email invalide.' },
+        { status: 400 }
+      );
     }
 
     const lead = await createLead({
-      name: body.name,
-      email: body.email || 'non-fourni@villaregia.tn',
-      phone: body.phone,
+      name: body.name.trim(),
+      email: body.email.trim(),
+      phone: body.phone.trim(),
       source: body.source || 'Formulaire Contact',
       universe: body.universe || 'VENTE',
       propertyTitle: body.propertyTitle || 'Demande d\'information générale',

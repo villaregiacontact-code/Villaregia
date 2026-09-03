@@ -61,8 +61,20 @@ export default function LuxuryVillasPage() {
   const deposit = Math.round(subtotal * 0.3); // 30% deposit
   const total = subtotal;
 
+  const [dateError, setDateError] = useState<string | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setDateError(null);
+    if (!checkIn || !checkOut) {
+      setDateError('Veuillez sélectionner vos dates de séjour.');
+      return;
+    }
+    if (new Date(checkOut) <= new Date(checkIn)) {
+      setDateError('La date de départ doit être strictement postérieure à la date d’arrivée.');
+      return;
+    }
     setBookingStep('REVIEW');
   };
 
@@ -234,6 +246,12 @@ export default function LuxuryVillasPage() {
                   </div>
                 </div>
 
+                {dateError && (
+                  <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono">
+                    ⚠️ {dateError}
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded shadow-xl hover:opacity-90 transition-all"
@@ -275,23 +293,47 @@ export default function LuxuryVillasPage() {
                 </div>
 
                 <div className="space-y-2 pt-2 border-t border-white/10">
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block">Vos Coordonnées</label>
-                  <input required value={guestName} onChange={(e) => setGuestName(e.target.value)} type="text" placeholder="Nom complet" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" />
+                  <label className="text-[10px] font-mono uppercase text-brand-gold block font-bold">Vos Coordonnées (Obligatoires * )</label>
+                  <input required value={guestName} onChange={(e) => setGuestName(e.target.value)} type="text" placeholder="Nom complet *" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" />
                   <div className="grid grid-cols-2 gap-2">
-                    <input required value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} type="tel" placeholder="Téléphone" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" />
-                    <input required value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} type="email" placeholder="Email" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" />
+                    <input required value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} type="tel" placeholder="Téléphone *" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" />
+                    <input required value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} type="email" placeholder="Email *" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" />
                   </div>
                 </div>
 
+                {bookingError && (
+                  <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono">
+                    ⚠️ {bookingError}
+                  </div>
+                )}
+
                 <div className="flex gap-3 pt-2">
                   <button
-                    onClick={() => setBookingStep('IDLE')}
+                    onClick={() => {
+                      setBookingError(null);
+                      setBookingStep('IDLE');
+                    }}
                     className="w-1/2 bg-white/10 text-brand-travertine py-3 rounded text-xs font-bold uppercase tracking-wider"
                   >
                     Modifier
                   </button>
                   <button
-                    onClick={() => setBookingStep('PAYMENT')}
+                    onClick={() => {
+                      setBookingError(null);
+                      if (!guestName.trim() || guestName.trim().length < 2) {
+                        setBookingError('Veuillez renseigner votre nom complet.');
+                        return;
+                      }
+                      if (!guestPhone.trim() || guestPhone.trim().length < 8) {
+                        setBookingError('Veuillez renseigner un numéro de téléphone valide.');
+                        return;
+                      }
+                      if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
+                        setBookingError('Veuillez renseigner une adresse email valide.');
+                        return;
+                      }
+                      setBookingStep('PAYMENT');
+                    }}
                     className="w-1/2 bg-brand-gold text-brand-navy py-3 rounded text-xs font-bold uppercase tracking-wider"
                   >
                     Procéder au Paiement
