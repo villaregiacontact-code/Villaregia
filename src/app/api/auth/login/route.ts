@@ -120,11 +120,29 @@ export async function POST(request: Request) {
       });
     }
 
+    // ── SYNC WITH SUPABASE AUTH SESSION IF CONFIGURED ──
+    let supabaseSession = null;
+    try {
+      const { supabase, isSupabaseConfigured } = await import('@/lib/supabase');
+      if (isSupabaseConfigured && supabase) {
+        const { data: authData } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+        if (authData?.session) {
+          supabaseSession = authData.session;
+        }
+      }
+    } catch (supaErr) {
+      console.warn('Supabase auth signin notice:', supaErr);
+    }
+
     // ── DIRECT LOGIN (CLIENT or STAFF with direct login) ──
     return NextResponse.json({
       success: true,
       requires2FA: false,
       user: userObj,
+      supabaseSession,
       message: `Bienvenue, ${userObj.name}. Connexion réussie.`,
     });
   } catch (error: any) {

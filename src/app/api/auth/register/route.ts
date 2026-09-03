@@ -85,6 +85,26 @@ export async function POST(request: Request) {
       createdAt: existingDbUser?.createdAt || new Date().toISOString().split('T')[0],
     });
 
+    // ── SYNC WITH SUPABASE AUTH IF CONFIGURED ──
+    try {
+      const { supabase, isSupabaseConfigured } = await import('@/lib/supabase');
+      if (isSupabaseConfigured && supabase) {
+        await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              name: name.trim(),
+              phone: phone?.trim() || '+216 -- --- ---',
+              role,
+            },
+          },
+        });
+      }
+    } catch (supaErr) {
+      console.warn('Supabase auth sync notice:', supaErr);
+    }
+
     const { password: _, ...safeUser } = createdUser;
 
     // ── DISPATCH VERIFICATION & WELCOME EMAIL VIA RESEND ──

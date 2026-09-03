@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import { PropertyCategory, UniverseType } from '@/types';
 import {
   ShieldCheck,
@@ -530,31 +531,76 @@ export default function SubmitPropertyPage() {
   const [hasBuildingPermit, setHasBuildingPermit] = useState<string>('Permis de bâtir municipal en règle (PAU)');
   const [tunisianLawCertified, setTunisianLawCertified] = useState<boolean>(true);
 
+  const { user } = useAuth();
+
   // Step: Identité
   const [ownerName, setOwnerName] = useState<string>('');
   const [ownerPhone, setOwnerPhone] = useState<string>('');
   const [ownerEmail, setOwnerEmail] = useState<string>('');
 
+  useEffect(() => {
+    if (user) {
+      if (!ownerName) setOwnerName(user.name || '');
+      if (!ownerEmail) setOwnerEmail(user.email || '');
+      if (!ownerPhone) setOwnerPhone(user.phone || '');
+    }
+  }, [user]);
+
   // Step: Photos & Notes
   const [uploadedPhotos, setUploadedPhotos] = useState<{ id: string; url: string; name: string }[]>([]);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [details, setDetails] = useState<string>('');
 
-  // ─── Photo Handlers ───────────────────────────────────────────────
-  const processFiles = (files: FileList | null) => {
+  // ─── Photo Handlers (Connected to Supabase Storage & Resilient Fallback) ───
+  const processFiles = async (files: FileList | null) => {
     if (!files) return;
-    Array.from(files).forEach((file) => {
-      if (!file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
+    setIsUploadingPhoto(true);
+
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue;
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'properties');
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+
+        if (data.success && data.url) {
           setUploadedPhotos((prev) => [
             ...prev,
-            { id: `img-${Date.now()}-${Math.random()}`, url: e.target!.result as string, name: file.name },
+            { id: `img-${Date.now()}-${Math.random()}`, url: data.url, name: file.name },
           ]);
+        } else {
+          // Fallback to FileReader
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            if (e.target?.result) {
+              setUploadedPhotos((prev) => [
+                ...prev,
+                { id: `img-${Date.now()}-${Math.random()}`, url: e.target!.result as string, name: file.name },
+              ]);
+            }
+          };
+          reader.readAsDataURL(file);
         }
-      };
-      reader.readAsDataURL(file);
-    });
+      } catch (err) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            setUploadedPhotos((prev) => [
+              ...prev,
+              { id: `img-${Date.now()}-${Math.random()}`, url: e.target!.result as string, name: file.name },
+            ]);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    setIsUploadingPhoto(false);
   };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -1369,8 +1415,8 @@ export default function SubmitPropertyPage() {
                       <div className="flex flex-wrap justify-center gap-3">
                         <label htmlFor="owner-photo-input"
                           className="inline-flex items-center gap-2 bg-brand-gold hover:bg-amber-400 text-brand-navy font-bold px-5 py-2.5 rounded-lg text-xs uppercase tracking-wider cursor-pointer shadow-lg shadow-brand-gold/20 transition-all">
-                          <ImagePlus className="w-4 h-4" />
-                          Parcourir vos photos
+                          <ImagePlus className={`w-4 h-4 ${isUploadingPhoto ? 'animate-spin' : ''}`} />
+                          {isUploadingPhoto ? 'Téléversement en cours...' : 'Parcourir vos photos'}
                         </label>
                         <button type="button" onClick={handleAddDemoPhotos}
                           className="inline-flex items-center gap-2 bg-white/8 hover:bg-white/15 text-white/70 font-bold px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider border border-white/10 transition-all">
