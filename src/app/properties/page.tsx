@@ -187,8 +187,8 @@ function CatalogContent() {
         <div className="mb-8 space-y-4">
 
           {/* ── Category Chips (Main Type Filter) ── */}
-          <div className="overflow-x-auto pb-1">
-            <div className="flex gap-3 min-w-max sm:flex-wrap sm:min-w-0">
+          <div className="overflow-x-auto pb-2 scrollbar-none snap-x -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex gap-2.5 min-w-max sm:flex-wrap sm:min-w-0">
               {CATEGORIES.map(({ value, label, icon: Icon }) => {
                 const isActive = categoryFilter === value;
                 const count = catCounts[value] || 0;
@@ -196,7 +196,7 @@ function CatalogContent() {
                   <button
                     key={value}
                     onClick={() => setCategoryFilter(value as PropertyCategory | 'ALL')}
-                    className={`group relative flex items-center gap-2.5 px-5 py-3 rounded-xl border transition-all duration-200 shrink-0 ${
+                    className={`group relative flex items-center gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-xl border transition-all duration-200 shrink-0 snap-start ${
                       isActive
                         ? `bg-gradient-to-r ${CAT_ACTIVE[value]} shadow-lg`
                         : 'bg-white/5 border-white/8 text-white/50 hover:bg-white/10 hover:border-white/20 hover:text-white/80'

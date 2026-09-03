@@ -16,7 +16,8 @@
     "tunisianLawCertified": true,
     "id": "prop-sub-1788459370991",
     "refCode": "DOS-2026-7364",
-    "status": "PENDING",
-    "createdAt": "2026-09-03T18:16:10.991Z"
+    "status": "APPROVED",
+    "createdAt": "2026-09-03T18:16:10.991Z",
+    "isPublished": false
   }
 ]

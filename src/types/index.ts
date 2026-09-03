@@ -188,6 +188,7 @@ export interface OwnerSubmission {
   businessActivity?: string;
   commercialSurfaceM2?: number;
   monthlyRentTND?: number;
+  isPublished?: boolean;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOUVEAU' | 'CONTACTE' | 'VISITE' | 'MANDAT_SIGNE';
   createdAt: string;
 }

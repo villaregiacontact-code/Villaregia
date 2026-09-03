@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, status } = body;
+    const { id, status, isPublished } = body;
 
     if (!id || !status) {
       return NextResponse.json(
@@ -78,7 +78,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const updated = await updateOwnerSubmissionStatus(id, status);
+    const updated = await updateOwnerSubmissionStatus(id, status, isPublished);
     if (!updated) {
       return NextResponse.json(
         { success: false, error: 'Dossier de soumission introuvable.' },

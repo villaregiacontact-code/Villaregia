@@ -9,14 +9,14 @@ import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { ProfileModal } from '@/components/profile/ProfileModal';
-import { Heart, Globe, Menu, X, PlusCircle, ChevronDown, UserCheck, LogIn, User, Instagram, Facebook, MessageCircle, ShieldCheck } from 'lucide-react';
+import { Heart, Globe, Menu, X, PlusCircle, ChevronDown, UserCheck, LogIn, User, Instagram, Facebook, MessageCircle, ShieldCheck, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const { language, setLanguage, t } = useLanguage();
   const { favorites } = useFavorites();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -193,14 +193,32 @@ export const Navbar: React.FC = () => {
               </Link>
             </div>
 
-            {/* Mobile Menu Trigger */}
-            <div className="flex items-center gap-3 lg:hidden">
-              <button
-                onClick={() => setAuthModalOpen(true)}
-                className="p-1.5 text-brand-gold"
-              >
-                <LogIn className="w-5 h-5" />
-              </button>
+            {/* Mobile Menu Trigger & User Icon */}
+            <div className="flex items-center gap-2 lg:hidden">
+              {user ? (
+                <button
+                  onClick={() => {
+                    if (['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role)) {
+                      window.location.href = '/admin';
+                    } else {
+                      window.location.href = '/account';
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-brand-gold/30 bg-white/5 text-brand-gold text-xs font-mono font-bold"
+                  title="Mon Compte"
+                >
+                  <UserCheck className="w-4 h-4 text-emerald-400" />
+                  <span className="text-[11px] truncate max-w-[65px]">{user.name.split(' ')[0]}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setAuthModalOpen(true)}
+                  className="p-1.5 text-brand-gold hover:text-amber-300"
+                  title="Connexion"
+                >
+                  <LogIn className="w-5 h-5" />
+                </button>
+              )}
               
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -222,8 +240,89 @@ export const Navbar: React.FC = () => {
               exit={{ opacity: 0, height: 0 }}
               className="lg:hidden glass-navy border-b border-brand-gold/20 overflow-hidden"
             >
-              <div className="px-6 py-8 space-y-4">
-                <nav className="flex flex-col space-y-3">
+              <div className="px-5 py-6 space-y-4">
+                {/* Mobile User VIP Account Section */}
+                {user ? (
+                  <div className="p-4 rounded-xl bg-white/5 border border-brand-gold/25 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-gold/30 to-brand-gold text-brand-navy flex items-center justify-center font-bold text-sm border border-brand-gold/40 shrink-0">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-bold text-white truncate">{user.name}</div>
+                          <div className="text-[10px] text-brand-travertine/60 font-mono truncate">{user.email}</div>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-mono font-bold uppercase bg-brand-gold/15 text-brand-gold border border-brand-gold/30 px-2 py-0.5 rounded shrink-0">
+                        {user.role === 'SUPER_ADMIN' ? 'Direction' : user.role === 'ADMIN' ? 'Admin' : user.role === 'AGENT' ? 'Agent' : 'VIP'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-xs font-mono">
+                      <Link
+                        href="/account"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold text-center font-bold border border-brand-gold/30 hover:bg-brand-gold hover:text-brand-navy transition-all"
+                      >
+                        Mon Compte
+                      </Link>
+                      {['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role) ? (
+                        <Link
+                          href="/admin"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="p-2 rounded-lg bg-brand-gold text-brand-navy text-center font-bold shadow hover:opacity-95 transition-all"
+                        >
+                          Espace Admin
+                        </Link>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            setProfileModalOpen(true);
+                          }}
+                          className="p-2 rounded-lg bg-white/5 text-white/80 text-center hover:bg-white/10 transition-colors"
+                        >
+                          Fiche Profil
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[11px] font-mono">
+                      <Link
+                        href="/properties?saved=true"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-brand-travertine/70 hover:text-brand-gold flex items-center gap-1"
+                      >
+                        <Heart className="w-3.5 h-3.5 text-brand-gold" />
+                        <span>Favoris ({favorites.length})</span>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="text-red-400 hover:text-red-300 flex items-center gap-1 font-bold"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Déconnexion</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setAuthModalOpen(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-brand-gold/15 border border-brand-gold/30 text-brand-gold text-xs font-bold font-mono uppercase tracking-wider hover:bg-brand-gold hover:text-brand-navy transition-all"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>Connexion / Espace Membre VIP</span>
+                  </button>
+                )}
+
+                <nav className="flex flex-col space-y-3 pt-2">
                   {navLinks.map((link) => (
                     <Link
                       key={link.href}
@@ -236,7 +335,7 @@ export const Navbar: React.FC = () => {
                   ))}
                 </nav>
 
-                <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
+                <div className="pt-2 border-t border-white/10 flex flex-col gap-3">
                   <Link
                     href="/proposer-un-bien"
                     onClick={() => setMobileMenuOpen(false)}
@@ -277,11 +376,11 @@ export const Navbar: React.FC = () => {
                       </svg>
                     </a>
                     <a
-                      href="https://wa.me/21627745405"
+                      href="https://wa.me/21627745403"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-2.5 rounded-lg bg-white/5 text-[#25D366] hover:bg-[#25D366] hover:text-white transition-all border border-white/10"
-                      title="WhatsApp Business (+216 27 745 405)"
+                      title="WhatsApp Business (+216 27 745 403)"
                     >
                       <MessageCircle className="w-4 h-4" />
                     </a>

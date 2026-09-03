@@ -398,10 +398,15 @@ export async function getOwnerSubmissions(): Promise<OwnerSubmission[]> {
   return [...localSubmissions];
 }
 
-export async function updateOwnerSubmissionStatus(id: string, status: OwnerSubmission['status']): Promise<OwnerSubmission | null> {
+export async function updateOwnerSubmissionStatus(id: string, status: OwnerSubmission['status'], isPublished?: boolean): Promise<OwnerSubmission | null> {
+  const updatePayload: Record<string, any> = { status };
+  if (isPublished !== undefined) {
+    updatePayload.isPublished = isPublished;
+  }
+
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('submissions').update({ status }).eq('id', id);
+      await supabase.from('submissions').update(updatePayload).eq('id', id);
     } catch (e) {
       console.warn('Supabase update submission status failed:', e);
     }
@@ -410,6 +415,9 @@ export async function updateOwnerSubmissionStatus(id: string, status: OwnerSubmi
   const sub = localSubmissions.find(s => s.id === id || s.refCode === id);
   if (sub) {
     sub.status = status;
+    if (isPublished !== undefined) {
+      sub.isPublished = isPublished;
+    }
     savePersistedSubmissions(localSubmissions);
     return { ...sub };
   }
@@ -462,7 +470,7 @@ export async function createOwnerSubmission(submission: Omit<OwnerSubmission, 'i
     `Merci de me contacter pour convenir d'un rendez-vous d'évaluation et de validation.`
   );
 
-  const whatsappLink = `https://wa.me/21627745405?text=${text}`;
+  const whatsappLink = `https://wa.me/21627745403?text=${text}`;
 
   return { submission: newSubmission, whatsappLink };
 }

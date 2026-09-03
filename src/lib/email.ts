@@ -445,7 +445,7 @@ export async function sendOwnerSubmissionEmails(data: OwnerSubmissionEmailData) 
             Bien cordialement,<br>
             <strong style="color: #C5A059;">La Direction de la Maison Villa Regia</strong><br>
             <span>Route de la Soukra, Km 2.5 • 3000 Sfax, Tunisie</span><br>
-            <span>Tél / WhatsApp : +216 27 745 405 • Email : villaregia.contact@gmail.com</span>
+            <span>Tél / WhatsApp : +216 27 745 403 • Email : villaregia.contact@gmail.com</span>
           </div>
         </div>
       </body>
@@ -456,7 +456,7 @@ export async function sendOwnerSubmissionEmails(data: OwnerSubmissionEmailData) 
       to: data.ownerEmail,
       subject: ownerSubject,
       htmlContent: ownerHtml,
-      textContent: `Bonjour ${data.ownerName},\n\nVotre dossier ${ref} pour la proposition de votre bien (${data.propertyType} à ${data.city}) a été bien reçu. Un conseiller Villa Regia vous contactera au ${data.ownerPhone} sous 24h.\n\nVilla Regia Sfax - +216 27 745 405`,
+      textContent: `Bonjour ${data.ownerName},\n\nVotre dossier ${ref} pour la proposition de votre bien (${data.propertyType} à ${data.city}) a été bien reçu. Un conseiller Villa Regia vous contactera au ${data.ownerPhone} sous 24h.\n\nVilla Regia Sfax - +216 27 745 403`,
     });
   }
 

@@ -776,7 +776,7 @@ export default function SubmitPropertyPage() {
   };
 
   const whatsappMessage = `Bonjour Villa Regia, dossier ${dossierRef} — ${propertyType} (${objective}) — ${district}, ${city}, ${gouvernorat} — ${surfaceM2}m² — ${estimatedPrice} TND — Titre: ${titleType}${titleNumber ? ` (N° ${titleNumber})` : ''} — Propriétaire: ${ownerName} (${ownerPhone})${googleMapsLink ? ` — Maps: ${googleMapsLink}` : ''}`;
-  const whatsappUrl = dynamicWhatsappUrl || `https://wa.me/21627745405?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappUrl = dynamicWhatsappUrl || `https://wa.me/21627745403?text=${encodeURIComponent(whatsappMessage)}`;
 
 
   // ─── Step Labels ────────────────────────────────────────────────────
@@ -1667,7 +1667,7 @@ export default function SubmitPropertyPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className={labelCls}><Phone className="inline w-3 h-3 mr-1" />Téléphone Direct</label>
-                        <input required type="tel" placeholder="+216 27 745 405" className={inputCls} value={ownerPhone} onChange={e => setOwnerPhone(e.target.value)} />
+                        <input required type="tel" placeholder="+216 27 745 403" className={inputCls} value={ownerPhone} onChange={e => setOwnerPhone(e.target.value)} />
                       </div>
                       <div>
                         <label className={labelCls}><Mail className="inline w-3 h-3 mr-1" />Adresse Email (pour accusé de réception)</label>

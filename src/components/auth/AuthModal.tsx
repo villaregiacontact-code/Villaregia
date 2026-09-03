@@ -173,12 +173,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       if (result.requires2FA) {
         setResendTimer(60);
       } else {
-        // Direct login success: Admin goes directly to admin page
+        // Direct login success: Staff goes to admin, Client gets immediate access to account
         if (result.user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(result.user.role)) {
           window.location.href = '/admin';
           return;
         }
-        onClose();
+        window.location.href = '/account';
+        return;
       }
     } else {
       setError(result.error || 'Identifiants incorrects. Veuillez vérifier votre email et mot de passe.');
@@ -194,7 +195,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         window.location.href = '/admin';
         return;
       }
-      onClose();
+      window.location.href = '/account';
+      return;
     } else {
       setTwoFactorError('Code 2FA incorrect. Veuillez vérifier le code à 6 chiffres transmis par email.');
     }
@@ -212,7 +214,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         window.location.href = '/admin';
         return;
       }
-      onClose();
+      window.location.href = '/account';
+      return;
     } else {
       setActivationError(result.error || 'Code de confirmation invalide ou expiré.');
     }
@@ -270,7 +273,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       const res = await register(
         pendingObj?.name || 'Client Villa Regia',
         pendingEmailConfirmation,
-        pendingObj?.phone || '+216 27 745 405',
+        pendingObj?.phone || '+216 27 745 403',
         'CLIENT',
         pendingObj?.password || 'VillaRegia.2026'
       );
@@ -304,16 +307,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const regPassStrength = getPasswordStrength(regPassword);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="glass-navy p-8 rounded-2xl max-w-md w-full border border-brand-gold/30 shadow-2xl relative space-y-6 max-h-[92vh] overflow-y-auto"
+        className="glass-navy p-5 sm:p-8 rounded-2xl max-w-md w-full border border-brand-gold/30 shadow-2xl relative space-y-5 sm:space-y-6 max-h-[94vh] overflow-y-auto"
       >
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-brand-travertine/60 hover:text-brand-gold transition-colors p-1"
+          className="absolute top-4 sm:top-6 right-4 sm:right-6 text-brand-travertine/60 hover:text-brand-gold transition-colors p-1"
           aria-label="Fermer"
         >
           <X className="w-5 h-5" />

@@ -109,12 +109,12 @@ export const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-brand-gold shrink-0" />
-                <a href="tel:+21627745405" className="hover:text-brand-gold font-mono">+216 27 745 405</a>
+                <a href="tel:+21627745403" className="hover:text-brand-gold font-mono">+216 27 745 403</a>
               </div>
               <div className="flex items-center gap-2.5">
                 <MessageCircle className="w-4 h-4 text-[#25D366] shrink-0" />
-                <a href="https://wa.me/21627745405" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 font-mono flex items-center gap-1.5">
-                  <span>WhatsApp Business: 27 745 405</span>
+                <a href="https://wa.me/21627745403" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 font-mono flex items-center gap-1.5">
+                  <span>WhatsApp Business: 27 745 403</span>
                 </a>
               </div>
               <div className="flex items-center gap-2.5">
@@ -162,11 +162,11 @@ export const Footer: React.FC = () => {
                 </svg>
               </a>
               <a
-                href="https://wa.me/21627745405"
+                href="https://wa.me/21627745403"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2.5 rounded-lg bg-white/5 text-[#25D366] hover:bg-[#25D366] hover:text-white transition-all border border-white/10 hover:border-transparent group"
-                title="WhatsApp Business Villa Regia (+216 27 745 405)"
+                title="WhatsApp Business Villa Regia (+216 27 745 403)"
               >
                 <MessageCircle className="w-4 h-4" />
               </a>

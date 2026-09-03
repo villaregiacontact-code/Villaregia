@@ -53,10 +53,12 @@ import {
   Check,
   UploadCloud,
   FileCheck,
+  FileDown,
   RefreshCw,
   Radio,
   Activity,
 } from 'lucide-react';
+import { generateSubmissionPdf } from '@/lib/generateSubmissionPdf';
 
 const INITIAL_SUBMISSIONS: OwnerSubmission[] = [];
 
@@ -267,64 +269,86 @@ export default function AdminDashboardPage() {
   // --------------------------------------------------------------------------
   // OWNER SUBMISSION APPROVAL & CONVERSION
   // --------------------------------------------------------------------------
-  const handleApproveSubmission = async (sub: OwnerSubmission) => {
-    const imagesList = sub.photos && sub.photos.length > 0
-      ? sub.photos.map((url, idx) => ({ url, alt: `${sub.propertyType} Photo ${idx + 1}`, isCover: idx === 0 }))
-      : [{ url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85', alt: sub.propertyType, isCover: true }];
+  const handleApproveSubmission = async (sub: OwnerSubmission, publishToCatalog: boolean = false) => {
+    if (publishToCatalog) {
+      const imagesList = sub.photos && sub.photos.length > 0
+        ? sub.photos.map((url, idx) => ({ url, alt: `${sub.propertyType} Photo ${idx + 1}`, isCover: idx === 0 }))
+        : [{ url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85', alt: sub.propertyType, isCover: true }];
 
-    const newProp: Property = {
-      id: `vr-prop-${Date.now()}`,
-      title: { fr: `${sub.propertyType} High Standing — ${sub.district || sub.city}`, ar: `${sub.propertyType} — ${sub.district || sub.city}`, en: `${sub.propertyType} — ${sub.district || sub.city}` },
-      universe: sub.objective,
-      category: sub.propertyType,
-      price: { amount: sub.estimatedPrice || sub.estimatedValue || 0, currency: 'TND', period: 'total' },
-      location: { city: sub.city, district: sub.district || sub.city, country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
-      specs: {
-        surfaceM2: sub.surfaceM2,
-        bedrooms: sub.bedrooms || 0,
-        pool: true,
-        garden: true,
-        completionEstimate: sub.completionEstimate || sub.specificDetails?.completionEstimate,
-        constructionStage: sub.constructionStage || sub.specificDetails?.constructionStage,
-        businessActivity: sub.businessActivity || sub.specificDetails?.businessActivity,
-        commercialSurfaceM2: sub.commercialSurfaceM2 || sub.specificDetails?.commercialSurfaceM2,
-        monthlyRentTND: sub.monthlyRentTND || sub.specificDetails?.monthlyRentTND,
-      },
-      images: imagesList,
-      description: { fr: sub.details || 'Prestigieuse demeure soumise par son propriétaire et vérifiée par l’équipe Villa Regia.', ar: sub.details || '', en: sub.details || '' },
-      amenities: ['Climatisation centralisée', sub.titleType || 'Titre foncier individuel', 'Parking sécurisé', 'Marbre noble'],
-      status: 'DISPONIBLE',
-      isFeatured: true,
-      isNew: true,
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-    };
+      const newProp: Property = {
+        id: `vr-prop-${Date.now()}`,
+        title: { fr: `${sub.propertyType} High Standing — ${sub.district || sub.city}`, ar: `${sub.propertyType} — ${sub.district || sub.city}`, en: `${sub.propertyType} — ${sub.district || sub.city}` },
+        universe: sub.objective,
+        category: sub.propertyType,
+        price: { amount: sub.estimatedPrice || sub.estimatedValue || 0, currency: 'TND', period: 'total' },
+        location: { city: sub.city, district: sub.district || sub.city, country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
+        specs: {
+          surfaceM2: sub.surfaceM2,
+          bedrooms: sub.bedrooms || 0,
+          pool: true,
+          garden: true,
+          completionEstimate: sub.completionEstimate || sub.specificDetails?.completionEstimate,
+          constructionStage: sub.constructionStage || sub.specificDetails?.constructionStage,
+          businessActivity: sub.businessActivity || sub.specificDetails?.businessActivity,
+          commercialSurfaceM2: sub.commercialSurfaceM2 || sub.specificDetails?.commercialSurfaceM2,
+          monthlyRentTND: sub.monthlyRentTND || sub.specificDetails?.monthlyRentTND,
+        },
+        images: imagesList,
+        description: { fr: sub.details || 'Prestigieuse demeure soumise par son propriétaire et vérifiée par l’équipe Villa Regia.', ar: sub.details || '', en: sub.details || '' },
+        amenities: ['Climatisation centralisée', sub.titleType || 'Titre foncier individuel', 'Parking sécurisé', 'Marbre noble'],
+        status: 'DISPONIBLE',
+        isFeatured: true,
+        isNew: true,
+        createdAt: new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString().split('T')[0],
+      };
 
-    setProperties((prev) => [newProp, ...prev]);
-    setSubmissions((prev) => prev.map((s) => (s.id === sub.id ? { ...s, status: 'APPROVED' } : s)));
-    if (inspectingSubmission?.id === sub.id) {
-      setInspectingSubmission({ ...sub, status: 'APPROVED' });
+      setProperties((prev) => [newProp, ...prev]);
+      setSubmissions((prev) => prev.map((s) => (s.id === sub.id ? { ...s, status: 'APPROVED', isPublished: true } : s)));
+      if (inspectingSubmission?.id === sub.id) {
+        setInspectingSubmission({ ...sub, status: 'APPROVED', isPublished: true });
+      }
+
+      try {
+        await fetch('/api/submissions', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: sub.id, status: 'APPROVED', isPublished: true }),
+        });
+        await fetch('/api/properties', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newProp),
+        });
+        loadAdminData(true);
+        showToast(`Dossier ${sub.refCode} approuvé et publié au catalogue !`);
+      } catch (e) {
+        console.warn('Submission approval API sync fallback:', e);
+      }
+
+      logAction('Approbation & publication dossier', sub.refCode);
+      setActiveTab('properties');
+    } else {
+      // APPROUVER SANS PUBLIER (Dossier mandat validé en interne, hors catalogue)
+      setSubmissions((prev) => prev.map((s) => (s.id === sub.id ? { ...s, status: 'APPROVED', isPublished: false } : s)));
+      if (inspectingSubmission?.id === sub.id) {
+        setInspectingSubmission({ ...sub, status: 'APPROVED', isPublished: false });
+      }
+
+      try {
+        await fetch('/api/submissions', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: sub.id, status: 'APPROVED', isPublished: false }),
+        });
+        loadAdminData(true);
+        showToast(`Dossier ${sub.refCode} approuvé en interne (Non publié au catalogue) !`, 'success');
+      } catch (e) {
+        console.warn('Submission internal approval fallback:', e);
+      }
+
+      logAction('Approbation dossier sans publication', sub.refCode);
     }
-
-    try {
-      await fetch('/api/submissions', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: sub.id, status: 'APPROVED' }),
-      });
-      await fetch('/api/properties', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newProp),
-      });
-      loadAdminData(true);
-      showToast(`Dossier ${sub.refCode} approuvé et publié au catalogue !`);
-    } catch (e) {
-      console.warn('Submission approval API sync fallback:', e);
-    }
-
-    logAction('Approbation dossier propriétaire', sub.refCode);
-    setActiveTab('properties');
   };
 
   const handleRejectSubmission = async (subId: string, refCode: string) => {
@@ -563,7 +587,7 @@ export default function AdminDashboardPage() {
     const newLead: Lead = {
       id: `lead-${Date.now()}`,
       name: 'Client Intéressé',
-      phone: '+216 27 745 405',
+      phone: '+216 27 745 403',
       email: 'client@villaregia.tn',
       source: 'Demande Visite',
       universe: p.universe,
@@ -1621,7 +1645,16 @@ export default function AdminDashboardPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-2 pt-2 border-t border-white/10 flex-wrap">
+                    <button
+                      onClick={() => generateSubmissionPdf(sub)}
+                      className="bg-brand-gold text-brand-navy p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold font-mono transition-all hover:opacity-90 shadow"
+                      title="Télécharger la fiche dossier en PDF signé & brandé"
+                    >
+                      <FileDown className="w-4 h-4" />
+                      <span className="text-[11px]">PDF</span>
+                    </button>
+
                     <button
                       onClick={() => setInspectingSubmission(sub)}
                       className="bg-brand-gold/15 hover:bg-brand-gold/25 text-brand-gold border border-brand-gold/30 p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold font-mono transition-all"
@@ -1632,12 +1665,34 @@ export default function AdminDashboardPage() {
                     </button>
 
                     {sub.status === 'PENDING' && (
+                      <>
+                        <button
+                          onClick={() => handleApproveSubmission(sub, false)}
+                          className="bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 p-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1"
+                          title="Valider en interne sans publier au catalogue public"
+                        >
+                          <Check className="w-4 h-4" />
+                          <span className="text-[10px]">Approuver</span>
+                        </button>
+                        <button
+                          onClick={() => handleApproveSubmission(sub, true)}
+                          className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 p-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1"
+                          title="Approuver et publier au catalogue public"
+                        >
+                          <Check className="w-4 h-4" />
+                          <span className="text-[10px]">Publier</span>
+                        </button>
+                      </>
+                    )}
+
+                    {sub.status === 'APPROVED' && !sub.isPublished && (
                       <button
-                        onClick={() => handleApproveSubmission(sub)}
-                        className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 py-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1.5"
+                        onClick={() => handleApproveSubmission(sub, true)}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-brand-navy px-3 py-2 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1 shadow"
+                        title="Publier maintenant au catalogue"
                       >
-                        <Check className="w-4 h-4" />
-                        <span>Approuver</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span className="text-[10px]">Mettre en ligne</span>
                       </button>
                     )}
 
@@ -1725,16 +1780,33 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="p-3">
                         <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase ${
-                          sub.status === 'APPROVED'
+                          sub.status === 'APPROVED' && sub.isPublished
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : sub.status === 'APPROVED' && !sub.isPublished
+                            ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
                             : sub.status === 'REJECTED'
                             ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                             : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                         }`}>
-                          {sub.status === 'APPROVED' ? 'Approuvé' : sub.status === 'REJECTED' ? 'Refusé' : 'En Attente'}
+                          {sub.status === 'APPROVED' && sub.isPublished
+                            ? 'Validé & Publié'
+                            : sub.status === 'APPROVED' && !sub.isPublished
+                            ? 'Approuvé (Non publié)'
+                            : sub.status === 'REJECTED'
+                            ? 'Refusé'
+                            : 'En Attente'}
                         </span>
                       </td>
                       <td className="p-3 text-right space-x-1.5 whitespace-nowrap">
+                        <button
+                          onClick={() => generateSubmissionPdf(sub)}
+                          className="bg-brand-gold text-brand-navy hover:opacity-90 px-2.5 py-1.5 rounded-lg text-[10px] font-bold font-mono inline-flex items-center gap-1 transition-all shadow"
+                          title="Télécharger la Fiche Dossier PDF Brandée"
+                        >
+                          <FileDown className="w-3.5 h-3.5" />
+                          <span>PDF</span>
+                        </button>
+
                         <button
                           onClick={() => setInspectingSubmission(sub)}
                           className="bg-white/5 hover:bg-brand-gold/20 text-brand-travertine hover:text-brand-gold p-2 rounded-lg inline-flex items-center gap-1 transition-colors"
@@ -1745,12 +1817,34 @@ export default function AdminDashboardPage() {
                         </button>
 
                         {sub.status === 'PENDING' && (
+                          <>
+                            <button
+                              onClick={() => handleApproveSubmission(sub, false)}
+                              className="bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inline-flex items-center gap-1"
+                              title="Valider en interne sans publier au catalogue"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Approuver</span>
+                            </button>
+                            <button
+                              onClick={() => handleApproveSubmission(sub, true)}
+                              className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inline-flex items-center gap-1"
+                              title="Approuver et publier au catalogue public"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Publier</span>
+                            </button>
+                          </>
+                        )}
+
+                        {sub.status === 'APPROVED' && !sub.isPublished && (
                           <button
-                            onClick={() => handleApproveSubmission(sub)}
-                            className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inline-flex items-center gap-1"
+                            onClick={() => handleApproveSubmission(sub, true)}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-brand-navy px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inline-flex items-center gap-1 shadow"
+                            title="Publier maintenant au catalogue public"
                           >
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Approuver & Publier</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Publier au catalogue</span>
                           </button>
                         )}
 
@@ -2893,7 +2987,7 @@ export default function AdminDashboardPage() {
                     type="text"
                     value={newLeadPhone}
                     onChange={(e) => setNewLeadPhone(e.target.value)}
-                    placeholder="+216 27 745 405"
+                    placeholder="+216 27 745 403"
                     className="w-full bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono"
                   />
                 </div>
@@ -3535,14 +3629,25 @@ export default function AdminDashboardPage() {
 
             {/* Modal Actions Footer */}
             <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <button
-                onClick={() => setInspectingSubmission(null)}
-                className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-mono transition-colors"
-              >
-                Fermer l'Aperçu
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setInspectingSubmission(null)}
+                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-mono transition-colors"
+                >
+                  Fermer l'Aperçu
+                </button>
 
-              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => generateSubmissionPdf(inspectingSubmission)}
+                  className="px-4 py-2.5 rounded-xl bg-brand-gold text-brand-navy hover:opacity-90 text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-2 shadow-lg transition-all"
+                  title="Générer et télécharger le dossier officiel signé en PDF"
+                >
+                  <FileDown className="w-4 h-4" />
+                  <span>Télécharger Fiche PDF</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2.5 flex-wrap justify-end">
                 {inspectingSubmission.status === 'PENDING' && (
                   <button
                     onClick={() => handleRejectSubmission(inspectingSubmission.id, inspectingSubmission.refCode)}
@@ -3553,13 +3658,42 @@ export default function AdminDashboardPage() {
                 )}
 
                 {inspectingSubmission.status === 'PENDING' && (
+                  <>
+                    <button
+                      onClick={() => handleApproveSubmission(inspectingSubmission, false)}
+                      className="px-5 py-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow"
+                      title="Valider le mandat en interne sans le rendre visible sur le catalogue public"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Approuver sans publier</span>
+                    </button>
+                    <button
+                      onClick={() => handleApproveSubmission(inspectingSubmission, true)}
+                      className="bg-gradient-to-r from-brand-gold to-brand-gold-dark hover:opacity-95 text-brand-navy font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 transition-all"
+                      title="Valider et publier directement au catalogue public"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Approuver & Publier</span>
+                    </button>
+                  </>
+                )}
+
+                {inspectingSubmission.status === 'APPROVED' && !inspectingSubmission.isPublished && (
                   <button
-                    onClick={() => handleApproveSubmission(inspectingSubmission)}
-                    className="flex-1 sm:flex-initial bg-gradient-to-r from-brand-gold to-brand-gold-dark hover:opacity-95 text-brand-navy font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 transition-all"
+                    onClick={() => handleApproveSubmission(inspectingSubmission, true)}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-brand-navy font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 transition-all"
+                    title="Mettre en ligne sur le catalogue public Villa Regia"
                   >
-                    <Check className="w-4 h-4" />
-                    <span>Approuver & Publier au Catalogue</span>
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Publier maintenant au Catalogue</span>
                   </button>
+                )}
+
+                {inspectingSubmission.status === 'APPROVED' && inspectingSubmission.isPublished && (
+                  <span className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold flex items-center gap-1.5">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Dossier approuvé & en ligne au catalogue</span>
+                  </span>
                 )}
               </div>
             </div>
