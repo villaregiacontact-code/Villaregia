@@ -96,28 +96,28 @@ export async function getProperties(filters?: Partial<FilterState>): Promise<Pro
     }
     if (filters.minPrice && filters.minPrice > 0) {
       const minP = filters.minPrice;
-      result = result.filter(p => p.price.amount >= minP);
+      result = result.filter(p => (p.price?.amount || 0) >= minP);
     }
     if (filters.maxPrice && filters.maxPrice > 0) {
       const maxP = filters.maxPrice;
-      result = result.filter(p => p.price.amount <= maxP);
+      result = result.filter(p => (p.price?.amount || 0) <= maxP);
     }
     if (filters.minBedrooms && filters.minBedrooms > 0) {
       const minB = filters.minBedrooms;
-      result = result.filter(p => (p.specs.bedrooms || 0) >= minB);
+      result = result.filter(p => (p.specs?.bedrooms || 0) >= minB);
     }
     if (filters.minSurface && filters.minSurface > 0) {
       const minS = filters.minSurface;
-      result = result.filter(p => p.specs.surfaceM2 >= minS);
+      result = result.filter(p => (p.specs?.surfaceM2 || 0) >= minS);
     }
     if (filters.hasPool) {
-      result = result.filter(p => p.specs.pool === true);
+      result = result.filter(p => p.specs?.pool === true);
     }
     if (filters.hasGarden) {
-      result = result.filter(p => p.specs.garden === true);
+      result = result.filter(p => p.specs?.garden === true);
     }
     if (filters.isConstructible) {
-      result = result.filter(p => p.specs.constructible === true);
+      result = result.filter(p => p.specs?.constructible === true);
     }
   }
 
@@ -473,10 +473,10 @@ export async function getAdminStats() {
   const bookings = await getBookings();
   const leads = await getLeads();
 
-  const totalVolume = properties.reduce((sum, p) => sum + p.price.amount, 0);
-  const activeCount = properties.filter(p => p.status === 'DISPONIBLE').length;
-  const pendingBookings = bookings.filter(b => b.status === 'PENDING').length;
-  const newLeadsCount = leads.filter(l => l.status === 'Nouveau').length;
+  const totalVolume = properties.reduce((sum, p) => sum + (p?.price?.amount || 0), 0);
+  const activeCount = properties.filter(p => p?.status === 'DISPONIBLE').length;
+  const pendingBookings = bookings.filter(b => b?.status === 'PENDING').length;
+  const newLeadsCount = leads.filter(l => l?.status === 'Nouveau').length;
 
   return {
     totalProperties: properties.length,
