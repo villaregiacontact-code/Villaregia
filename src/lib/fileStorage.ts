@@ -108,10 +108,17 @@ export function savePersistedProperties(properties: Property[]): void {
 
 // ── ARTICLES PERSISTENCE ──
 export function loadPersistedArticles(): BlogPost[] {
-  const loaded = safeReadJson<BlogPost[]>('db_articles.json', []);
-  return loaded.length > 0 ? loaded : [...INITIAL_ARTICLES];
+  return safeReadJson<BlogPost[]>('db_articles.json', INITIAL_ARTICLES);
 }
 
 export function savePersistedArticles(articles: BlogPost[]): void {
   safeWriteJson('db_articles.json', articles);
+}
+
+export function loadPersistedPendingRegistrations(): Record<string, any> {
+  return safeReadJson<Record<string, any>>('db_pending.json', {});
+}
+
+export function savePersistedPendingRegistrations(pendingMap: Record<string, any>): void {
+  safeWriteJson('db_pending.json', pendingMap);
 }

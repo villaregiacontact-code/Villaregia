@@ -35,17 +35,17 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // ── SECURITY CHECK: ACTIVE ACCOUNT ALREADY EXISTS IN DATABASE ──
+    // ── SECURITY CHECK: PREVENT OVERWRITING STAFF ACCOUNTS ──
     const existingDbUser = await getDbUserByEmail(cleanEmail);
-    if (existingDbUser && existingDbUser.emailVerified !== false) {
+    if (existingDbUser && existingDbUser.role !== 'CLIENT') {
       return NextResponse.json(
-        { error: 'Un compte actif existe déjà avec cette adresse email. Veuillez vous connecter.' },
-        { status: 409 }
+        { error: 'Cette adresse email est réservée aux accès direction et staff. Veuillez vous connecter via l\'espace administration.' },
+        { status: 403 }
       );
     }
 
     // ── SECURITY: RESTRICT PUBLIC SIGNUP TO CLIENT ONLY ──
-    const role = 'CLIENT';
+    const role: 'CLIENT' = 'CLIENT';
 
     // Generate 6-digit verification code
     const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     });
 
     // Store in pending registrations with password
-    PENDING_REGISTRATIONS.set(cleanEmail, {
+    const pendingObj = {
       name: name.trim(),
       email: cleanEmail,
       phone: phone?.trim() || '+216 -- --- ---',
@@ -68,7 +68,15 @@ export async function POST(request: Request) {
       role,
       confirmationCode,
       expiresAt: Date.now() + 15 * 60 * 1000,
-    });
+    };
+
+    PENDING_REGISTRATIONS.set(cleanEmail, pendingObj);
+    try {
+      const { loadPersistedPendingRegistrations, savePersistedPendingRegistrations } = await import('@/lib/fileStorage');
+      const diskPending = loadPersistedPendingRegistrations();
+      diskPending[cleanEmail] = pendingObj;
+      savePersistedPendingRegistrations(diskPending);
+    } catch {}
 
     // ── DISPATCH VERIFICATION EMAIL VIA RESEND ──
     let emailResult: any = { previewUrl: null };

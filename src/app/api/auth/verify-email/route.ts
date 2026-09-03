@@ -19,9 +19,17 @@ export async function POST(request: Request) {
     const cleanEmail = email.toLowerCase().trim();
     const cleanCode = code.trim();
 
-    // 1. Check in-memory pending registrations
-    const pending = PENDING_REGISTRATIONS.get(cleanEmail);
-    let isMatch = pending && pending.confirmationCode === cleanCode;
+    // 1. Check in-memory and disk pending registrations
+    let pending = PENDING_REGISTRATIONS.get(cleanEmail);
+    if (!pending) {
+      try {
+        const { loadPersistedPendingRegistrations } = await import('@/lib/fileStorage');
+        const diskPending = loadPersistedPendingRegistrations();
+        pending = diskPending[cleanEmail];
+      } catch {}
+    }
+
+    let isMatch = Boolean(pending && String(pending.confirmationCode).trim() === cleanCode);
     let resolvedName = pending?.name || name || cleanEmail.split('@')[0];
     let resolvedPhone = pending?.phone || phone || '+216 -- --- ---';
     let resolvedPassword = pending?.password || password;
@@ -42,7 +50,7 @@ export async function POST(request: Request) {
     }
 
     if (isMatch) {
-      // Create permanent active user account and persist in database
+      // Create or update permanent active user account and persist in database
       const activatedUser = await createDbUser({
         id: `user-${Date.now()}`,
         name: resolvedName,
@@ -55,8 +63,14 @@ export async function POST(request: Request) {
         createdAt: new Date().toISOString().split('T')[0],
       });
 
-      // Clean up pending registration
+      // Clean up pending registration in memory and disk
       PENDING_REGISTRATIONS.delete(cleanEmail);
+      try {
+        const { loadPersistedPendingRegistrations, savePersistedPendingRegistrations } = await import('@/lib/fileStorage');
+        const diskPending = loadPersistedPendingRegistrations();
+        delete diskPending[cleanEmail];
+        savePersistedPendingRegistrations(diskPending);
+      } catch {}
 
       // ── AUTOMATED WELCOME EMAIL DISPATCH ──
       try {

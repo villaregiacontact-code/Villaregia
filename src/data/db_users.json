@@ -1,5 +1,16 @@
 [
   {
+    "id": "user-1788435665853",
+    "name": "Yassine Aloulou Updated",
+    "email": "yassine.client1788435663031@villaregiarealestates.com",
+    "phone": "+216 27 745 405",
+    "password": "NewPassword.2026",
+    "role": "CLIENT",
+    "twoFactorEnabled": false,
+    "emailVerified": true,
+    "createdAt": "2026-09-03"
+  },
+  {
     "id": "user-1788435122478",
     "name": "Client Test Sfax",
     "email": "client.test1788435121279@villaregiarealestates.com",

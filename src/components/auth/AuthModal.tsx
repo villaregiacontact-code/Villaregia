@@ -40,60 +40,48 @@ interface OtpInputProps {
 }
 
 const OtpInput: React.FC<OtpInputProps> = ({ value, onChange }) => {
-  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
-  const digits = Array.from({ length: 6 }, (_, i) => value[i] || '');
-
-  const handleChange = (index: number, val: string) => {
-    const cleanVal = val.replace(/\D/g, '');
-    if (!cleanVal) {
-      const nextDigits = [...digits];
-      nextDigits[index] = '';
-      onChange(nextDigits.join(''));
-      return;
-    }
-
-    const nextDigits = [...digits];
-    nextDigits[index] = cleanVal[cleanVal.length - 1];
-    const newCode = nextDigits.join('');
-    onChange(newCode);
-
-    if (index < 5 && cleanVal) {
-      inputsRef.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !digits[index] && index > 0) {
-      inputsRef.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (pastedData) {
-      onChange(pastedData);
-      const focusIndex = Math.min(pastedData.length, 5);
-      inputsRef.current[focusIndex]?.focus();
-    }
-  };
+  const inputRef = useRef<HTMLInputElement>(null);
+  const cleanVal = (value || '').replace(/\D/g, '').slice(0, 6);
 
   return (
-    <div className="flex justify-between items-center gap-2 max-w-xs mx-auto my-4">
-      {Array.from({ length: 6 }).map((_, idx) => (
-        <input
-          key={idx}
-          ref={(el) => { inputsRef.current[idx] = el; }}
-          type="text"
-          inputMode="numeric"
-          maxLength={1}
-          value={digits[idx] || ''}
-          onChange={(e) => handleChange(idx, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(idx, e)}
-          onPaste={handlePaste}
-          className="w-11 h-13 text-center text-xl font-bold font-mono bg-brand-navy border border-brand-gold/40 rounded-xl text-brand-gold focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/30 focus:outline-none transition-all shadow-inner"
-        />
-      ))}
+    <div
+      className="relative max-w-xs mx-auto my-4 cursor-text"
+      onClick={() => inputRef.current?.focus()}
+    >
+      {/* Real underlying input with opacity 0 so native keyboard, autofill, backspace, and paste always work 100% */}
+      <input
+        ref={inputRef}
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        maxLength={6}
+        value={cleanVal}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+        className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-text"
+        autoFocus
+      />
+
+      {/* Visual 6-box responsive display */}
+      <div className="flex justify-between items-center gap-2">
+        {Array.from({ length: 6 }).map((_, idx) => {
+          const char = cleanVal[idx] || '';
+          const isCurrent = cleanVal.length === idx;
+          return (
+            <div
+              key={idx}
+              className={`w-11 h-14 flex items-center justify-center text-2xl font-bold font-mono rounded-xl border transition-all shadow-inner ${
+                char
+                  ? 'bg-brand-navy border-brand-gold text-brand-gold'
+                  : isCurrent
+                  ? 'bg-brand-navy border-brand-gold ring-2 ring-brand-gold/30 text-white animate-pulse'
+                  : 'bg-brand-navy/60 border-white/20 text-white/30'
+              }`}
+            >
+              {char || (isCurrent ? '|' : '·')}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
@@ -257,10 +245,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleResendCode = () => {
-    if (resendTimer === 0) {
-      setResendTimer(60);
+  const handleResendCode = async () => {
+    if (resendTimer > 0) return;
+    setIsLoading(true);
+    setError(null);
+    if (pendingEmailConfirmation) {
+      let pendingObj: any = null;
+      try {
+        const raw = localStorage.getItem(`vr_pending_${pendingEmailConfirmation}`);
+        if (raw) pendingObj = JSON.parse(raw);
+      } catch {}
+
+      const res = await register(
+        pendingObj?.name || 'Client Villa Regia',
+        pendingEmailConfirmation,
+        pendingObj?.phone || '+216 27 745 405',
+        'CLIENT',
+        pendingObj?.password || 'VillaRegia.2026'
+      );
+      if (res.success) {
+        setResendTimer(60);
+      } else {
+        setError(res.error || 'Erreur lors du renvoi du code.');
+      }
     }
+    setIsLoading(false);
   };
 
   const handleCancelConfirmation = () => {
