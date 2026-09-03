@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPropertyById, updatePropertyStatus, deleteProperty } from '@/lib/db';
+import { getPropertyById, updatePropertyStatus, updateProperty, deleteProperty } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
@@ -21,8 +21,14 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { status } = await request.json();
-    const updated = await updatePropertyStatus(params.id, status);
+    const body = await request.json();
+    let updated;
+    if (body.status && Object.keys(body).length === 1) {
+      updated = await updatePropertyStatus(params.id, body.status);
+    } else {
+      updated = await updateProperty(params.id, body);
+    }
+
     if (!updated) {
       return NextResponse.json({ success: false, error: 'Property not found' }, { status: 404 });
     }

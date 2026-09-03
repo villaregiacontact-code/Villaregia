@@ -1,58 +1,117 @@
 import fs from 'fs';
 import path from 'path';
 import { StoredUserAccount } from './authStore';
+import { Property, BookingRequest, Lead, OwnerSubmission, BlogPost } from '@/types';
+import { INITIAL_PROPERTIES, INITIAL_ARTICLES } from '@/data/properties';
 
 const LOCAL_DATA_DIR = path.join(process.cwd(), 'src', 'data');
-const USERS_FILE = path.join(LOCAL_DATA_DIR, 'db_users.json');
-const TMP_USERS_FILE = path.join('/tmp', 'villaregia_users.json');
 
-function getActiveUsersFilePath(): string {
+function getFilePath(filename: string): string {
   try {
     if (!fs.existsSync(LOCAL_DATA_DIR)) {
       fs.mkdirSync(LOCAL_DATA_DIR, { recursive: true });
     }
-    return USERS_FILE;
+    return path.join(LOCAL_DATA_DIR, filename);
   } catch {
-    return TMP_USERS_FILE;
+    return path.join('/tmp', filename);
   }
 }
 
-export function loadPersistedUsers(): StoredUserAccount[] {
-  const filePath = getActiveUsersFilePath();
+function safeReadJson<T>(filename: string, fallback: T): T {
+  const filePath = getFilePath(filename);
+  const tmpPath = path.join('/tmp', filename);
+
   try {
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf8');
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) {
-        return parsed;
+      if (Array.isArray(fallback) ? Array.isArray(parsed) : parsed !== null) {
+        return parsed as T;
       }
     }
   } catch (err) {
-    console.warn('Could not read persisted users file, using memory fallback:', err);
+    console.warn(`Could not read ${filename}, checking /tmp:`, err);
   }
 
-  // Fallback to /tmp if primary failed
   try {
-    if (filePath !== TMP_USERS_FILE && fs.existsSync(TMP_USERS_FILE)) {
-      const content = fs.readFileSync(TMP_USERS_FILE, 'utf8');
+    if (fs.existsSync(tmpPath)) {
+      const content = fs.readFileSync(tmpPath, 'utf8');
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(fallback) ? Array.isArray(parsed) : parsed !== null) {
+        return parsed as T;
+      }
     }
   } catch {}
 
-  return [];
+  return fallback;
+}
+
+function safeWriteJson<T>(filename: string, data: T): void {
+  const filePath = getFilePath(filename);
+  const tmpPath = path.join('/tmp', filename);
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    try {
+      fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (tmpErr) {
+      console.warn(`Could not write ${filename} to disk:`, tmpErr);
+    }
+  }
+}
+
+// ── USERS PERSISTENCE ──
+export function loadPersistedUsers(): StoredUserAccount[] {
+  return safeReadJson<StoredUserAccount[]>('db_users.json', []);
 }
 
 export function savePersistedUsers(users: StoredUserAccount[]): void {
-  const filePath = getActiveUsersFilePath();
-  try {
-    fs.writeFileSync(filePath, JSON.stringify(users, null, 2), 'utf8');
-  } catch (err) {
-    // Try /tmp fallback for read-only environments
-    try {
-      fs.writeFileSync(TMP_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
-    } catch (tmpErr) {
-      console.warn('Could not write users to disk:', tmpErr);
-    }
-  }
+  safeWriteJson('db_users.json', users);
+}
+
+// ── SUBMISSIONS PERSISTENCE ("Proposer un bien") ──
+export function loadPersistedSubmissions(): OwnerSubmission[] {
+  return safeReadJson<OwnerSubmission[]>('db_submissions.json', []);
+}
+
+export function savePersistedSubmissions(submissions: OwnerSubmission[]): void {
+  safeWriteJson('db_submissions.json', submissions);
+}
+
+// ── LEADS PERSISTENCE (CRM) ──
+export function loadPersistedLeads(): Lead[] {
+  return safeReadJson<Lead[]>('db_leads.json', []);
+}
+
+export function savePersistedLeads(leads: Lead[]): void {
+  safeWriteJson('db_leads.json', leads);
+}
+
+// ── BOOKINGS PERSISTENCE (Villas Luxe) ──
+export function loadPersistedBookings(): BookingRequest[] {
+  return safeReadJson<BookingRequest[]>('db_bookings.json', []);
+}
+
+export function savePersistedBookings(bookings: BookingRequest[]): void {
+  safeWriteJson('db_bookings.json', bookings);
+}
+
+// ── PROPERTIES PERSISTENCE ──
+export function loadPersistedProperties(): Property[] {
+  const loaded = safeReadJson<Property[]>('db_properties.json', []);
+  return loaded.length > 0 ? loaded : [...INITIAL_PROPERTIES];
+}
+
+export function savePersistedProperties(properties: Property[]): void {
+  safeWriteJson('db_properties.json', properties);
+}
+
+// ── ARTICLES PERSISTENCE ──
+export function loadPersistedArticles(): BlogPost[] {
+  const loaded = safeReadJson<BlogPost[]>('db_articles.json', []);
+  return loaded.length > 0 ? loaded : [...INITIAL_ARTICLES];
+}
+
+export function savePersistedArticles(articles: BlogPost[]): void {
+  safeWriteJson('db_articles.json', articles);
 }

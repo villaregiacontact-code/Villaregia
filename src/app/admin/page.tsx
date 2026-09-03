@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -51,6 +51,9 @@ import {
   Check,
   UploadCloud,
   FileCheck,
+  RefreshCw,
+  Radio,
+  Activity,
 } from 'lucide-react';
 
 export interface OwnerSubmission {
@@ -105,57 +108,59 @@ export default function AdminDashboardPage() {
   const [staffUsers, setStaffUsers] = useState<UserAccount[]>(INITIAL_STAFF_ACCOUNTS);
   const [dbStats, setDbStats] = useState<any>(null);
 
-  // Sync data from live APIs & LocalStorage
-  useEffect(() => {
-    async function loadAdminData() {
-      try {
-        const [statsRes, propsRes, bookingsRes, crmRes, usersRes, subsRes, articlesRes] = await Promise.all([
-          fetch('/api/admin/stats').then(r => r.json()).catch(() => null),
-          fetch('/api/properties').then(r => r.json()).catch(() => null),
-          fetch('/api/bookings').then(r => r.json()).catch(() => null),
-          fetch('/api/admin/crm').then(r => r.json()).catch(() => null),
-          fetch('/api/admin/users').then(r => r.json()).catch(() => null),
-          fetch('/api/submissions').then(r => r.json()).catch(() => null),
-          fetch('/api/articles').then(r => r.json()).catch(() => null),
-        ]);
+  // Real-time live sync state
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
 
-        if (statsRes?.success) setDbStats(statsRes.stats);
-        if (propsRes?.success && Array.isArray(propsRes.properties)) setProperties(propsRes.properties);
-        if (bookingsRes?.success && Array.isArray(bookingsRes.bookings)) setReservations(bookingsRes.bookings);
-        if (crmRes?.success && Array.isArray(crmRes.leads)) setLeads(crmRes.leads);
-        if (usersRes?.success && Array.isArray(usersRes.users)) {
-          if (usersRes.users.length > 0) setStaffUsers(usersRes.users);
-        }
-        if (subsRes?.success && Array.isArray(subsRes.submissions)) {
-          setSubmissions(subsRes.submissions);
-        }
-        if (articlesRes?.success && Array.isArray(articlesRes.articles)) {
-          setArticles(articlesRes.articles);
-        }
-      } catch (err) {
-        console.warn('Admin API load fallback:', err);
-      }
-    }
-    loadAdminData();
-  }, []);
-
-  useEffect(() => {
+  // Sync data from live APIs & database
+  const loadAdminData = useCallback(async (isSilent = false) => {
+    if (!isSilent) setIsSyncing(true);
     try {
-      const stored = localStorage.getItem('vr_owner_submissions');
-      if (stored) {
-        const parsed: OwnerSubmission[] = JSON.parse(stored);
-        if (parsed.length > 0) {
-          setSubmissions((prev) => {
-            const ids = new Set(prev.map((s) => s.id || s.refCode));
-            const fresh = parsed.filter((s) => !ids.has(s.id) && !ids.has(s.refCode));
-            return [...fresh, ...prev];
-          });
-        }
+      const [statsRes, propsRes, bookingsRes, crmRes, usersRes, subsRes, articlesRes] = await Promise.all([
+        fetch('/api/admin/stats').then(r => r.json()).catch(() => null),
+        fetch('/api/properties').then(r => r.json()).catch(() => null),
+        fetch('/api/bookings').then(r => r.json()).catch(() => null),
+        fetch('/api/admin/crm').then(r => r.json()).catch(() => null),
+        fetch('/api/admin/users').then(r => r.json()).catch(() => null),
+        fetch('/api/submissions').then(r => r.json()).catch(() => null),
+        fetch('/api/articles').then(r => r.json()).catch(() => null),
+      ]);
+
+      if (statsRes?.success) setDbStats(statsRes.stats);
+      if (propsRes?.success && Array.isArray(propsRes.properties)) setProperties(propsRes.properties);
+      if (bookingsRes?.success && Array.isArray(bookingsRes.bookings)) setReservations(bookingsRes.bookings);
+      if (crmRes?.success && Array.isArray(crmRes.leads)) setLeads(crmRes.leads);
+      if (usersRes?.success && Array.isArray(usersRes.users)) {
+        if (usersRes.users.length > 0) setStaffUsers(usersRes.users);
       }
-    } catch (e) {
-      console.error(e);
+      if (subsRes?.success && Array.isArray(subsRes.submissions)) {
+        setSubmissions(subsRes.submissions);
+      }
+      if (articlesRes?.success && Array.isArray(articlesRes.articles)) {
+        setArticles(articlesRes.articles);
+      }
+      setLastSyncTime(new Date());
+    } catch (err) {
+      console.warn('Admin API load fallback:', err);
+    } finally {
+      if (!isSilent) setIsSyncing(false);
     }
   }, []);
+
+  // Initial load
+  useEffect(() => {
+    loadAdminData();
+  }, [loadAdminData]);
+
+  // Real-time live sync interval (every 8 seconds)
+  useEffect(() => {
+    if (!autoSyncEnabled) return;
+    const interval = setInterval(() => {
+      loadAdminData(true);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [autoSyncEnabled, loadAdminData]);
 
   const [inspectingSubmission, setInspectingSubmission] = useState<OwnerSubmission | null>(null);
 
@@ -369,22 +374,29 @@ export default function AdminDashboardPage() {
 
     if (editingProperty) {
       setProperties((prev) =>
-        prev.map((item) =>
-          item.id === editingProperty.id
-            ? {
-                ...item,
-                title: { fr: propTitle, ar: propTitle, en: propTitle },
-                universe: propUniverse,
-                category: propCategory,
-                price: { ...item.price, amount: Number(propPrice) },
-                location: { ...item.location, city: propCity, district: propDistrict },
-                specs: { ...item.specs, surfaceM2: Number(propSurface), bedrooms: Number(propBedrooms) },
-                description: { fr: propDesc, ar: propDesc, en: propDesc },
-                images: [{ url: propImageUrl, alt: propTitle, isCover: true }],
-                updatedAt: new Date().toISOString().split('T')[0],
-              }
-            : item
-        )
+        prev.map((item) => {
+          if (item.id === editingProperty.id) {
+            const updatedProp: Property = {
+              ...item,
+              title: { fr: propTitle, ar: propTitle, en: propTitle },
+              universe: propUniverse,
+              category: propCategory,
+              price: { ...item.price, amount: Number(propPrice) },
+              location: { ...item.location, city: propCity, district: propDistrict },
+              specs: { ...item.specs, surfaceM2: Number(propSurface), bedrooms: Number(propBedrooms) },
+              description: { fr: propDesc, ar: propDesc, en: propDesc },
+              images: [{ url: propImageUrl, alt: propTitle, isCover: true }],
+              updatedAt: new Date().toISOString().split('T')[0],
+            };
+            fetch(`/api/properties/${editingProperty.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatedProp),
+            }).then(() => loadAdminData(true)).catch(err => console.warn('Property update error:', err));
+            return updatedProp;
+          }
+          return item;
+        })
       );
       logAction('Modification propriété', propTitle);
     } else {
@@ -407,6 +419,11 @@ export default function AdminDashboardPage() {
       };
       setProperties((prev) => [newProp, ...prev]);
       logAction('Création nouvelle propriété', propTitle);
+      fetch('/api/properties', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProp),
+      }).then(() => loadAdminData(true)).catch(err => console.warn('Property create error:', err));
     }
 
     setPropertyModalOpen(false);
@@ -420,6 +437,9 @@ export default function AdminDashboardPage() {
     if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement la propriété "${title}" ?`)) {
       setProperties((prev) => prev.filter((p) => p.id !== id));
       logAction('Suppression propriété', title);
+      fetch(`/api/properties/${id}`, {
+        method: 'DELETE',
+      }).then(() => loadAdminData(true)).catch(err => console.warn('Property delete error:', err));
     }
   };
 
@@ -431,6 +451,11 @@ export default function AdminDashboardPage() {
     const nextStatus: PropertyStatus = currentStatus === 'DISPONIBLE' ? 'RÉSERVÉ' : 'DISPONIBLE';
     setProperties((prev) => prev.map((p) => (p.id === id ? { ...p, status: nextStatus } : p)));
     logAction(`Statut modifié (${nextStatus})`, title);
+    fetch(`/api/properties/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: nextStatus }),
+    }).then(() => loadAdminData(true)).catch(err => console.warn('Property status update error:', err));
   };
 
   const handleToggleFeatured = (id: string, isFeatured: boolean, title: string) => {
@@ -447,15 +472,20 @@ export default function AdminDashboardPage() {
     };
     setProperties((prev) => [dup, ...prev]);
     logAction('Duplication propriété', p.title.fr);
+    fetch('/api/properties', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dup),
+    }).then(() => loadAdminData(true)).catch(err => console.warn('Property duplicate error:', err));
   };
 
   const handleCreateLeadFromProperty = (p: Property) => {
     const newLead: Lead = {
       id: `lead-${Date.now()}`,
-      name: 'Client Inconnu',
-      phone: '+216 -- --- ---',
+      name: 'Client Intéressé',
+      phone: '+216 27 745 405',
       email: 'client@villaregia.tn',
-      source: 'Formulaire Contact',
+      source: 'Demande Visite',
       universe: p.universe,
       propertyTitle: p.title.fr,
       status: 'Nouveau',
@@ -466,6 +496,11 @@ export default function AdminDashboardPage() {
     setLeads((prev) => [newLead, ...prev]);
     logAction('Création Lead depuis Bien', p.title.fr);
     setActiveTab('crm');
+    fetch('/api/admin/crm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newLead),
+    }).then(() => loadAdminData(true)).catch(err => console.warn('Lead create error:', err));
   };
 
   // --------------------------------------------------------------------------
@@ -497,6 +532,16 @@ export default function AdminDashboardPage() {
     );
     logAction(`Mise à jour Lead (${leadStatusInput})`, activeLead.name);
     setLeadModalOpen(false);
+    fetch('/api/admin/crm', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: activeLead.id,
+        status: leadStatusInput,
+        notes: leadNoteInput,
+        assignedAgent: leadAgentInput,
+      }),
+    }).then(() => loadAdminData(true)).catch(err => console.warn('Lead update error:', err));
   };
 
   const handleCreateNewLead = (e: React.FormEvent) => {
@@ -521,12 +566,38 @@ export default function AdminDashboardPage() {
     setNewLeadPhone('');
     setNewLeadEmail('');
     setNewLeadPropTitle('');
+    fetch('/api/admin/crm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(created),
+    }).then(() => loadAdminData(true)).catch(err => console.warn('Lead create error:', err));
   };
 
   const handleDeleteLead = (id: string, name: string) => {
     if (confirm(`Supprimer le lead commercial de ${name} ?`)) {
       setLeads((prev) => prev.filter((l) => l.id !== id));
       logAction('Suppression lead', name);
+      fetch(`/api/admin/crm?id=${id}`, {
+        method: 'DELETE',
+      }).then(() => loadAdminData(true)).catch(err => console.warn('Lead delete error:', err));
+    }
+  };
+
+  const handleUpdateSubmissionStatus = async (subId: string, status: OwnerSubmission['status']) => {
+    setSubmissions((prev) => prev.map((s) => (s.id === subId ? { ...s, status } : s)));
+    if (inspectingSubmission?.id === subId) {
+      setInspectingSubmission((prev) => prev ? { ...prev, status } : null);
+    }
+    logAction(`Mise à jour statut dossier (${status})`, subId);
+    try {
+      await fetch('/api/submissions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: subId, status }),
+      });
+      loadAdminData(true);
+    } catch (e) {
+      console.warn('Submission status update error:', e);
     }
   };
 
@@ -536,6 +607,11 @@ export default function AdminDashboardPage() {
   const handleUpdateReservationStatus = (id: string, status: 'CONFIRMED' | 'CANCELLED' | 'PENDING') => {
     setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
     logAction(`Statut réservation (${status})`, id);
+    fetch(`/api/bookings/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    }).then(() => loadAdminData(true)).catch(err => console.warn('Booking status update error:', err));
   };
 
   // --------------------------------------------------------------------------
@@ -864,14 +940,57 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <button
-              onClick={logout}
-              className="p-2 sm:p-2.5 rounded-xl bg-white/5 hover:bg-red-500/20 text-brand-travertine/60 hover:text-red-400 border border-white/10 transition-colors shrink-0 flex items-center gap-1.5 text-xs"
-              title="Se déconnecter"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline font-mono">Quitter</span>
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Real-time Status Badge */}
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-mono">
+                <span className="relative flex h-2 w-2">
+                  {autoSyncEnabled && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  )}
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${autoSyncEnabled ? 'bg-emerald-500' : 'bg-white/40'}`}></span>
+                </span>
+                <span className="text-white/80">
+                  {isSyncing ? 'Synchronisation...' : autoSyncEnabled ? 'En Direct' : 'En Pause'}
+                </span>
+                <span className="text-white/40 text-[10px]">
+                  {lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </span>
+              </div>
+
+              {/* Manual Sync Button */}
+              <button
+                onClick={() => loadAdminData(false)}
+                disabled={isSyncing}
+                className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-brand-gold/15 hover:bg-brand-gold/25 text-brand-gold border border-brand-gold/30 transition-all flex items-center gap-1.5 text-xs font-mono disabled:opacity-50 shadow-sm"
+                title="Actualiser les données immédiatement"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Actualiser</span>
+              </button>
+
+              {/* Auto-Sync Toggle Button */}
+              <button
+                onClick={() => setAutoSyncEnabled(!autoSyncEnabled)}
+                className={`p-2 sm:px-2.5 sm:py-1.5 rounded-xl border text-xs font-mono transition-all hidden sm:flex items-center gap-1 ${
+                  autoSyncEnabled
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                    : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
+                }`}
+                title={autoSyncEnabled ? 'Désactiver la synchro automatique (8s)' : 'Activer la synchro automatique (8s)'}
+              >
+                <Radio className={`w-3 h-3 ${autoSyncEnabled ? 'text-emerald-400 animate-pulse' : ''}`} />
+                <span className="text-[10px]">{autoSyncEnabled ? 'Auto-Sync: ON' : 'Auto-Sync: OFF'}</span>
+              </button>
+
+              <button
+                onClick={logout}
+                className="p-2 sm:p-2.5 rounded-xl bg-white/5 hover:bg-red-500/20 text-brand-travertine/60 hover:text-red-400 border border-white/10 transition-colors shrink-0 flex items-center gap-1.5 text-xs"
+                title="Se déconnecter"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline font-mono">Quitter</span>
+              </button>
+            </div>
           </div>
 
           {/* Navigation Tabs - Mobile Swipeable with Horizontal Scroll */}

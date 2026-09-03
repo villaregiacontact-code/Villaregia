@@ -3,18 +3,31 @@ import { INITIAL_PROPERTIES, INITIAL_ARTICLES } from '@/data/properties';
 import { supabase, isSupabaseConfigured } from './supabase';
 
 import { ACCOUNTS_STORE, StoredUserAccount } from './authStore';
-import { loadPersistedUsers, savePersistedUsers } from './fileStorage';
+import {
+  loadPersistedUsers,
+  savePersistedUsers,
+  loadPersistedSubmissions,
+  savePersistedSubmissions,
+  loadPersistedLeads,
+  savePersistedLeads,
+  loadPersistedBookings,
+  savePersistedBookings,
+  loadPersistedProperties,
+  savePersistedProperties,
+  loadPersistedArticles,
+  savePersistedArticles,
+} from './fileStorage';
 
-// In-Memory & Persisted State (persists to JSON file on disk, Supabase if configured, syncs with runtime)
-let localProperties: Property[] = [...INITIAL_PROPERTIES];
+// In-Memory & Persisted State (persists to JSON files on disk, Supabase if configured, syncs with runtime)
+let localProperties: Property[] = loadPersistedProperties();
 
-let localArticles: BlogPost[] = [...INITIAL_ARTICLES];
+let localArticles: BlogPost[] = loadPersistedArticles();
 
-let localBookings: BookingRequest[] = [];
+let localBookings: BookingRequest[] = loadPersistedBookings();
 
-let localLeads: Lead[] = [];
+let localLeads: Lead[] = loadPersistedLeads();
 
-let localSubmissions: OwnerSubmission[] = [];
+let localSubmissions: OwnerSubmission[] = loadPersistedSubmissions();
 
 const DEFAULT_SUPERADMIN: StoredUserAccount = {
   id: 'user-superadmin-01',
@@ -134,21 +147,59 @@ export async function createProperty(property: Omit<Property, 'id' | 'createdAt'
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('properties').insert([newProperty]).select().single();
-      if (!error && data) return data as Property;
+      if (!error && data) {
+        localProperties.unshift(data as Property);
+        savePersistedProperties(localProperties);
+        return data as Property;
+      }
     } catch (e) {
       console.warn('Supabase insert property failed:', e);
     }
   }
 
   localProperties.unshift(newProperty);
+  savePersistedProperties(localProperties);
   return newProperty;
+}
+
+export async function updateProperty(id: string, updates: Partial<Property>): Promise<Property | null> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('properties').update(updates).eq('id', id).select().single();
+      if (!error && data) {
+        const idx = localProperties.findIndex(p => p.id === id);
+        if (idx >= 0) localProperties[idx] = data as Property;
+        savePersistedProperties(localProperties);
+        return data as Property;
+      }
+    } catch (e) {
+      console.warn('Supabase update property failed:', e);
+    }
+  }
+
+  const idx = localProperties.findIndex(p => p.id === id);
+  if (idx >= 0) {
+    localProperties[idx] = {
+      ...localProperties[idx],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    savePersistedProperties(localProperties);
+    return { ...localProperties[idx] };
+  }
+  return null;
 }
 
 export async function updatePropertyStatus(id: string, status: Property['status']): Promise<Property | null> {
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('properties').update({ status }).eq('id', id).select().single();
-      if (!error && data) return data as Property;
+      if (!error && data) {
+        const idx = localProperties.findIndex(p => p.id === id);
+        if (idx >= 0) localProperties[idx] = data as Property;
+        savePersistedProperties(localProperties);
+        return data as Property;
+      }
     } catch (e) {
       console.warn('Supabase update status failed:', e);
     }
@@ -158,6 +209,7 @@ export async function updatePropertyStatus(id: string, status: Property['status'
   if (prop) {
     prop.status = status;
     prop.updatedAt = new Date().toISOString();
+    savePersistedProperties(localProperties);
     return { ...prop };
   }
   return null;
@@ -172,6 +224,7 @@ export async function deleteProperty(id: string): Promise<boolean> {
     }
   }
   localProperties = localProperties.filter(p => p.id !== id);
+  savePersistedProperties(localProperties);
   return true;
 }
 
@@ -199,13 +252,18 @@ export async function createBooking(booking: Omit<BookingRequest, 'id' | 'create
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('bookings').insert([newBooking]).select().single();
-      if (!error && data) return data as BookingRequest;
+      if (!error && data) {
+        localBookings.unshift(data as BookingRequest);
+        savePersistedBookings(localBookings);
+        return data as BookingRequest;
+      }
     } catch (e) {
       console.warn('Supabase insert booking failed:', e);
     }
   }
 
   localBookings.unshift(newBooking);
+  savePersistedBookings(localBookings);
   
   // Create an automatic Lead in CRM
   await createLead({
@@ -225,7 +283,12 @@ export async function updateBookingStatus(id: string, status: 'PENDING' | 'CONFI
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('bookings').update({ status }).eq('id', id).select().single();
-      if (!error && data) return data as BookingRequest;
+      if (!error && data) {
+        const idx = localBookings.findIndex(item => item.id === id);
+        if (idx >= 0) localBookings[idx] = data as BookingRequest;
+        savePersistedBookings(localBookings);
+        return data as BookingRequest;
+      }
     } catch (e) {
       console.warn('Supabase booking update failed:', e);
     }
@@ -234,6 +297,7 @@ export async function updateBookingStatus(id: string, status: 'PENDING' | 'CONFI
   const b = localBookings.find(item => item.id === id);
   if (b) {
     b.status = status;
+    savePersistedBookings(localBookings);
     return { ...b };
   }
   return null;
@@ -263,32 +327,60 @@ export async function createLead(leadData: Omit<Lead, 'id' | 'createdAt' | 'stat
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('leads').insert([newLead]).select().single();
-      if (!error && data) return data as Lead;
+      if (!error && data) {
+        localLeads.unshift(data as Lead);
+        savePersistedLeads(localLeads);
+        return data as Lead;
+      }
     } catch (e) {
       console.warn('Supabase insert lead failed:', e);
     }
   }
 
   localLeads.unshift(newLead);
+  savePersistedLeads(localLeads);
   return newLead;
 }
 
-export async function updateLeadStatus(id: string, status: Lead['status']): Promise<Lead | null> {
+export async function updateLead(id: string, updates: Partial<Lead>): Promise<Lead | null> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('leads').update({ status }).eq('id', id).select().single();
-      if (!error && data) return data as Lead;
+      const { data, error } = await supabase.from('leads').update(updates).eq('id', id).select().single();
+      if (!error && data) {
+        const idx = localLeads.findIndex(l => l.id === id);
+        if (idx >= 0) localLeads[idx] = data as Lead;
+        savePersistedLeads(localLeads);
+        return data as Lead;
+      }
     } catch (e) {
-      console.warn('Supabase lead status update failed:', e);
+      console.warn('Supabase lead update failed:', e);
     }
   }
 
   const lead = localLeads.find(l => l.id === id);
   if (lead) {
-    lead.status = status;
+    Object.assign(lead, updates);
+    savePersistedLeads(localLeads);
     return { ...lead };
   }
   return null;
+}
+
+export async function updateLeadStatus(id: string, status: Lead['status']): Promise<Lead | null> {
+  return updateLead(id, { status });
+}
+
+export async function deleteLead(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('leads').delete().eq('id', id);
+    } catch (e) {
+      console.warn('Supabase lead delete failed:', e);
+    }
+  }
+  localLeads = localLeads.filter(l => l.id !== id);
+  savePersistedLeads(localLeads);
+  return true;
 }
 
 // Owner Submissions ("Proposer un bien")
@@ -318,6 +410,7 @@ export async function updateOwnerSubmissionStatus(id: string, status: OwnerSubmi
   const sub = localSubmissions.find(s => s.id === id || s.refCode === id);
   if (sub) {
     sub.status = status;
+    savePersistedSubmissions(localSubmissions);
     return { ...sub };
   }
   return null;
@@ -343,6 +436,7 @@ export async function createOwnerSubmission(submission: Omit<OwnerSubmission, 'i
   }
 
   localSubmissions.unshift(newSubmission);
+  savePersistedSubmissions(localSubmissions);
 
   // Automatically record as CRM Lead
   await createLead({
@@ -642,6 +736,7 @@ export async function createArticle(articleData: Omit<BlogPost, 'id'> & { id?: s
   }
 
   localArticles.unshift(newArticle);
+  savePersistedArticles(localArticles);
   return newArticle;
 }
 
@@ -652,6 +747,7 @@ export async function updateArticle(id: string, updateData: Partial<BlogPost>): 
       if (!error && data) {
         const idx = localArticles.findIndex(a => a.id === id);
         if (idx >= 0) localArticles[idx] = data as BlogPost;
+        savePersistedArticles(localArticles);
         return data as BlogPost;
       }
     } catch (e) {
@@ -662,6 +758,7 @@ export async function updateArticle(id: string, updateData: Partial<BlogPost>): 
   const idx = localArticles.findIndex(a => a.id === id);
   if (idx >= 0) {
     localArticles[idx] = { ...localArticles[idx], ...updateData };
+    savePersistedArticles(localArticles);
     return localArticles[idx];
   }
 
@@ -678,6 +775,7 @@ export async function deleteArticle(id: string): Promise<boolean> {
   }
 
   localArticles = localArticles.filter(a => a.id !== id);
+  savePersistedArticles(localArticles);
   return true;
 }
 
