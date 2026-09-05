@@ -283,12 +283,12 @@ export async function getProperties(filters?: Partial<FilterState>): Promise<Pro
       if (filters?.city && filters.city !== 'ALL') {
         query = query.ilike('city', `%${filters.city}%`);
       }
-      const res = await withTimeout(query, 350, { data: null, error: new Error('Timeout') } as any);
+      const res = await withTimeout(query, 3000, { data: null, error: new Error('Timeout') } as any);
       if (!res.error && res.data && res.data.length > 0) {
         const supaProps: Property[] = (res.data as any[]).map(normalizeProperty);
         const map = new Map<string, Property>();
-        localProperties.forEach((p: Property) => map.set(p.id, p));
-        supaProps.forEach((p: Property) => { if (!map.has(p.id)) map.set(p.id, p); });
+        supaProps.forEach((p: Property) => map.set(p.id, p));
+        localProperties.forEach((p: Property) => { if (!map.has(p.id)) map.set(p.id, p); });
         const merged = Array.from(map.values());
         localProperties = merged;
         savePersistedProperties(localProperties);
@@ -352,7 +352,7 @@ export async function getPropertyById(id: string): Promise<Property | null> {
     try {
       const res = await withTimeout(
         supabase.from('properties').select('*').eq('id', id).single(),
-        350,
+        3000,
         { data: null, error: new Error('Timeout') } as any
       );
       if (!res.error && res.data) return normalizeProperty(res.data);
@@ -363,24 +363,24 @@ export async function getPropertyById(id: string): Promise<Property | null> {
   return localProperties.find(p => p.id === id) || null;
 }
 
-export async function createProperty(property: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>): Promise<Property> {
+export async function createProperty(property: Omit<Property, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }): Promise<Property> {
   const newProperty: Property = {
     ...property,
-    id: `vr-prop-${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    id: property.id || `vr-prop-${Date.now()}`,
+    createdAt: property.createdAt || new Date().toISOString(),
+    updatedAt: property.updatedAt || new Date().toISOString(),
   };
 
   if (isSupabaseConfigured && supabase) {
     try {
       const payload = toSupabasePropertyPayload(newProperty);
       const res = await withTimeout(
-        supabase.from('properties').insert([payload]).select().single(),
-        800,
+        supabase.from('properties').insert([payload]).select(),
+        6000,
         { data: null, error: new Error('Timeout') } as any
       );
-      if (!res.error && res.data) {
-        const normalized = normalizeProperty(res.data);
+      if (!res.error && res.data && res.data.length > 0) {
+        const normalized = normalizeProperty(res.data[0]);
         localProperties.unshift(normalized);
         savePersistedProperties(localProperties);
         return normalized;
@@ -402,12 +402,12 @@ export async function updateProperty(id: string, updates: Partial<Property>): Pr
     try {
       const payload = toSupabasePropertyPayload({ ...updates, updatedAt: new Date().toISOString() });
       const res = await withTimeout(
-        supabase.from('properties').update(payload).eq('id', id).select().single(),
-        800,
+        supabase.from('properties').update(payload).eq('id', id).select(),
+        6000,
         { data: null, error: new Error('Timeout') } as any
       );
-      if (!res.error && res.data) {
-        const normalized = normalizeProperty(res.data);
+      if (!res.error && res.data && res.data.length > 0) {
+        const normalized = normalizeProperty(res.data[0]);
         const idx = localProperties.findIndex(p => p.id === id);
         if (idx >= 0) localProperties[idx] = normalized;
         savePersistedProperties(localProperties);
@@ -442,7 +442,7 @@ export async function deleteProperty(id: string): Promise<boolean> {
     try {
       await withTimeout(
         supabase.from('properties').delete().eq('id', id),
-        500,
+        6000,
         { error: new Error('Timeout') } as any
       );
     } catch (e) {

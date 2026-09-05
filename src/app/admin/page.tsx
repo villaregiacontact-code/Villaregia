@@ -431,16 +431,18 @@ export default function AdminDashboardPage() {
         ? sub.photos.map((url, idx) => ({ url, alt: `${sub.propertyType} Photo ${idx + 1}`, isCover: idx === 0 }))
         : [{ url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85', alt: sub.propertyType, isCover: true }];
 
+      const validPrice = sub.estimatedPrice || sub.estimatedValue || 950000;
+
       const newProp: Property = {
         id: `vr-prop-${Date.now()}`,
         title: { fr: `${sub.propertyType} High Standing — ${sub.district || sub.city}`, ar: `${sub.propertyType} — ${sub.district || sub.city}`, en: `${sub.propertyType} — ${sub.district || sub.city}` },
-        universe: sub.objective,
-        category: sub.propertyType,
-        price: { amount: sub.estimatedPrice || sub.estimatedValue || 0, currency: 'TND', period: 'total' },
-        location: { city: sub.city, district: sub.district || sub.city, country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
+        universe: sub.objective || 'VENTE',
+        category: sub.propertyType || 'Villa',
+        price: { amount: Number(validPrice) > 0 ? Number(validPrice) : 950000, currency: 'TND', period: 'total' },
+        location: { city: sub.city || 'Sfax', district: sub.district || sub.city || 'Sfax', country: 'Tunisie', lat: 34.7400, lng: 10.7400, isExactPosition: false },
         specs: {
-          surfaceM2: sub.surfaceM2,
-          bedrooms: sub.bedrooms || 0,
+          surfaceM2: Number(sub.surfaceM2) || 200,
+          bedrooms: sub.bedrooms || 3,
           pool: true,
           garden: true,
           completionEstimate: sub.completionEstimate || sub.specificDetails?.completionEstimate,
@@ -471,13 +473,23 @@ export default function AdminDashboardPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: sub.id, status: 'APPROVED', isPublished: true }),
         });
-        await fetch('/api/properties', {
+        const propRes = await fetch('/api/properties', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newProp),
         });
-        loadAdminData(true);
-        showToast(`Dossier ${sub.refCode} approuvé et publié au catalogue !`);
+        const propData = await propRes.json();
+        if (propData.success && propData.property) {
+          setProperties((prev) => {
+            const map = new Map<string, Property>();
+            [propData.property, ...prev].forEach(p => map.set(p.id, p));
+            const nextProps = Array.from(map.values());
+            try { localStorage.setItem('vr_admin_properties', JSON.stringify(nextProps)); } catch {}
+            return nextProps;
+          });
+        }
+        loadAdminData(true, true);
+        showToast(`Dossier ${sub.refCode} approuvé et publié au catalogue avec succès !`);
       } catch (e) {
         console.warn('Submission approval API sync fallback:', e);
       }
@@ -746,10 +758,26 @@ export default function AdminDashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProp),
-      }).then(() => {
-        loadAdminData(true, true);
-        showToast('Nouvelle propriété créée et synchronisée avec succès');
-      }).catch(err => console.warn('Property create error:', err));
+      }).then(async (res) => {
+        const data = await res.json();
+        if (data.success && data.property) {
+          const created: Property = data.property;
+          setProperties((prev) => {
+            const map = new Map<string, Property>();
+            [created, ...prev].forEach((p) => map.set(p.id, p));
+            const nextProps = Array.from(map.values());
+            try { localStorage.setItem('vr_admin_properties', JSON.stringify(nextProps)); } catch {}
+            return nextProps;
+          });
+          loadAdminData(true, true);
+          showToast('Nouvelle propriété créée et synchronisée avec succès dans la base de données !');
+        } else {
+          showToast(data.error || 'Erreur de création de la propriété', 'error');
+        }
+      }).catch(err => {
+        console.warn('Property create error:', err);
+        showToast('Échec de la synchronisation serveur, sauvegardé localement', 'info');
+      });
     }
 
     setPropertyModalOpen(false);
