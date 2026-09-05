@@ -129,17 +129,23 @@ export default function AdminDashboardPage() {
         fetch('/api/articles').then(r => r.json()).catch(() => null),
       ]);
 
-      if (statsRes?.success) setDbStats(statsRes.stats);
-      if (propsRes?.success && Array.isArray(propsRes.properties)) setProperties(propsRes.properties);
-      if (bookingsRes?.success && Array.isArray(bookingsRes.bookings)) setReservations(bookingsRes.bookings);
-      if (crmRes?.success && Array.isArray(crmRes.leads)) setLeads(crmRes.leads);
-      if (usersRes?.success && Array.isArray(usersRes.users)) {
-        if (usersRes.users.length > 0) setStaffUsers(usersRes.users);
+      if (statsRes?.success && statsRes.stats) setDbStats(statsRes.stats);
+      if (propsRes?.success && Array.isArray(propsRes.properties) && propsRes.properties.length > 0) {
+        setProperties(propsRes.properties);
       }
-      if (subsRes?.success && Array.isArray(subsRes.submissions)) {
+      if (bookingsRes?.success && Array.isArray(bookingsRes.bookings) && bookingsRes.bookings.length > 0) {
+        setReservations(bookingsRes.bookings);
+      }
+      if (crmRes?.success && Array.isArray(crmRes.leads) && crmRes.leads.length > 0) {
+        setLeads(crmRes.leads);
+      }
+      if (usersRes?.success && Array.isArray(usersRes.users) && usersRes.users.length > 0) {
+        setStaffUsers(usersRes.users);
+      }
+      if (subsRes?.success && Array.isArray(subsRes.submissions) && subsRes.submissions.length > 0) {
         setSubmissions(subsRes.submissions);
       }
-      if (articlesRes?.success && Array.isArray(articlesRes.articles)) {
+      if (articlesRes?.success && Array.isArray(articlesRes.articles) && articlesRes.articles.length > 0) {
         setArticles(articlesRes.articles);
       }
       setLastSyncTime(new Date());
@@ -161,12 +167,12 @@ export default function AdminDashboardPage() {
     loadAdminData(true);
   });
 
-  // Fast active background sync interval (every 3 seconds)
+  // Background sync interval (every 15 seconds)
   useEffect(() => {
     if (!autoSyncEnabled) return;
     const interval = setInterval(() => {
       loadAdminData(true);
-    }, 3000);
+    }, 15000);
     return () => clearInterval(interval);
   }, [autoSyncEnabled, loadAdminData]);
 

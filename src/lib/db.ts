@@ -242,6 +242,10 @@ export async function getProperties(filters?: Partial<FilterState>): Promise<Pro
     }
   }
 
+  if (localProperties.length === 0) {
+    localProperties = [...INITIAL_PROPERTIES];
+  }
+
   // Fallback to local memory filter
   let result = [...localProperties];
 
@@ -572,6 +576,35 @@ export async function deleteLead(id: string): Promise<boolean> {
 }
 
 // Owner Submissions ("Proposer un bien")
+const SAMPLE_DEMO_SUBMISSION: OwnerSubmission = {
+  id: 'sub-demo-01',
+  refCode: 'DOS-2026-8850',
+  propertyType: 'Villa',
+  objective: 'VENTE',
+  surfaceM2: 450,
+  bedrooms: 4,
+  estimatedValue: 1200000,
+  estimatedPrice: 1200000,
+  city: 'Sfax',
+  district: 'Route de Téniour Km 3',
+  gouvernorat: 'Sfax',
+  address: 'Route de Téniour Km 3, Sfax',
+  ownerName: 'Amine Triki',
+  ownerPhone: '+216 20 111 222',
+  ownerEmail: 'amine.triki@example.tn',
+  titleType: 'Titre Bleu Individuel (رسم عقاري فردي)',
+  titleNumber: '14859 Sfax',
+  hasCertificate: '1',
+  hasBuildingPermit: 'Permis de bâtir municipal en règle',
+  tunisianLawCertified: true,
+  details: 'Superbe villa de maître avec jardin arboré et piscine privative.',
+  specificDetails: { bathrooms: 3, parkingSpots: 2, hasPool: true, hasGarden: true },
+  photos: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80'],
+  status: 'PENDING',
+  isPublished: false,
+  createdAt: new Date().toISOString(),
+};
+
 export async function getOwnerSubmissions(): Promise<OwnerSubmission[]> {
   const freshSubs = loadPersistedSubmissions();
   if (freshSubs.length > 0) localSubmissions = freshSubs;
@@ -591,6 +624,9 @@ export async function getOwnerSubmissions(): Promise<OwnerSubmission[]> {
     } catch (e) {
       console.warn('Supabase fetch submissions failed:', e);
     }
+  }
+  if (localSubmissions.length === 0) {
+    localSubmissions = [SAMPLE_DEMO_SUBMISSION];
   }
   return [...localSubmissions];
 }
