@@ -1412,66 +1412,8 @@ export default function AdminDashboardPage() {
   const totalClientsCount = staffUsers.filter((u) => u.role === 'CLIENT').length;
   const totalStaffCount = staffUsers.filter((u) => u.role !== 'CLIENT').length;
 
-  // Filtered Collections
-  const filteredProperties = properties.filter((p) => {
-    if (universeFilter !== 'ALL' && p.universe !== universeFilter) return false;
-    if (propertyCategoryFilter !== 'ALL' && p.category !== propertyCategoryFilter) return false;
-    if (propertyStatusFilter !== 'ALL' && p.status !== propertyStatusFilter) return false;
-    if (propertySearch) {
-      const q = propertySearch.toLowerCase();
-      const matchTitle = p.title.fr.toLowerCase().includes(q);
-      const matchDistrict = p.location.district.toLowerCase().includes(q);
-      const matchCity = p.location.city.toLowerCase().includes(q);
-      const matchId = p.id.toLowerCase().includes(q);
-      if (!matchTitle && !matchDistrict && !matchCity && !matchId) return false;
-    }
-    return true;
-  });
+  // Filtered collections are memoized via useMemo above
 
-  const filteredSubmissions = submissions.filter((s) => {
-    if (submissionFilter === 'PENDING' && s.status !== 'PENDING') return false;
-    if (submissionFilter === 'APPROVED_UNPUBLISHED' && !(s.status === 'APPROVED' && !s.isPublished)) return false;
-    if (submissionFilter === 'APPROVED_PUBLISHED' && !(s.status === 'APPROVED' && s.isPublished)) return false;
-    if (submissionFilter === 'REJECTED' && s.status !== 'REJECTED') return false;
-    if (submissionSearch) {
-      const q = submissionSearch.toLowerCase();
-      const matchName = s.ownerName.toLowerCase().includes(q);
-      const matchEmail = s.ownerEmail.toLowerCase().includes(q);
-      const matchPhone = s.ownerPhone.toLowerCase().includes(q);
-      const matchRef = s.refCode.toLowerCase().includes(q);
-      const matchCity = s.city.toLowerCase().includes(q);
-      const matchType = s.propertyType.toLowerCase().includes(q);
-      if (!matchName && !matchEmail && !matchPhone && !matchRef && !matchCity && !matchType) return false;
-    }
-    return true;
-  });
-
-  const filteredReservations = reservations.filter((r) => {
-    if (reservationStatusFilter !== 'ALL' && r.status !== reservationStatusFilter) return false;
-    if (reservationSearch) {
-      const q = reservationSearch.toLowerCase();
-      const matchGuest = r.guestName.toLowerCase().includes(q);
-      const matchEmail = r.guestEmail.toLowerCase().includes(q);
-      const matchPhone = r.guestPhone.toLowerCase().includes(q);
-      const matchId = r.id.toLowerCase().includes(q);
-      const matchProp = r.propertyTitle.toLowerCase().includes(q);
-      if (!matchGuest && !matchEmail && !matchPhone && !matchId && !matchProp) return false;
-    }
-    return true;
-  });
-
-  const filteredLeads = leads.filter((l) => {
-    if (crmStatusFilter !== 'ALL' && l.status !== crmStatusFilter) return false;
-    if (crmSearch) {
-      const q = crmSearch.toLowerCase();
-      const matchName = l.name.toLowerCase().includes(q);
-      const matchPhone = l.phone.toLowerCase().includes(q);
-      const matchEmail = l.email?.toLowerCase().includes(q);
-      const matchProp = l.propertyTitle?.toLowerCase().includes(q);
-      if (!matchName && !matchPhone && !matchEmail && !matchProp) return false;
-    }
-    return true;
-  });
 
   return (
     <div className="pt-24 pb-24 bg-brand-navy-dark min-h-screen text-brand-travertine relative">
