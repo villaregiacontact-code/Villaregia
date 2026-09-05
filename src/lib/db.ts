@@ -217,6 +217,13 @@ function toSupabaseUserPayload(u: StoredUserAccount): Record<string, any> {
   };
 }
 
+async function withTimeout<T>(promise: any, timeoutMs = 350, fallbackValue: T): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallbackValue), timeoutMs)),
+  ]);
+}
+
 // Helper functions for properties
 export async function getProperties(filters?: Partial<FilterState>): Promise<Property[]> {
   const freshProps = loadPersistedProperties();
@@ -233,9 +240,9 @@ export async function getProperties(filters?: Partial<FilterState>): Promise<Pro
       if (filters?.city && filters.city !== 'ALL') {
         query = query.ilike('city', `%${filters.city}%`);
       }
-      const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        return data as Property[];
+      const res = await withTimeout(query, 350, { data: null, error: new Error('Timeout') } as any);
+      if (!res.error && res.data && res.data.length > 0) {
+        return res.data as Property[];
       }
     } catch (e) {
       console.warn('Supabase fetch failed, using fallback memory state:', e);
@@ -293,8 +300,12 @@ export async function getProperties(filters?: Partial<FilterState>): Promise<Pro
 export async function getPropertyById(id: string): Promise<Property | null> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('properties').select('*').eq('id', id).single();
-      if (!error && data) return data as Property;
+      const res = await withTimeout(
+        supabase.from('properties').select('*').eq('id', id).single(),
+        350,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) return res.data as Property;
     } catch (e) {
       console.warn('Supabase fetch single property failed:', e);
     }
@@ -312,11 +323,15 @@ export async function createProperty(property: Omit<Property, 'id' | 'createdAt'
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('properties').insert([newProperty]).select().single();
-      if (!error && data) {
-        localProperties.unshift(data as Property);
+      const res = await withTimeout(
+        supabase.from('properties').insert([newProperty]).select().single(),
+        500,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
+        localProperties.unshift(res.data as Property);
         savePersistedProperties(localProperties);
-        return data as Property;
+        return res.data as Property;
       }
     } catch (e) {
       console.warn('Supabase insert property failed:', e);
@@ -331,12 +346,16 @@ export async function createProperty(property: Omit<Property, 'id' | 'createdAt'
 export async function updateProperty(id: string, updates: Partial<Property>): Promise<Property | null> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('properties').update(updates).eq('id', id).select().single();
-      if (!error && data) {
+      const res = await withTimeout(
+        supabase.from('properties').update(updates).eq('id', id).select().single(),
+        500,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
         const idx = localProperties.findIndex(p => p.id === id);
-        if (idx >= 0) localProperties[idx] = data as Property;
+        if (idx >= 0) localProperties[idx] = res.data as Property;
         savePersistedProperties(localProperties);
-        return data as Property;
+        return res.data as Property;
       }
     } catch (e) {
       console.warn('Supabase update property failed:', e);
@@ -359,12 +378,16 @@ export async function updateProperty(id: string, updates: Partial<Property>): Pr
 export async function updatePropertyStatus(id: string, status: Property['status']): Promise<Property | null> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('properties').update({ status }).eq('id', id).select().single();
-      if (!error && data) {
+      const res = await withTimeout(
+        supabase.from('properties').update({ status }).eq('id', id).select().single(),
+        500,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
         const idx = localProperties.findIndex(p => p.id === id);
-        if (idx >= 0) localProperties[idx] = data as Property;
+        if (idx >= 0) localProperties[idx] = res.data as Property;
         savePersistedProperties(localProperties);
-        return data as Property;
+        return res.data as Property;
       }
     } catch (e) {
       console.warn('Supabase update status failed:', e);
@@ -384,7 +407,11 @@ export async function updatePropertyStatus(id: string, status: Property['status'
 export async function deleteProperty(id: string): Promise<boolean> {
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('properties').delete().eq('id', id);
+      await withTimeout(
+        supabase.from('properties').delete().eq('id', id),
+        500,
+        { error: new Error('Timeout') } as any
+      );
     } catch (e) {
       console.warn('Supabase delete property failed:', e);
     }
@@ -400,12 +427,16 @@ export async function getBookings(): Promise<BookingRequest[]> {
   if (freshBookings.length > 0) localBookings = freshBookings;
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('bookings').select('*').order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
-        const supaBookings = data.map(normalizeBooking);
+      const res = await withTimeout(
+        supabase.from('bookings').select('*').order('created_at', { ascending: false }),
+        350,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data && res.data.length > 0) {
+        const supaBookings: BookingRequest[] = (res.data as any[]).map(normalizeBooking);
         const map = new Map<string, BookingRequest>();
-        localBookings.forEach(b => map.set(b.id, b));
-        supaBookings.forEach(b => { if (!map.has(b.id)) map.set(b.id, b); });
+        localBookings.forEach((b: BookingRequest) => map.set(b.id, b));
+        supaBookings.forEach((b: BookingRequest) => { if (!map.has(b.id)) map.set(b.id, b); });
         const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         localBookings = merged;
         savePersistedBookings(localBookings);
@@ -429,9 +460,13 @@ export async function createBooking(booking: Omit<BookingRequest, 'id' | 'create
   if (isSupabaseConfigured && supabase) {
     try {
       const payload = toSupabaseBookingPayload(newBooking);
-      const { data, error } = await supabase.from('bookings').insert([payload]).select().single();
-      if (!error && data) {
-        const normalized = normalizeBooking(data);
+      const res = await withTimeout(
+        supabase.from('bookings').insert([payload]).select().single(),
+        500,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
+        const normalized = normalizeBooking(res.data);
         localBookings.unshift(normalized);
         savePersistedBookings(localBookings);
         return normalized;
@@ -461,12 +496,16 @@ export async function createBooking(booking: Omit<BookingRequest, 'id' | 'create
 export async function updateBookingStatus(id: string, status: 'PENDING' | 'CONFIRMED' | 'CANCELLED'): Promise<BookingRequest | null> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('bookings').update({ status }).eq('id', id).select().single();
-      if (!error && data) {
+      const res = await withTimeout(
+        supabase.from('bookings').update({ status }).eq('id', id).select().single(),
+        500,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
         const idx = localBookings.findIndex(item => item.id === id);
-        if (idx >= 0) localBookings[idx] = data as BookingRequest;
+        if (idx >= 0) localBookings[idx] = res.data as BookingRequest;
         savePersistedBookings(localBookings);
-        return data as BookingRequest;
+        return res.data as BookingRequest;
       }
     } catch (e) {
       console.warn('Supabase booking update failed:', e);
@@ -488,12 +527,16 @@ export async function getLeads(): Promise<Lead[]> {
   if (freshLeads.length > 0) localLeads = freshLeads;
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
-        const supaLeads = data.map(normalizeLead);
+      const res = await withTimeout(
+        supabase.from('leads').select('*').order('created_at', { ascending: false }),
+        350,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data && res.data.length > 0) {
+        const supaLeads: Lead[] = (res.data as any[]).map(normalizeLead);
         const map = new Map<string, Lead>();
-        localLeads.forEach(l => map.set(l.id, l));
-        supaLeads.forEach(l => { if (!map.has(l.id)) map.set(l.id, l); });
+        localLeads.forEach((l: Lead) => map.set(l.id, l));
+        supaLeads.forEach((l: Lead) => { if (!map.has(l.id)) map.set(l.id, l); });
         const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         localLeads = merged;
         savePersistedLeads(localLeads);
@@ -517,9 +560,13 @@ export async function createLead(leadData: Omit<Lead, 'id' | 'createdAt' | 'stat
   if (isSupabaseConfigured && supabase) {
     try {
       const payload = toSupabaseLeadPayload(newLead);
-      const { data, error } = await supabase.from('leads').insert([payload]).select().single();
-      if (!error && data) {
-        const normalized = normalizeLead(data);
+      const res = await withTimeout(
+        supabase.from('leads').insert([payload]).select().single(),
+        500,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
+        const normalized = normalizeLead(res.data);
         localLeads.unshift(normalized);
         savePersistedLeads(localLeads);
         return normalized;
@@ -537,12 +584,16 @@ export async function createLead(leadData: Omit<Lead, 'id' | 'createdAt' | 'stat
 export async function updateLead(id: string, updates: Partial<Lead>): Promise<Lead | null> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('leads').update(updates).eq('id', id).select().single();
-      if (!error && data) {
+      const res = await withTimeout(
+        supabase.from('leads').update(updates).eq('id', id).select().single(),
+        500,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
         const idx = localLeads.findIndex(l => l.id === id);
-        if (idx >= 0) localLeads[idx] = data as Lead;
+        if (idx >= 0) localLeads[idx] = res.data as Lead;
         savePersistedLeads(localLeads);
-        return data as Lead;
+        return res.data as Lead;
       }
     } catch (e) {
       console.warn('Supabase lead update failed:', e);
@@ -565,7 +616,11 @@ export async function updateLeadStatus(id: string, status: Lead['status']): Prom
 export async function deleteLead(id: string): Promise<boolean> {
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('leads').delete().eq('id', id);
+      await withTimeout(
+        supabase.from('leads').delete().eq('id', id),
+        500,
+        { error: new Error('Timeout') } as any
+      );
     } catch (e) {
       console.warn('Supabase lead delete failed:', e);
     }
@@ -610,12 +665,16 @@ export async function getOwnerSubmissions(): Promise<OwnerSubmission[]> {
   if (freshSubs.length > 0) localSubmissions = freshSubs;
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('submissions').select('*').order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
-        const supaSubs = data.map(normalizeSubmission);
+      const res = await withTimeout(
+        supabase.from('submissions').select('*').order('created_at', { ascending: false }),
+        350,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data && res.data.length > 0) {
+        const supaSubs: OwnerSubmission[] = (res.data as any[]).map(normalizeSubmission);
         const map = new Map<string, OwnerSubmission>();
-        localSubmissions.forEach(s => map.set(s.id, s));
-        supaSubs.forEach(s => { if (!map.has(s.id)) map.set(s.id, s); });
+        localSubmissions.forEach((s: OwnerSubmission) => map.set(s.id, s));
+        supaSubs.forEach((s: OwnerSubmission) => { if (!map.has(s.id)) map.set(s.id, s); });
         const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         localSubmissions = merged;
         savePersistedSubmissions(localSubmissions);
@@ -639,7 +698,11 @@ export async function updateOwnerSubmissionStatus(id: string, status: OwnerSubmi
 
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('submissions').update(updatePayload).eq('id', id);
+      await withTimeout(
+        supabase.from('submissions').update(updatePayload).eq('id', id),
+        500,
+        { error: new Error('Timeout') } as any
+      );
     } catch (e) {
       console.warn('Supabase update submission status failed:', e);
     }
@@ -670,7 +733,11 @@ export async function createOwnerSubmission(submission: Omit<OwnerSubmission, 'i
 
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('submissions').insert([toSupabaseSubmissionPayload(newSubmission)]);
+      await withTimeout(
+        supabase.from('submissions').insert([toSupabaseSubmissionPayload(newSubmission)]),
+        500,
+        { error: new Error('Timeout') } as any
+      );
     } catch (e) {
       console.warn('Supabase owner submission failed:', e);
     }
@@ -748,16 +815,20 @@ export async function getDbUsers(): Promise<StoredUserAccount[]> {
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('users').select('*');
-      if (!error && data && data.length > 0) {
-        const supaUsers = data.map(normalizeUser);
+      const res = await withTimeout(
+        supabase.from('users').select('*'),
+        350,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data && res.data.length > 0) {
+        const supaUsers: StoredUserAccount[] = (res.data as any[]).map(normalizeUser);
         const map = new Map<string, StoredUserAccount>();
-        localUsers.forEach(u => map.set(u.email.toLowerCase().trim(), u));
-        supaUsers.forEach(u => {
+        localUsers.forEach((u: StoredUserAccount) => map.set(u.email.toLowerCase().trim(), u));
+        supaUsers.forEach((u: StoredUserAccount) => {
           if (!map.has(u.email.toLowerCase().trim())) map.set(u.email.toLowerCase().trim(), u);
         });
         localUsers = Array.from(map.values());
-        localUsers.forEach(u => ACCOUNTS_STORE.set(u.email.toLowerCase().trim(), u));
+        localUsers.forEach((u: StoredUserAccount) => ACCOUNTS_STORE.set(u.email.toLowerCase().trim(), u));
         savePersistedUsers(localUsers);
         return localUsers;
       }
@@ -795,10 +866,14 @@ export async function getDbUserByEmail(email: string): Promise<StoredUserAccount
   // Check Supabase if configured
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('users').select('*').eq('email', cleanEmail).single();
-      if (!error && data) {
-        ACCOUNTS_STORE.set(cleanEmail, data as StoredUserAccount);
-        return data as StoredUserAccount;
+      const res = await withTimeout(
+        supabase.from('users').select('*').eq('email', cleanEmail).single(),
+        350,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
+        ACCOUNTS_STORE.set(cleanEmail, res.data as StoredUserAccount);
+        return res.data as StoredUserAccount;
       }
     } catch (e) {
       console.warn('Supabase fetch user by email failed:', e);
@@ -832,7 +907,11 @@ export async function createDbUser(userData: Omit<StoredUserAccount, 'id' | 'cre
   // 3. Persist in Supabase if configured
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('users').upsert([toSupabaseUserPayload(newUser)], { onConflict: 'email' });
+      await withTimeout(
+        supabase.from('users').upsert([toSupabaseUserPayload(newUser)], { onConflict: 'email' }),
+        500,
+        { error: new Error('Timeout') } as any
+      );
     } catch (e) {
       console.warn('Supabase user insert/upsert failed:', e);
     }
@@ -874,7 +953,11 @@ export async function updateDbUser(updateData: Partial<StoredUserAccount> & { em
   // Sync Supabase
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('users').update(updatedUser).eq('email', cleanEmail);
+      await withTimeout(
+        supabase.from('users').update(toSupabaseUserPayload(updatedUser)).eq('email', cleanEmail),
+        500,
+        { error: new Error('Timeout') } as any
+      );
     } catch (e) {
       console.warn('Supabase user update failed:', e);
     }
@@ -912,9 +995,17 @@ export async function deleteDbUser(email?: string, id?: string): Promise<boolean
   if (isSupabaseConfigured && supabase) {
     try {
       if (cleanEmail) {
-        await supabase.from('users').delete().eq('email', cleanEmail);
+        await withTimeout(
+          supabase.from('users').delete().eq('email', cleanEmail),
+          500,
+          { error: new Error('Timeout') } as any
+        );
       } else if (id) {
-        await supabase.from('users').delete().eq('id', id);
+        await withTimeout(
+          supabase.from('users').delete().eq('id', id),
+          500,
+          { error: new Error('Timeout') } as any
+        );
       }
     } catch (e) {
       console.warn('Supabase user delete failed:', e);
@@ -940,9 +1031,13 @@ export async function getArticles(category?: string): Promise<BlogPost[]> {
       if (category && category !== 'ALL') {
         query = query.eq('category', category);
       }
-      const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        return data as BlogPost[];
+      const res = await withTimeout(
+        query,
+        350,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data && res.data.length > 0) {
+        return res.data as BlogPost[];
       }
     } catch (e) {
       console.warn('Supabase fetch articles failed, fallback to memory state:', e);
@@ -958,8 +1053,12 @@ export async function getArticles(category?: string): Promise<BlogPost[]> {
 export async function getArticleBySlug(slug: string): Promise<BlogPost | null> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('articles').select('*').eq('slug', slug).single();
-      if (!error && data) return data as BlogPost;
+      const res = await withTimeout(
+        supabase.from('articles').select('*').eq('slug', slug).single(),
+        350,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) return res.data as BlogPost;
     } catch (e) {
       console.warn('Supabase fetch article by slug failed:', e);
     }
@@ -977,10 +1076,14 @@ export async function createArticle(articleData: Omit<BlogPost, 'id'> & { id?: s
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('articles').insert([newArticle]).select().single();
-      if (!error && data) {
-        localArticles.unshift(data as BlogPost);
-        return data as BlogPost;
+      const res = await withTimeout(
+        supabase.from('articles').insert([newArticle]).select().single(),
+        500,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
+        localArticles.unshift(res.data as BlogPost);
+        return res.data as BlogPost;
       }
     } catch (e) {
       console.warn('Supabase insert article failed:', e);
@@ -995,12 +1098,16 @@ export async function createArticle(articleData: Omit<BlogPost, 'id'> & { id?: s
 export async function updateArticle(id: string, updateData: Partial<BlogPost>): Promise<BlogPost | null> {
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('articles').update(updateData).eq('id', id).select().single();
-      if (!error && data) {
+      const res = await withTimeout(
+        supabase.from('articles').update(updateData).eq('id', id).select().single(),
+        500,
+        { data: null, error: new Error('Timeout') } as any
+      );
+      if (!res.error && res.data) {
         const idx = localArticles.findIndex(a => a.id === id);
-        if (idx >= 0) localArticles[idx] = data as BlogPost;
+        if (idx >= 0) localArticles[idx] = res.data as BlogPost;
         savePersistedArticles(localArticles);
-        return data as BlogPost;
+        return res.data as BlogPost;
       }
     } catch (e) {
       console.warn('Supabase update article failed:', e);
@@ -1020,7 +1127,11 @@ export async function updateArticle(id: string, updateData: Partial<BlogPost>): 
 export async function deleteArticle(id: string): Promise<boolean> {
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('articles').delete().eq('id', id);
+      await withTimeout(
+        supabase.from('articles').delete().eq('id', id),
+        500,
+        { error: new Error('Timeout') } as any
+      );
     } catch (e) {
       console.warn('Supabase delete article failed:', e);
     }
@@ -1030,4 +1141,5 @@ export async function deleteArticle(id: string): Promise<boolean> {
   savePersistedArticles(localArticles);
   return true;
 }
+
 
