@@ -80,14 +80,15 @@ export default function AdminDashboardPage() {
   const { user, is2FAVerified, logout, hasPermission, logAction, auditLogs, login, verify2FACode } = useAuth();
   const { language } = useLanguage();
 
-  // Admin Direct Login States for Gate Screen
-  const [adminLoginEmail, setAdminLoginEmail] = useState('yassinealoulou6@gmail.com');
-  const [adminLoginPassword, setAdminLoginPassword] = useState('Yassine.123');
+  // Admin Direct Login States for Gate Screen (Secured: Blank defaults, no pre-fill)
+  const [adminLoginEmail, setAdminLoginEmail] = useState('');
+  const [adminLoginPassword, setAdminLoginPassword] = useState('');
   const [adminLoginError, setAdminLoginError] = useState<string | null>(null);
   const [adminLoginLoading, setAdminLoginLoading] = useState(false);
   const [adminOtpCode, setAdminOtpCode] = useState('');
   const [adminOtpError, setAdminOtpError] = useState<string | null>(null);
   const [adminRequires2FA, setAdminRequires2FA] = useState(false);
+  const [failedLoginCount, setFailedLoginCount] = useState(0);
 
   // Active Tab State
   const [activeTab, setActiveTab] = useState<'kpi' | 'properties' | 'submissions' | 'crm' | 'reservations' | 'articles' | 'users' | 'audit'>('kpi');
@@ -1317,53 +1318,32 @@ export default function AdminDashboardPage() {
               </button>
             </form>
           ) : (
-            /* DIRECT LOGIN FORM */
+            /* DIRECT SECURED LOGIN FORM */
             <div className="space-y-4">
-              {/* One-Click Quick Login Button */}
-              <button
-                type="button"
-                onClick={async () => {
-                  setAdminLoginError(null);
-                  setAdminLoginLoading(true);
-                  const res = await login('yassinealoulou6@gmail.com', 'Yassine.123');
-                  setAdminLoginLoading(false);
-                  if (res.success && res.requires2FA) {
-                    setAdminRequires2FA(true);
-                  } else if (!res.success) {
-                    setAdminLoginError(res.error || 'Erreur lors de la connexion.');
-                  }
-                }}
-                disabled={adminLoginLoading}
-                className="w-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 py-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all shadow-md"
-              >
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>1-Click : Connexion Super Admin (Yassine Aloulou)</span>
-              </button>
-
-              <div className="flex items-center gap-3 text-white/30 text-[10px] font-mono uppercase tracking-wider">
-                <div className="flex-1 h-px bg-white/10" />
-                <span>Ou saisir vos identifiants</span>
-                <div className="flex-1 h-px bg-white/10" />
-              </div>
-
               <form
+                autoComplete="off"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   setAdminLoginError(null);
+                  if (failedLoginCount >= 5) {
+                    setAdminLoginError('Nombre maximal de tentatives atteint (5/5). Accès bloqué temporairement.');
+                    return;
+                  }
                   if (!adminLoginEmail || !adminLoginPassword) {
                     setAdminLoginError('Veuillez renseigner votre email et mot de passe.');
                     return;
                   }
                   setAdminLoginLoading(true);
-                  const res = await login(adminLoginEmail, adminLoginPassword);
+                  const res = await login(adminLoginEmail.trim(), adminLoginPassword.trim());
                   setAdminLoginLoading(false);
                   if (res.success && res.requires2FA) {
                     setAdminRequires2FA(true);
                   } else if (!res.success) {
+                    setFailedLoginCount((c) => c + 1);
                     setAdminLoginError(res.error || 'Identifiants incorrects.');
                   }
                 }}
-                className="space-y-3.5"
+                className="space-y-4"
               >
                 <div>
                   <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">
@@ -1372,6 +1352,7 @@ export default function AdminDashboardPage() {
                   <div className="relative">
                     <input
                       type="email"
+                      autoComplete="off"
                       value={adminLoginEmail}
                       onChange={(e) => setAdminLoginEmail(e.target.value)}
                       placeholder="nom@villaregiarealestates.com"
@@ -1389,6 +1370,7 @@ export default function AdminDashboardPage() {
                   <div className="relative">
                     <input
                       type="password"
+                      autoComplete="new-password"
                       value={adminLoginPassword}
                       onChange={(e) => setAdminLoginPassword(e.target.value)}
                       placeholder="••••••••••••"
@@ -1401,7 +1383,7 @@ export default function AdminDashboardPage() {
 
                 <button
                   type="submit"
-                  disabled={adminLoginLoading}
+                  disabled={adminLoginLoading || failedLoginCount >= 5}
                   className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
                 >
                   {adminLoginLoading ? (
