@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
+import { broadcastDataChange } from '@/hooks/useRealtimeSync';
 import { MapPin, Phone, Mail, MessageCircle, Send, Check, Instagram, Facebook } from 'lucide-react';
 
 export default function ContactPage() {
@@ -69,6 +70,7 @@ export default function ContactPage() {
         setIsSending(false);
         return;
       }
+      broadcastDataChange('LEAD_UPDATED');
       setSubmitted(true);
     } catch (err) {
       setSubmitted(true);

@@ -1,5 +1,49 @@
 [
   {
+    "name": "E2E Staff Tester",
+    "email": "e2estaff@villaregia.fr",
+    "phone": "+216 98 765 432",
+    "password": "Password123!",
+    "role": "AGENT",
+    "twoFactorEnabled": false,
+    "emailVerified": true,
+    "id": "usr-1788549105907",
+    "createdAt": "2026-09-04"
+  },
+  {
+    "id": "user-1788548694599",
+    "name": "Client Auto",
+    "email": "client.auto.1788548694169@villaregia.tn",
+    "phone": "+216 27 000 000",
+    "password": "Password123",
+    "role": "CLIENT",
+    "twoFactorEnabled": false,
+    "emailVerified": true,
+    "createdAt": "2026-09-04"
+  },
+  {
+    "name": "Nouveau Collaborateur Test",
+    "email": "collaborateur.test@villaregia.tn",
+    "phone": "+216 98 444 555",
+    "password": "Password.123",
+    "role": "AGENT",
+    "twoFactorEnabled": false,
+    "emailVerified": true,
+    "id": "usr-1788530767584",
+    "createdAt": "2026-09-04"
+  },
+  {
+    "id": "user-1788529416551",
+    "name": "Client Auto",
+    "email": "client.auto.1788529416221@villaregia.tn",
+    "phone": "+216 27 000 000",
+    "password": "Password123",
+    "role": "CLIENT",
+    "twoFactorEnabled": false,
+    "emailVerified": true,
+    "createdAt": "2026-09-04"
+  },
+  {
     "id": "user-superadmin-01",
     "name": "Yassine Aloulou (Directeur Général)",
     "email": "yassinealoulou6@gmail.com",

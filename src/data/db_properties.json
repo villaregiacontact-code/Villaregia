@@ -1,5 +1,57 @@
 [
   {
+    "id": "vr-prop-1788529750608",
+    "title": {
+      "fr": "Villa Royale Sfax Test UI",
+      "ar": "Villa Royale Sfax Test UI",
+      "en": "Villa Royale Sfax Test UI"
+    },
+    "universe": "VENTE",
+    "category": "Villa",
+    "price": {
+      "amount": 1500000,
+      "currency": "TND",
+      "period": "total"
+    },
+    "location": {
+      "city": "Sfax",
+      "district": "Route de la Soukra",
+      "country": "Tunisie",
+      "lat": 34.74,
+      "lng": 10.74,
+      "isExactPosition": false
+    },
+    "specs": {
+      "surfaceM2": 450,
+      "bedrooms": 4,
+      "pool": true,
+      "garden": true
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Villa Royale Sfax Test UI",
+        "isCover": true
+      }
+    ],
+    "description": {
+      "fr": "Spacieuse demeure contemporaine avec prestations haut de gamme à Sfax.",
+      "ar": "Spacieuse demeure contemporaine avec prestations haut de gamme à Sfax.",
+      "en": "Spacieuse demeure contemporaine avec prestations haut de gamme à Sfax."
+    },
+    "amenities": [
+      "Climatisation centralisée",
+      "Piscine privée",
+      "Parking sécurisé",
+      "Marbre noble"
+    ],
+    "status": "RÉSERVÉ",
+    "isFeatured": true,
+    "isNew": true,
+    "createdAt": "2026-09-04T13:49:10.608Z",
+    "updatedAt": "2026-09-04T13:49:22.512Z"
+  },
+  {
     "id": "vr-soukra-01",
     "title": {
       "fr": "Domaine de la Soukra — Villa de Maître & Piscine Oliviers",

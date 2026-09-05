@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "propertyId": "vr-prop-demo-01",
+    "propertyTitle": "Villa Carthage Luxe",
+    "guestName": "Voyageur Test",
+    "guestEmail": "voyageur.test@villaregia.tn",
+    "guestPhone": "+216 97 000 111",
+    "checkIn": "2026-10-01",
+    "checkOut": "2026-10-05",
+    "guestsCount": 4,
+    "totalAmount": 3200,
+    "id": "res-384851",
+    "status": "CONFIRMED",
+    "createdAt": "2026-09-04T19:04:52.843Z"
+  },
+  {
+    "propertyId": "vr-prop-demo-01",
+    "propertyTitle": "Villa Carthage Luxe",
+    "guestName": "Voyageur Test",
+    "guestEmail": "voyageur.test@villaregia.tn",
+    "guestPhone": "+216 97 000 111",
+    "checkIn": "2026-10-01",
+    "checkOut": "2026-10-05",
+    "guestsCount": 4,
+    "totalAmount": 3200,
+    "id": "res-838753",
+    "status": "CONFIRMED",
+    "createdAt": "2026-09-04T13:43:35.066Z"
+  }
+]

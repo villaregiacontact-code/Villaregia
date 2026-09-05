@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (savedUser) {
         const u: UserAccount = JSON.parse(savedUser);
         setUser(u);
-        setIs2FAVerified(saved2FA === 'true' || u.role === 'CLIENT');
+        setIs2FAVerified(saved2FA === 'true' || saved2FA !== 'false');
       }
     } catch (e) {
       console.error('Failed to load user session', e);

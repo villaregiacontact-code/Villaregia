@@ -57,8 +57,17 @@ import {
   RefreshCw,
   Radio,
   Activity,
+  Layers,
+  Compass,
+  MapPin,
+  SlidersHorizontal,
+  ArrowUpRight,
+  Link2,
+  Briefcase,
 } from 'lucide-react';
 import { generateSubmissionPdf } from '@/lib/generateSubmissionPdf';
+import { useRealtimeSync, broadcastDataChange } from '@/hooks/useRealtimeSync';
+
 
 const INITIAL_SUBMISSIONS: OwnerSubmission[] = [];
 
@@ -147,12 +156,17 @@ export default function AdminDashboardPage() {
     loadAdminData();
   }, [loadAdminData]);
 
-  // Real-time live sync interval (every 8 seconds)
+  // Universal Real-time Live Sync (BroadcastChannel + Supabase + Window Focus)
+  useRealtimeSync(() => {
+    loadAdminData(true);
+  });
+
+  // Fast active background sync interval (every 3 seconds)
   useEffect(() => {
     if (!autoSyncEnabled) return;
     const interval = setInterval(() => {
       loadAdminData(true);
-    }, 8000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [autoSyncEnabled, loadAdminData]);
 
@@ -207,6 +221,48 @@ export default function AdminDashboardPage() {
   // Search & Filter States
   const [propertySearch, setPropertySearch] = useState('');
   const [universeFilter, setUniverseFilter] = useState<string>('ALL');
+  const [propertyCategoryFilter, setPropertyCategoryFilter] = useState<string>('ALL');
+  const [propertyStatusFilter, setPropertyStatusFilter] = useState<string>('ALL');
+  const [submissionFilter, setSubmissionFilter] = useState<string>('ALL');
+  const [submissionSearch, setSubmissionSearch] = useState<string>('');
+  const [crmSearch, setCrmSearch] = useState<string>('');
+  const [crmStatusFilter, setCrmStatusFilter] = useState<string>('ALL');
+  const [reservationSearch, setReservationSearch] = useState<string>('');
+  const [reservationStatusFilter, setReservationStatusFilter] = useState<string>('ALL');
+
+  // Interconnected Navigation Helpers ("Everything Connected")
+  const jumpToPropertiesWithCategory = (cat: string) => {
+    setActiveTab('properties');
+    setPropertyCategoryFilter(cat);
+  };
+  const jumpToPropertiesWithUniverse = (uni: string) => {
+    setActiveTab('properties');
+    setUniverseFilter(uni);
+  };
+  const jumpToCrmWithProperty = (propTitle: string) => {
+    setActiveTab('crm');
+    setCrmSearch(propTitle);
+  };
+  const jumpToReservationsWithProperty = (propTitle: string) => {
+    setActiveTab('reservations');
+    setReservationSearch(propTitle);
+  };
+  const jumpToSubmissionsWithStatus = (st: string) => {
+    setActiveTab('submissions');
+    setSubmissionFilter(st);
+  };
+  const jumpToSubmissionsWithOwner = (emailOrPhone: string) => {
+    setActiveTab('submissions');
+    setSubmissionSearch(emailOrPhone);
+  };
+  const jumpToReservationsWithGuest = (emailOrPhone: string) => {
+    setActiveTab('reservations');
+    setReservationSearch(emailOrPhone);
+  };
+  const jumpToCrmWithLead = (emailOrPhone: string) => {
+    setActiveTab('crm');
+    setCrmSearch(emailOrPhone);
+  };
 
   // Modal States
   const [propertyModalOpen, setPropertyModalOpen] = useState(false);
@@ -368,6 +424,82 @@ export default function AdminDashboardPage() {
       console.warn('Submission reject API sync fallback:', e);
     }
     logAction('Refus dossier propriétaire', refCode);
+  };
+
+  // Cross-entity: Generate CRM Lead from Submission
+  const handleCreateLeadFromSubmission = async (sub: OwnerSubmission) => {
+    const existing = leads.find((l) => l.phone === sub.ownerPhone || (sub.ownerEmail && l.email === sub.ownerEmail));
+    if (existing) {
+      jumpToCrmWithLead(existing.email || existing.phone);
+      showToast('Ce propriétaire dispose déjà d’une fiche active dans le CRM.', 'info');
+      return;
+    }
+
+    const newLead: Lead = {
+      id: `lead-sub-${Date.now()}`,
+      name: sub.ownerName,
+      phone: sub.ownerPhone,
+      email: sub.ownerEmail,
+      status: 'Nouveau',
+      assignedAgent: user?.name || 'Staff Villa Regia',
+      universe: sub.objective,
+      propertyTitle: `${sub.propertyType} — ${sub.district || sub.city} (${sub.refCode})`,
+      source: 'Soumission Propriétaire',
+      notes: `Dossier Mandat ${sub.refCode}. Valeur estimée: ${(sub.estimatedPrice || sub.estimatedValue || 0).toLocaleString()} TND. Surface: ${sub.surfaceM2}m². Vocation: ${sub.propertyType} à ${sub.city}. Détails: ${sub.details || 'N/A'}`,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    setLeads((prev) => [newLead, ...prev]);
+    try {
+      await fetch('/api/admin/crm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLead),
+      });
+      loadAdminData(true);
+      showToast(`Fiche prospect CRM créée avec succès pour ${sub.ownerName} !`, 'success');
+      jumpToCrmWithLead(sub.ownerEmail || sub.ownerPhone);
+    } catch (e) {
+      console.warn('Lead creation error:', e);
+    }
+  };
+
+  // Cross-entity: Generate CRM Lead from Reservation
+  const handleCreateLeadFromReservation = async (res: BookingRequest) => {
+    const existing = leads.find((l) => l.phone === res.guestPhone || l.email === res.guestEmail);
+    if (existing) {
+      jumpToCrmWithLead(existing.email || existing.phone);
+      showToast('Ce voyageur dispose déjà d’un dossier dans le CRM.', 'info');
+      return;
+    }
+
+    const newLead: Lead = {
+      id: `lead-res-${Date.now()}`,
+      name: res.guestName,
+      phone: res.guestPhone,
+      email: res.guestEmail,
+      status: 'Nouveau',
+      assignedAgent: user?.name || 'Staff Villa Regia',
+      universe: 'LUXE',
+      propertyTitle: res.propertyTitle,
+      source: 'Réservation',
+      notes: `Séjour du ${res.checkIn} au ${res.checkOut} (${res.guestsCount} pers). Acompte: ${res.depositAmount || 0} TND. Statut: ${res.status}.`,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+
+    setLeads((prev) => [newLead, ...prev]);
+    try {
+      await fetch('/api/admin/crm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLead),
+      });
+      loadAdminData(true);
+      showToast(`Fiche client CRM créée pour ${res.guestName} !`, 'success');
+      jumpToCrmWithLead(res.guestEmail || res.guestPhone);
+    } catch (e) {
+      console.warn('Lead creation error:', e);
+    }
   };
 
   // --------------------------------------------------------------------------
@@ -971,6 +1103,7 @@ export default function AdminDashboardPage() {
       }
 
       setUserModalOpen(false);
+      await loadAdminData(true);
     } catch (err) {
       setUserModalError('Erreur de communication avec le serveur.');
     }
@@ -985,6 +1118,7 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({ id: userId, email: userEmail, role: newRole }),
       });
       showToast(`Rôle de "${userName}" modifié en ${newRole}`);
+      await loadAdminData(true);
     } catch {}
     logAction(`Rôle modifié (${newRole})`, userName);
   };
@@ -996,6 +1130,7 @@ export default function AdminDashboardPage() {
           method: 'DELETE',
         });
         showToast(`Compte de "${userName}" révoqué`, 'info');
+        await loadAdminData(true);
       } catch {}
       setStaffUsers((prev) => prev.filter((u) => u.id !== userId));
       logAction('Révocation compte staff', userName);
@@ -1187,9 +1322,90 @@ export default function AdminDashboardPage() {
     );
   }
 
+  // --------------------------------------------------------------------------
+  // INTERCONNECTED REAL-TIME AGGREGATED METRICS
+  // --------------------------------------------------------------------------
+  const totalCatalogValue = properties.reduce((sum, p) => sum + (p.price.amount || 0), 0);
+  const totalSubmissionsValue = submissions.reduce((sum, s) => sum + (s.estimatedPrice || s.estimatedValue || 0), 0);
+  const totalPortfolioValue = totalCatalogValue + totalSubmissionsValue;
+
+  const semiConstructedProperties = properties.filter((p) => p.category === 'Villa Semi-Construite');
+  const totalCompletionBudget = semiConstructedProperties.reduce((sum, p) => sum + (p.specs.completionEstimate || 0), 0);
+
+  const commercialProperties = properties.filter((p) => p.category === 'Espace Commercial' || p.category === 'Fonds de Commerce');
+  const totalMonthlyWallRent = commercialProperties.reduce((sum, p) => sum + (p.specs.monthlyRentTND || 0), 0);
+
+  const totalBookingsDeposit = reservations.reduce((sum, r) => sum + (r.depositAmount || 0), 0);
+  const confirmedBookingsCount = reservations.filter((r) => r.status === 'CONFIRMED').length;
+
+  const pendingSubmissionsCount = submissions.filter((s) => s.status === 'PENDING').length;
+  const approvedUnpublishedCount = submissions.filter((s) => s.status === 'APPROVED' && !s.isPublished).length;
+  const approvedPublishedCount = submissions.filter((s) => s.status === 'APPROVED' && s.isPublished).length;
+
+  const activeLeadsCount = leads.filter((l) => l.status === 'Visite' || l.status === 'Offre' || l.status === 'Conclu').length;
+  const newLeadsCount = leads.filter((l) => l.status === 'Nouveau').length;
+
+  const totalClientsCount = staffUsers.filter((u) => u.role === 'CLIENT').length;
+  const totalStaffCount = staffUsers.filter((u) => u.role !== 'CLIENT').length;
+
+  // Filtered Collections
   const filteredProperties = properties.filter((p) => {
     if (universeFilter !== 'ALL' && p.universe !== universeFilter) return false;
-    if (propertySearch && !p.title.fr.toLowerCase().includes(propertySearch.toLowerCase()) && !p.location.district.toLowerCase().includes(propertySearch.toLowerCase())) return false;
+    if (propertyCategoryFilter !== 'ALL' && p.category !== propertyCategoryFilter) return false;
+    if (propertyStatusFilter !== 'ALL' && p.status !== propertyStatusFilter) return false;
+    if (propertySearch) {
+      const q = propertySearch.toLowerCase();
+      const matchTitle = p.title.fr.toLowerCase().includes(q);
+      const matchDistrict = p.location.district.toLowerCase().includes(q);
+      const matchCity = p.location.city.toLowerCase().includes(q);
+      const matchId = p.id.toLowerCase().includes(q);
+      if (!matchTitle && !matchDistrict && !matchCity && !matchId) return false;
+    }
+    return true;
+  });
+
+  const filteredSubmissions = submissions.filter((s) => {
+    if (submissionFilter === 'PENDING' && s.status !== 'PENDING') return false;
+    if (submissionFilter === 'APPROVED_UNPUBLISHED' && !(s.status === 'APPROVED' && !s.isPublished)) return false;
+    if (submissionFilter === 'APPROVED_PUBLISHED' && !(s.status === 'APPROVED' && s.isPublished)) return false;
+    if (submissionFilter === 'REJECTED' && s.status !== 'REJECTED') return false;
+    if (submissionSearch) {
+      const q = submissionSearch.toLowerCase();
+      const matchName = s.ownerName.toLowerCase().includes(q);
+      const matchEmail = s.ownerEmail.toLowerCase().includes(q);
+      const matchPhone = s.ownerPhone.toLowerCase().includes(q);
+      const matchRef = s.refCode.toLowerCase().includes(q);
+      const matchCity = s.city.toLowerCase().includes(q);
+      const matchType = s.propertyType.toLowerCase().includes(q);
+      if (!matchName && !matchEmail && !matchPhone && !matchRef && !matchCity && !matchType) return false;
+    }
+    return true;
+  });
+
+  const filteredReservations = reservations.filter((r) => {
+    if (reservationStatusFilter !== 'ALL' && r.status !== reservationStatusFilter) return false;
+    if (reservationSearch) {
+      const q = reservationSearch.toLowerCase();
+      const matchGuest = r.guestName.toLowerCase().includes(q);
+      const matchEmail = r.guestEmail.toLowerCase().includes(q);
+      const matchPhone = r.guestPhone.toLowerCase().includes(q);
+      const matchId = r.id.toLowerCase().includes(q);
+      const matchProp = r.propertyTitle.toLowerCase().includes(q);
+      if (!matchGuest && !matchEmail && !matchPhone && !matchId && !matchProp) return false;
+    }
+    return true;
+  });
+
+  const filteredLeads = leads.filter((l) => {
+    if (crmStatusFilter !== 'ALL' && l.status !== crmStatusFilter) return false;
+    if (crmSearch) {
+      const q = crmSearch.toLowerCase();
+      const matchName = l.name.toLowerCase().includes(q);
+      const matchPhone = l.phone.toLowerCase().includes(q);
+      const matchEmail = l.email?.toLowerCase().includes(q);
+      const matchProp = l.propertyTitle?.toLowerCase().includes(q);
+      if (!matchName && !matchPhone && !matchEmail && !matchProp) return false;
+    }
     return true;
   });
 
@@ -1413,140 +1629,502 @@ export default function AdminDashboardPage() {
       {/* Main Admin Content Workspace */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
-        {/* TAB 1: KPI OVERVIEW */}
+        {/* TAB 1: EXECUTIVE INTELLIGENCE & INTERCONNECTED COCKPIT */}
         {activeTab === 'kpi' && (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-2">
-                <span className="text-xs font-mono text-brand-travertine/60 uppercase block">Portfolio Actif</span>
-                <div className="text-3xl font-bold text-brand-travertine flex items-center justify-between font-editorial">
-                  <span>{properties.length}</span>
-                  <Building2 className="w-6 h-6 text-brand-gold" />
-                </div>
-                <span className="text-[11px] text-emerald-400 font-mono">
-                  {properties.filter(p => p.status === 'DISPONIBLE').length} Disponibles immédiatement
+          <div className="space-y-8 animate-fade-in">
+            {/* 1. Primary Portfolio Valuation & Performance Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {/* Card 1: Total Portfolio Value */}
+              <div className="glass-card p-5 sm:p-6 rounded-2xl border border-brand-gold/30 relative overflow-hidden group hover:border-brand-gold/60 transition-all shadow-xl">
+                <div className="absolute -top-12 -right-12 w-32 h-32 bg-brand-gold/10 rounded-full blur-2xl group-hover:bg-brand-gold/20 transition-all" />
+                <span className="text-[10px] font-mono font-bold text-brand-gold uppercase tracking-wider block">
+                  Valeur Globale du Patrimoine
                 </span>
+                <div className="text-3xl sm:text-4xl font-bold text-white font-editorial mt-2 flex items-baseline justify-between">
+                  <span>{(totalPortfolioValue / 1000000).toFixed(2)}M <span className="text-sm font-mono text-brand-gold font-normal">TND</span></span>
+                  <TrendingUp className="w-5 h-5 text-brand-gold shrink-0" />
+                </div>
+                <div className="mt-3 pt-3 border-t border-white/10 text-[11px] font-mono text-brand-travertine/70 flex items-center justify-between">
+                  <span>Catalogue : {(totalCatalogValue / 1000000).toFixed(1)}M</span>
+                  <span className="text-brand-gold">Mandats : {(totalSubmissionsValue / 1000000).toFixed(1)}M</span>
+                </div>
               </div>
 
-              <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-2">
-                <span className="text-xs font-mono text-brand-travertine/60 uppercase block">Dossiers Propriétaires</span>
-                <div className="text-3xl font-bold text-brand-travertine flex items-center justify-between font-editorial">
-                  <span>{submissions.length}</span>
-                  <FileCheck className="w-6 h-6 text-brand-gold" />
-                </div>
-                <span className="text-[11px] text-brand-gold font-mono">
-                  {submissions.filter(s => s.status === 'PENDING').length} En attente d'approbation
+              {/* Card 2: Active Properties */}
+              <div 
+                onClick={() => setActiveTab('properties')}
+                className="glass-card p-5 sm:p-6 rounded-2xl border border-white/15 relative overflow-hidden group hover:border-brand-gold/50 cursor-pointer transition-all shadow-xl"
+              >
+                <span className="text-[10px] font-mono font-bold text-brand-travertine/70 uppercase tracking-wider block">
+                  Catalogue & Actifs en Ligne
                 </span>
+                <div className="text-3xl sm:text-4xl font-bold text-white font-editorial mt-2 flex items-baseline justify-between">
+                  <span>{properties.length} <span className="text-sm font-mono text-brand-travertine/60 font-normal">biens</span></span>
+                  <Building2 className="w-5 h-5 text-brand-gold shrink-0" />
+                </div>
+                <div className="mt-3 pt-3 border-t border-white/10 text-[11px] font-mono flex items-center justify-between">
+                  <span className="text-emerald-400 font-bold">{properties.filter(p => p.status === 'DISPONIBLE').length} Disponibles</span>
+                  <span className="text-amber-300">{properties.filter(p => p.isFeatured).length} En Vedette</span>
+                </div>
               </div>
 
-              <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-2">
-                <span className="text-xs font-mono text-brand-travertine/60 uppercase block">Opportunités CRM</span>
-                <div className="text-3xl font-bold text-brand-travertine flex items-center justify-between font-editorial">
-                  <span>{leads.length}</span>
-                  <Users className="w-6 h-6 text-emerald-400" />
-                </div>
-                <span className="text-[11px] text-emerald-400 font-mono">
-                  {leads.filter(l => l.status === 'Visite' || l.status === 'Offre').length} En négociation avancée
+              {/* Card 3: Submissions Flow */}
+              <div 
+                onClick={() => setActiveTab('submissions')}
+                className="glass-card p-5 sm:p-6 rounded-2xl border border-white/15 relative overflow-hidden group hover:border-brand-gold/50 cursor-pointer transition-all shadow-xl"
+              >
+                <span className="text-[10px] font-mono font-bold text-brand-travertine/70 uppercase tracking-wider block">
+                  Dossiers Mandats Propriétaires
                 </span>
-              </div>
-
-              <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-2">
-                <span className="text-xs font-mono text-brand-travertine/60 uppercase block">Valeur Portfolio</span>
-                <div className="text-3xl font-bold text-brand-gold flex items-center justify-between font-editorial">
-                  <span>{(properties.reduce((sum, p) => sum + (p.price.amount > 100000 ? p.price.amount : 0), 0) / 1000000).toFixed(1)}M TND</span>
-                  <TrendingUp className="w-6 h-6 text-brand-gold" />
+                <div className="text-3xl sm:text-4xl font-bold text-white font-editorial mt-2 flex items-baseline justify-between">
+                  <span>{submissions.length} <span className="text-sm font-mono text-brand-travertine/60 font-normal">dossiers</span></span>
+                  <FileCheck className="w-5 h-5 text-brand-gold shrink-0" />
                 </div>
-                <span className="text-[11px] text-brand-travertine/60 font-mono">Sfax & Tunis Riviera</span>
-              </div>
-            </div>
-
-            {/* Quick Actions Panel */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="glass-navy p-6 rounded-xl border border-brand-gold/20 space-y-4">
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Biens & Soumissions
-                </h3>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setActiveTab('submissions')}
-                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
-                  >
-                    <span>Revoir les Soumissions Propriétaires ({submissions.filter(s => s.status === 'PENDING').length})</span>
-                    <FileCheck className="w-4 h-4 text-brand-gold" />
-                  </button>
-                  <button
-                    onClick={openAddPropertyModal}
-                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
-                  >
-                    <span>Saisir Directement une Propriété</span>
-                    <Plus className="w-4 h-4 text-brand-gold" />
-                  </button>
+                <div className="mt-3 pt-3 border-t border-white/10 text-[11px] font-mono flex items-center justify-between">
+                  <span className="text-amber-400 font-bold">{pendingSubmissionsCount} À expertiser</span>
+                  <span className="text-sky-300 font-bold">{approvedUnpublishedCount} Mandats privés</span>
                 </div>
               </div>
 
-              <div className="glass-navy p-6 rounded-xl border border-brand-gold/20 space-y-4">
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Actions Rapides CRM
-                </h3>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setNewLeadModalOpen(true)}
-                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
-                  >
-                    <span>Saisir un Nouveau Lead Client</span>
-                    <UserPlus className="w-4 h-4 text-emerald-400" />
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('crm')}
-                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
-                  >
-                    <span>Ouvrir le Pipeline Kanban</span>
-                    <ArrowRight className="w-4 h-4 text-emerald-400" />
-                  </button>
+              {/* Card 4: CRM Pipeline & Booking Deposits */}
+              <div 
+                onClick={() => setActiveTab('crm')}
+                className="glass-card p-5 sm:p-6 rounded-2xl border border-white/15 relative overflow-hidden group hover:border-brand-gold/50 cursor-pointer transition-all shadow-xl"
+              >
+                <span className="text-[10px] font-mono font-bold text-brand-travertine/70 uppercase tracking-wider block">
+                  CRM & Trésorerie Séjours
+                </span>
+                <div className="text-3xl sm:text-4xl font-bold text-white font-editorial mt-2 flex items-baseline justify-between">
+                  <span>{leads.length} <span className="text-sm font-mono text-brand-travertine/60 font-normal">leads</span></span>
+                  <Users className="w-5 h-5 text-emerald-400 shrink-0" />
                 </div>
-              </div>
-
-              <div className="glass-navy p-6 rounded-xl border border-brand-gold/20 space-y-4">
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Éditorial & CMS
-                </h3>
-                <div className="space-y-2">
-                  <button
-                    onClick={openAddArticleModal}
-                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
-                  >
-                    <span>Rédiger un Article de Journal</span>
-                    <Plus className="w-4 h-4 text-sky-400" />
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('articles')}
-                    className="w-full text-left p-3 rounded bg-white/5 hover:bg-brand-gold/20 hover:text-brand-gold border border-white/10 text-xs font-semibold flex items-center justify-between transition-all"
-                  >
-                    <span>Gérer les Publications ({articles.length})</span>
-                    <ArrowRight className="w-4 h-4 text-sky-400" />
-                  </button>
+                <div className="mt-3 pt-3 border-t border-white/10 text-[11px] font-mono flex items-center justify-between">
+                  <span className="text-emerald-400 font-bold">{activeLeadsCount} En négociation</span>
+                  <span className="text-brand-gold font-bold">{totalBookingsDeposit.toLocaleString('fr-TN')} TND acomptes</span>
                 </div>
               </div>
             </div>
 
-            {/* Audit Log Stream */}
-            <div className="glass-card p-6 rounded-xl border border-brand-gold/20 space-y-4">
+            {/* 2. Interactive Asset Typology & Business Breakdown */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-brand-gold" />
+                    <span>Répartition Métiers & Typologie Immobilière (Connecté en Direct)</span>
+                  </h2>
+                  <p className="text-xs text-brand-travertine/60 mt-0.5">
+                    Cliquez sur une catégorie pour filtrer instantanément le portefeuille correspondant.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Typology 1: Villas de Prestige */}
+                <div 
+                  onClick={() => jumpToPropertiesWithCategory('Villa')}
+                  className="glass-navy p-5 rounded-xl border border-white/10 hover:border-brand-gold/50 cursor-pointer transition-all space-y-3 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider group-hover:text-brand-gold transition-colors">
+                      🏛️ Demeures & Villas de Prestige
+                    </span>
+                    <span className="text-[10px] font-mono font-bold bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded border border-brand-gold/30">
+                      {properties.filter(p => p.category === 'Villa' || p.category === 'Maison de Charme').length} Biens
+                    </span>
+                  </div>
+                  <div className="text-xs text-brand-travertine/70 font-mono">
+                    Valeur estimée : {(properties.filter(p => p.category === 'Villa' || p.category === 'Maison de Charme').reduce((s, p) => s + (p.price.amount || 0), 0) / 1000000).toFixed(1)}M TND
+                  </div>
+                  <div className="text-[10px] font-mono text-brand-gold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    <span>Explorer les villas</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+
+                {/* Typology 2: Villas Semi-Construites */}
+                <div 
+                  onClick={() => jumpToPropertiesWithCategory('Villa Semi-Construite')}
+                  className="glass-navy p-5 rounded-xl border border-amber-500/30 hover:border-amber-400 cursor-pointer transition-all space-y-3 group bg-amber-950/10"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-300 uppercase tracking-wider group-hover:text-white transition-colors">
+                      🏗️ Villas Semi-Construites
+                    </span>
+                    <span className="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/40">
+                      {semiConstructedProperties.length} Chantiers
+                    </span>
+                  </div>
+                  <div className="text-xs text-amber-200/80 font-mono">
+                    Budget travaux achèvement : {totalCompletionBudget.toLocaleString('fr-TN')} TND
+                  </div>
+                  <div className="text-[10px] font-mono text-amber-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    <span>Voir les opportunités chantiers</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+
+                {/* Typology 3: Commerces & Fonds de Commerce */}
+                <div 
+                  onClick={() => jumpToPropertiesWithCategory('Espace Commercial')}
+                  className="glass-navy p-5 rounded-xl border border-sky-500/30 hover:border-sky-400 cursor-pointer transition-all space-y-3 group bg-sky-950/10"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-sky-300 uppercase tracking-wider group-hover:text-white transition-colors">
+                      🏪 Commerces & Fonds de Commerce
+                    </span>
+                    <span className="text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded border border-sky-500/40">
+                      {commercialProperties.length} Actifs
+                    </span>
+                  </div>
+                  <div className="text-xs text-sky-200/80 font-mono">
+                    Loyers murs prévisionnels : {totalMonthlyWallRent.toLocaleString('fr-TN')} TND/mois
+                  </div>
+                  <div className="text-[10px] font-mono text-sky-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    <span>Consulter les murs & fonds</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+
+                {/* Typology 4: Duplex & Penthouses */}
+                <div 
+                  onClick={() => jumpToPropertiesWithCategory('Duplex')}
+                  className="glass-navy p-5 rounded-xl border border-white/10 hover:border-brand-gold/50 cursor-pointer transition-all space-y-3 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider group-hover:text-brand-gold transition-colors">
+                      🏢 Duplex & Penthouses
+                    </span>
+                    <span className="text-[10px] font-mono font-bold bg-white/10 text-white px-2 py-0.5 rounded border border-white/20">
+                      {properties.filter(p => p.category === 'Duplex' || p.category === 'Penthouse' || p.category === 'Appartement').length} Biens
+                    </span>
+                  </div>
+                  <div className="text-xs text-brand-travertine/70 font-mono">
+                    Standing urbain à Sfax & Tunis
+                  </div>
+                  <div className="text-[10px] font-mono text-brand-gold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    <span>Consulter les appartements de prestige</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+
+                {/* Typology 5: Villas de Séjour (Luxe) */}
+                <div 
+                  onClick={() => jumpToPropertiesWithUniverse('LUXE')}
+                  className="glass-navy p-5 rounded-xl border border-emerald-500/30 hover:border-emerald-400 cursor-pointer transition-all space-y-3 group bg-emerald-950/10"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider group-hover:text-white transition-colors">
+                      🌴 Villas de Séjour & Conciergerie
+                    </span>
+                    <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/40">
+                      {properties.filter(p => p.universe === 'LUXE').length} Demeures
+                    </span>
+                  </div>
+                  <div className="text-xs text-emerald-200/80 font-mono">
+                    {reservations.length} Séjours enregistrés • {confirmedBookingsCount} Confirmés
+                  </div>
+                  <div className="text-[10px] font-mono text-emerald-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    <span>Voir le planning des séjours</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+
+                {/* Typology 6: Terrains Titrés */}
+                <div 
+                  onClick={() => jumpToPropertiesWithCategory('Terrain')}
+                  className="glass-navy p-5 rounded-xl border border-white/10 hover:border-brand-gold/50 cursor-pointer transition-all space-y-3 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider group-hover:text-brand-gold transition-colors">
+                      📐 Terrains & Domaines Foncier
+                    </span>
+                    <span className="text-[10px] font-mono font-bold bg-white/10 text-white px-2 py-0.5 rounded border border-white/20">
+                      {properties.filter(p => p.category === 'Terrain').length} Parcelles
+                    </span>
+                  </div>
+                  <div className="text-xs text-brand-travertine/70 font-mono">
+                    Titres fonciers individuels vérifiés (CPF)
+                  </div>
+                  <div className="text-[10px] font-mono text-brand-gold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    <span>Examiner les parcelles</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Interconnected Cross-Entity Activity Feed */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Feed 1: Latest Submissions */}
+              <div className="glass-navy p-5 sm:p-6 rounded-2xl border border-brand-gold/20 space-y-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                    <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                      <FileCheck className="w-4 h-4 text-brand-gold" />
+                      <span>Dernières Soumissions</span>
+                    </h3>
+                    <button
+                      onClick={() => setActiveTab('submissions')}
+                      className="text-[11px] font-mono text-brand-gold hover:underline flex items-center gap-1"
+                    >
+                      <span>Voir tout ({submissions.length})</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-white/5 mt-2">
+                    {submissions.slice(0, 3).map((sub) => (
+                      <div key={sub.id} className="py-3 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs font-bold text-brand-gold">{sub.refCode}</span>
+                          <span className={`text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded ${
+                            sub.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                          }`}>
+                            {sub.status === 'APPROVED' ? (sub.isPublished ? 'Publié' : 'Validé Privé') : 'À instruire'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-white font-medium truncate">{sub.ownerName} — {sub.propertyType}</div>
+                        <div className="flex items-center justify-between text-[11px] font-mono text-brand-travertine/60">
+                          <span>{sub.district || sub.city}</span>
+                          <span className="text-brand-gold font-bold">{(sub.estimatedPrice || sub.estimatedValue || 0).toLocaleString()} TND</span>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            onClick={() => generateSubmissionPdf(sub)}
+                            className="text-[10px] font-mono text-brand-gold hover:underline flex items-center gap-1 bg-brand-gold/10 px-2 py-1 rounded"
+                          >
+                            <FileDown className="w-3 h-3" />
+                            <span>PDF Branded</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setInspectingSubmission(sub);
+                            }}
+                            className="text-[10px] font-mono text-white/80 hover:text-white flex items-center gap-1 bg-white/5 px-2 py-1 rounded"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span>Inspecter</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Link
+                  href="/proposer-un-bien"
+                  target="_blank"
+                  className="w-full text-center py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-brand-travertine text-xs font-mono font-bold border border-white/10 transition-all block mt-2"
+                >
+                  Ouvrir Formulaire Public Proposer un Bien ↗
+                </Link>
+              </div>
+
+              {/* Feed 2: Latest CRM Opportunities */}
+              <div className="glass-navy p-5 sm:p-6 rounded-2xl border border-brand-gold/20 space-y-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                    <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-emerald-400" />
+                      <span>Derniers Prospects CRM</span>
+                    </h3>
+                    <button
+                      onClick={() => setActiveTab('crm')}
+                      className="text-[11px] font-mono text-emerald-400 hover:underline flex items-center gap-1"
+                    >
+                      <span>Pipeline ({leads.length})</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-white/5 mt-2">
+                    {leads.slice(0, 3).map((lead) => (
+                      <div key={lead.id} className="py-3 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-white truncate">{lead.name}</span>
+                          <span className="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
+                            {lead.status}
+                          </span>
+                        </div>
+                        <div className="text-[11px] font-mono text-brand-gold truncate">
+                          {lead.propertyTitle || 'Recherche globale'}
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] font-mono text-brand-travertine/60">
+                          <span>{lead.phone}</span>
+                          <span>{lead.source}</span>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1">
+                          <a
+                            href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${lead.name}, suite à votre demande concernant ${lead.propertyTitle || 'nos biens'} à Villa Regia...`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] font-mono text-emerald-400 hover:underline flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded"
+                          >
+                            <MessageCircle className="w-3 h-3" />
+                            <span>WhatsApp</span>
+                          </a>
+                          <button
+                            onClick={() => {
+                              setActiveTab('crm');
+                              setCrmSearch(lead.name);
+                            }}
+                            className="text-[10px] font-mono text-white/80 hover:text-white flex items-center gap-1 bg-white/5 px-2 py-1 rounded"
+                          >
+                            <ArrowRight className="w-3 h-3" />
+                            <span>Gérer Fiche</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setNewLeadModalOpen(true)}
+                  className="w-full py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30 transition-all flex items-center justify-center gap-2 mt-2"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>+ Nouveau Prospect Acquéreur</span>
+                </button>
+              </div>
+
+              {/* Feed 3: Latest Reservations */}
+              <div className="glass-navy p-5 sm:p-6 rounded-2xl border border-brand-gold/20 space-y-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                    <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-brand-gold" />
+                      <span>Derniers Séjours Luxe</span>
+                    </h3>
+                    <button
+                      onClick={() => setActiveTab('reservations')}
+                      className="text-[11px] font-mono text-brand-gold hover:underline flex items-center gap-1"
+                    >
+                      <span>Planning ({reservations.length})</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-white/5 mt-2">
+                    {reservations.length === 0 ? (
+                      <div className="py-8 text-center text-xs text-brand-travertine/40 font-mono">
+                        Aucun séjour en cours
+                      </div>
+                    ) : (
+                      reservations.slice(0, 3).map((r) => (
+                        <div key={r.id} className="py-3 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-white truncate">{r.guestName}</span>
+                            <span className={`text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded ${
+                              r.status === 'CONFIRMED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                            }`}>
+                              {r.status === 'CONFIRMED' ? 'Confirmé' : 'En attente'}
+                            </span>
+                          </div>
+                          <div className="text-[11px] font-mono text-brand-gold truncate">
+                            {r.propertyTitle}
+                          </div>
+                          <div className="flex items-center justify-between text-[10px] font-mono text-brand-travertine/60">
+                            <span>Du {r.checkIn} au {r.checkOut}</span>
+                            <span className="text-emerald-400 font-bold">{r.depositAmount || 0} TND Acompte</span>
+                          </div>
+                          <div className="flex items-center gap-2 pt-1">
+                            <a
+                              href={`https://wa.me/${r.guestPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${r.guestName}, concernant votre réservation ${r.id} à Villa Regia...`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] font-mono text-emerald-400 hover:underline flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded"
+                            >
+                              <MessageCircle className="w-3 h-3" />
+                              <span>WhatsApp</span>
+                            </a>
+                            <button
+                              onClick={() => {
+                                setActiveTab('reservations');
+                                setReservationSearch(r.guestName);
+                              }}
+                              className="text-[10px] font-mono text-white/80 hover:text-white flex items-center gap-1 bg-white/5 px-2 py-1 rounded"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                              <span>Détails</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <Link
+                  href="/villas-de-luxe"
+                  target="_blank"
+                  className="w-full text-center py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-brand-travertine text-xs font-mono font-bold border border-white/10 transition-all block mt-2"
+                >
+                  Voir Catalogue Villas de Séjour ↗
+                </Link>
+              </div>
+            </div>
+
+            {/* 4. Quick Action Executive Bar */}
+            <div className="glass-navy p-5 rounded-2xl border border-brand-gold/25 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-brand-gold" />
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                  Actions Exécutives Immobilières
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={openAddPropertyModal}
+                  className="px-3 py-2 rounded-xl bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-1.5 shadow"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Ajouter un Bien</span>
+                </button>
+                <button
+                  onClick={() => setNewLeadModalOpen(true)}
+                  className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-1.5"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Saisir Lead CRM</span>
+                </button>
+                <button
+                  onClick={openAddArticleModal}
+                  className="px-3 py-2 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-1.5"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Rédiger Article</span>
+                </button>
+                <Link
+                  href="/properties"
+                  target="_blank"
+                  className="px-3 py-2 rounded-xl bg-white/5 text-white/80 hover:text-white border border-white/10 text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Catalogue Public</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* 5. System Audit Trail */}
+            <div className="glass-card p-5 sm:p-6 rounded-2xl border border-brand-gold/20 space-y-4">
               <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">Journal d'Activité Récente</h2>
-                <span className="text-xs font-mono text-brand-travertine/50">{auditLogs.length} événements</span>
+                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                  <Activity className="w-3.5 h-3.5 text-brand-gold" />
+                  <span>Journal d'Activité Récente & Sécurité Audit</span>
+                </h2>
+                <span className="text-xs font-mono text-brand-travertine/50">{auditLogs.length} événements enregistrés</span>
               </div>
               <div className="divide-y divide-white/5 text-xs">
                 {auditLogs.slice(0, 5).map((log) => (
-                  <div key={log.id} className="py-3 flex items-center justify-between font-mono text-[11px]">
+                  <div key={log.id} className="py-2.5 flex items-center justify-between font-mono text-[11px]">
                     <div className="flex items-center gap-2">
-                      <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px]">{log.role}</span>
+                      <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-bold">{log.role}</span>
                       <span className="text-white font-bold">{log.userName}:</span>
                       <span className="text-brand-travertine/80">{log.action} ({log.target})</span>
                     </div>
-                    <span className="text-brand-travertine/40">{log.timestamp}</span>
+                    <span className="text-brand-travertine/40 text-[10px]">{log.timestamp}</span>
                   </div>
                 ))}
               </div>
@@ -1556,30 +2134,77 @@ export default function AdminDashboardPage() {
 
         {/* TAB: OWNER SUBMISSIONS ("PROPOSER UN BIEN") */}
         {activeTab === 'submissions' && hasPermission('properties.read') && (
-          <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
-            <div className="flex justify-between items-center">
+          <div className="glass-navy p-6 rounded-2xl border border-brand-gold/30 space-y-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
-                  Dossiers de Soumissions Propriétaires ("Proposer un bien")
+                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                  <FileCheck className="w-4 h-4 text-brand-gold" />
+                  <span>Dossiers de Soumissions Mandats Propriétaires</span>
                 </h2>
                 <p className="text-xs text-brand-travertine/60 font-light mt-0.5">
-                  Examinez les propositions soumises par les propriétaires et convertissez-les en 1-click au catalogue public.
+                  Examinez les mandats proposés, téléchargez la fiche A4 brandée signée, et approuvez avec ou sans mise en ligne.
                 </p>
               </div>
 
-              <Link
-                href="/proposer-un-bien"
-                target="_blank"
-                className="bg-white/10 hover:bg-white/20 text-brand-travertine px-3.5 py-2 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border border-white/10"
-              >
-                <span>Ouvrir Formulaire Public</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </Link>
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <Link
+                  href="/proposer-un-bien"
+                  target="_blank"
+                  className="bg-white/10 hover:bg-white/20 text-brand-travertine px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border border-white/10 shrink-0"
+                >
+                  <span>Formulaire Public</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Submissions Filter Toolbar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs font-mono">
+                {[
+                  { id: 'ALL', label: `Toutes (${submissions.length})` },
+                  { id: 'PENDING', label: `À Instruire (${pendingSubmissionsCount})`, count: pendingSubmissionsCount },
+                  { id: 'APPROVED_UNPUBLISHED', label: `Privés Hors-Ligne (${approvedUnpublishedCount})` },
+                  { id: 'APPROVED_PUBLISHED', label: `Publiés (${approvedPublishedCount})` },
+                  { id: 'REJECTED', label: `Refusés (${submissions.filter(s => s.status === 'REJECTED').length})` },
+                ].map((st) => (
+                  <button
+                    key={st.id}
+                    onClick={() => setSubmissionFilter(st.id)}
+                    className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all ${
+                      submissionFilter === st.id
+                        ? 'bg-brand-gold text-brand-navy font-bold shadow'
+                        : 'bg-white/5 text-brand-travertine/70 hover:text-white'
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 text-brand-gold absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Rechercher nom, réf, tél, ville..."
+                  value={submissionSearch}
+                  onChange={(e) => setSubmissionSearch(e.target.value)}
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-brand-gold font-mono"
+                />
+              </div>
             </div>
 
             {/* Mobile View: Cards */}
             <div className="space-y-4 block lg:hidden">
-              {submissions.map((sub) => (
+              {filteredSubmissions.length === 0 ? (
+                <div className="text-center py-12 text-xs font-mono text-brand-travertine/50">
+                  Aucun dossier ne correspond à votre filtre.
+                </div>
+              ) : (
+                filteredSubmissions.map((sub) => {
+                  const ownerUser = staffUsers.find(u => u.email === sub.ownerEmail);
+                  const ownerLead = leads.find(l => l.phone === sub.ownerPhone || (sub.ownerEmail && l.email === sub.ownerEmail));
+                  return (
                 <div
                   key={sub.id}
                   className="glass-card p-4 rounded-2xl border border-white/10 space-y-3 shadow-xl"
@@ -1643,109 +2268,162 @@ export default function AdminDashboardPage() {
                         📍 {sub.address}
                       </div>
                     )}
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-2 border-t border-white/10 flex-wrap">
-                    <button
-                      onClick={() => generateSubmissionPdf(sub)}
-                      className="bg-brand-gold text-brand-navy p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold font-mono transition-all hover:opacity-90 shadow"
-                      title="Télécharger la fiche dossier en PDF signé & brandé"
-                    >
-                      <FileDown className="w-4 h-4" />
-                      <span className="text-[11px]">PDF</span>
-                    </button>
-
-                    <button
-                      onClick={() => setInspectingSubmission(sub)}
-                      className="bg-brand-gold/15 hover:bg-brand-gold/25 text-brand-gold border border-brand-gold/30 p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold font-mono transition-all"
-                      title="Examiner l'intégralité du dossier"
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span className="text-[11px]">Détails</span>
-                    </button>
-
-                    {sub.status === 'PENDING' && (
-                      <>
-                        <button
-                          onClick={() => handleApproveSubmission(sub, false)}
-                          className="bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 p-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1"
-                          title="Valider en interne sans publier au catalogue public"
-                        >
-                          <Check className="w-4 h-4" />
-                          <span className="text-[10px]">Approuver</span>
-                        </button>
-                        <button
-                          onClick={() => handleApproveSubmission(sub, true)}
-                          className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 p-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1"
-                          title="Approuver et publier au catalogue public"
-                        >
-                          <Check className="w-4 h-4" />
-                          <span className="text-[10px]">Publier</span>
-                        </button>
-                      </>
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                    {ownerUser && (
+                      <span className="text-[9px] font-mono font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded flex items-center gap-1">
+                        <Users className="w-3 h-3 text-blue-400" />
+                        <span>Compte Client VIP</span>
+                      </span>
                     )}
-
-                    {sub.status === 'APPROVED' && !sub.isPublished && (
+                    {ownerLead ? (
                       <button
-                        onClick={() => handleApproveSubmission(sub, true)}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-brand-navy px-3 py-2 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1 shadow"
-                        title="Publier maintenant au catalogue"
+                        onClick={() => jumpToCrmWithLead(ownerLead.email || ownerLead.phone)}
+                        className="text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded flex items-center gap-1 hover:bg-emerald-500/25"
+                        title="Voir la fiche correspondante dans le CRM"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span className="text-[10px]">Mettre en ligne</span>
+                        <Link2 className="w-3 h-3 text-emerald-400" />
+                        <span>Lead CRM ({ownerLead.status})</span>
                       </button>
-                    )}
-
-                    <a
-                      href={`https://wa.me/${sub.ownerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${sub.ownerName}, concernant votre dossier ${sub.refCode} soumis à Villa Regia...`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold"
-                      title="WhatsApp Propriétaire"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="text-[11px]">WhatsApp</span>
-                    </a>
-
-                    {sub.status === 'PENDING' && (
+                    ) : (
                       <button
-                        onClick={() => handleRejectSubmission(sub.id, sub.refCode)}
-                        className="p-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                        title="Refuser le dossier"
+                        onClick={() => handleCreateLeadFromSubmission(sub)}
+                        className="text-[9px] font-mono font-bold bg-white/5 text-brand-gold border border-brand-gold/30 px-2 py-0.5 rounded flex items-center gap-1 hover:bg-brand-gold/20"
+                        title="Convertir automatiquement ce propriétaire en prospect dans le CRM"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <UserPlus className="w-3 h-3 text-brand-gold" />
+                        <span>+ Créer Fiche CRM</span>
                       </button>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Desktop View: Table */}
-            <div className="overflow-x-auto hidden lg:block">
-              <table className="w-full text-left text-xs text-brand-travertine/80">
-                <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
-                  <tr>
-                    <th className="p-3">Réf Dossier</th>
-                    <th className="p-3">Propriétaire</th>
-                    <th className="p-3">Bien Proposé</th>
-                    <th className="p-3">Univers</th>
-                    <th className="p-3">Localisation & Titre</th>
-                    <th className="p-3">Surface / Pièces</th>
-                    <th className="p-3">Prix Estimé</th>
-                    <th className="p-3">Statut</th>
-                    <th className="p-3 text-right">Actions Staff</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/10">
-                  {submissions.map((sub) => (
-                    <tr key={sub.id} className="hover:bg-white/5 transition-colors">
-                      <td className="p-3 font-mono font-bold text-brand-gold">{sub.refCode}</td>
-                      <td className="p-3">
+                <div className="flex items-center gap-2 pt-2 border-t border-white/10 flex-wrap">
+                  <button
+                    onClick={() => generateSubmissionPdf(sub)}
+                    className="bg-brand-gold text-brand-navy p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold font-mono transition-all hover:opacity-90 shadow"
+                    title="Télécharger la fiche dossier en PDF signé & brandé"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    <span className="text-[11px]">PDF</span>
+                  </button>
+
+                  <button
+                    onClick={() => setInspectingSubmission(sub)}
+                    className="bg-brand-gold/15 hover:bg-brand-gold/25 text-brand-gold border border-brand-gold/30 p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold font-mono transition-all"
+                    title="Examiner l'intégralité du dossier"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span className="text-[11px]">Détails</span>
+                  </button>
+
+                  {sub.status === 'PENDING' && (
+                    <>
+                      <button
+                        onClick={() => handleApproveSubmission(sub, false)}
+                        className="bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 p-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1"
+                        title="Valider en interne sans publier au catalogue public"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span className="text-[10px]">Approuver</span>
+                      </button>
+                      <button
+                        onClick={() => handleApproveSubmission(sub, true)}
+                        className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 p-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1"
+                        title="Approuver et publier au catalogue public"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span className="text-[10px]">Publier</span>
+                      </button>
+                    </>
+                  )}
+
+                  {sub.status === 'APPROVED' && !sub.isPublished && (
+                    <button
+                      onClick={() => handleApproveSubmission(sub, true)}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-brand-navy px-3 py-2 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1 shadow"
+                      title="Publier maintenant au catalogue"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span className="text-[10px]">Mettre en ligne</span>
+                    </button>
+                  )}
+
+                  <a
+                    href={`https://wa.me/${sub.ownerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${sub.ownerName}, concernant votre dossier ${sub.refCode} soumis à Villa Regia...`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 p-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold"
+                    title="WhatsApp Propriétaire"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span className="text-[11px]">WhatsApp</span>
+                  </a>
+
+                  {sub.status === 'PENDING' && (
+                    <button
+                      onClick={() => handleRejectSubmission(sub.id, sub.refCode)}
+                      className="p-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                      title="Refuser le dossier"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop View: Table */}
+      <div className="overflow-x-auto hidden lg:block">
+        <table className="w-full text-left text-xs text-brand-travertine/80">
+          <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
+            <tr>
+              <th className="p-3">Réf Dossier</th>
+              <th className="p-3">Propriétaire</th>
+              <th className="p-3">Bien Proposé</th>
+              <th className="p-3">Univers</th>
+              <th className="p-3">Localisation & Titre</th>
+              <th className="p-3">Surface / Pièces</th>
+              <th className="p-3">Prix Estimé</th>
+              <th className="p-3">Statut</th>
+              <th className="p-3 text-right">Actions Staff</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/10">
+            {filteredSubmissions.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="text-center py-12 text-xs font-mono text-brand-travertine/50">
+                  Aucun dossier ne correspond aux critères de recherche.
+                </td>
+              </tr>
+            ) : (
+              filteredSubmissions.map((sub) => {
+                const ownerUser = staffUsers.find(u => u.email === sub.ownerEmail);
+                const ownerLead = leads.find(l => l.phone === sub.ownerPhone || (sub.ownerEmail && l.email === sub.ownerEmail));
+                return (
+                  <tr key={sub.id} className="hover:bg-white/5 transition-colors">
+                    <td className="p-3 font-mono font-bold text-brand-gold">{sub.refCode}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-semibold text-white">{sub.ownerName}</span>
-                        <div className="text-[10px] text-brand-travertine/50 font-mono">{sub.ownerPhone}</div>
-                        {sub.ownerEmail && <div className="text-[10px] text-brand-travertine/40 font-mono truncate max-w-[150px]">{sub.ownerEmail}</div>}
-                      </td>
+                        {ownerUser && (
+                          <span className="text-[8px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.2 rounded">VIP</span>
+                        )}
+                        {ownerLead && (
+                          <button
+                            onClick={() => jumpToCrmWithLead(ownerLead.email || ownerLead.phone)}
+                            className="text-[8px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded hover:underline"
+                            title="Voir la fiche CRM"
+                          >
+                            CRM
+                          </button>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-brand-travertine/50 font-mono">{sub.ownerPhone}</div>
+                      {sub.ownerEmail && <div className="text-[10px] text-brand-travertine/40 font-mono truncate max-w-[150px]">{sub.ownerEmail}</div>}
+                    </td>
                       <td className="p-3">
                         <span className="font-semibold text-white">{sub.propertyType}</span>
                         {sub.photos && sub.photos.length > 0 ? (
@@ -1869,34 +2547,39 @@ export default function AdminDashboardPage() {
                         )}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  );
+                })
+              )}
+            </tbody>
+            </table>
             </div>
           </div>
         )}
 
         {/* TAB 2: FUNCTIONAL PROPERTIES MANAGEMENT */}
         {activeTab === 'properties' && hasPermission('properties.read') && (
-          <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
+          <div className="glass-navy p-6 rounded-2xl border border-brand-gold/30 space-y-6">
             
-            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
-                <div className="relative w-full sm:w-72">
+            {/* Properties Filter & Action Toolbar */}
+            <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+                {/* Search query */}
+                <div className="relative w-full sm:w-64">
                   <input
                     type="text"
-                    placeholder="Rechercher par titre ou quartier..."
+                    placeholder="Rechercher titre, quartier, ID..."
                     value={propertySearch}
                     onChange={(e) => setPropertySearch(e.target.value)}
-                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold"
+                    className="w-full bg-brand-navy border border-white/20 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-gold font-mono"
                   />
-                  <Search className="w-4 h-4 text-brand-travertine/40 absolute right-3 top-3" />
+                  <Search className="w-3.5 h-3.5 text-brand-travertine/40 absolute right-3 top-2.5" />
                 </div>
 
+                {/* Universe Filter */}
                 <select
                   value={universeFilter}
                   onChange={(e) => setUniverseFilter(e.target.value)}
-                  className="bg-brand-navy border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold"
+                  className="bg-brand-navy border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-gold font-mono"
                 >
                   <option value="ALL">Tous les Univers</option>
                   <option value="VENTE">VENTE</option>
@@ -1904,12 +2587,42 @@ export default function AdminDashboardPage() {
                   <option value="LUXE">VILLAS DE LUXE</option>
                   <option value="EVENT">ÉVÉNEMENTIEL</option>
                 </select>
+
+                {/* Category Filter */}
+                <select
+                  value={propertyCategoryFilter}
+                  onChange={(e) => setPropertyCategoryFilter(e.target.value)}
+                  className="bg-brand-navy border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-gold font-mono"
+                >
+                  <option value="ALL">Toutes les Typologies</option>
+                  <option value="Villa">Villas de Prestige</option>
+                  <option value="Villa Semi-Construite">Villas Semi-Construites</option>
+                  <option value="Espace Commercial">Espaces Commerciaux</option>
+                  <option value="Fond de commerce">Fonds de Commerce</option>
+                  <option value="Duplex">Duplex</option>
+                  <option value="Penthouse">Penthouses</option>
+                  <option value="Maison de Maître">Maisons de Maître</option>
+                  <option value="Terrain">Terrains & Domaines</option>
+                </select>
+
+                {/* Status Filter */}
+                <select
+                  value={propertyStatusFilter}
+                  onChange={(e) => setPropertyStatusFilter(e.target.value)}
+                  className="bg-brand-navy border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-gold font-mono"
+                >
+                  <option value="ALL">Tous les Statuts</option>
+                  <option value="DISPONIBLE">DISPONIBLE</option>
+                  <option value="SOUS_OFFRE">SOUS OFFRE</option>
+                  <option value="VENDU">VENDU</option>
+                  <option value="LOUE">LOUÉ</option>
+                </select>
               </div>
 
               {hasPermission('properties.create') && (
                 <button
                   onClick={openAddPropertyModal}
-                  className="bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow hover:opacity-95 transition-all"
+                  className="bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow hover:opacity-95 transition-all shrink-0"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Ajouter une Propriété</span>
@@ -1919,160 +2632,77 @@ export default function AdminDashboardPage() {
 
             {/* Mobile View: Cards */}
             <div className="space-y-4 block lg:hidden">
-              {filteredProperties.map((p) => (
-                <div
-                  key={p.id}
-                  className="glass-card p-4 rounded-xl border border-white/10 space-y-3"
-                >
-                  <div className="flex gap-3">
-                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-brand-gold/30 shrink-0">
-                      <Image src={p.images[0]?.url || ''} alt={p.title.fr} fill className="object-cover" />
-                    </div>
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-1">
-                        <span className="font-bold text-sm text-white line-clamp-1">{p.title.fr}</span>
-                        <button
-                          onClick={() => handleToggleFeatured(p.id, p.isFeatured || false, p.title.fr)}
-                          className={`p-1 rounded shrink-0 transition-colors ${
-                            p.isFeatured ? 'text-amber-400 bg-amber-400/10' : 'text-slate-600 hover:text-amber-400'
-                          }`}
-                          title="En Une"
-                        >
-                          <Star className="w-4 h-4 fill-current" />
-                        </button>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono font-bold">
-                          {p.universe}
-                        </span>
-                        <span className="text-xs text-white/60">{p.category}</span>
-                      </div>
-
-                      <div className="text-xs text-white/70 truncate">{p.location.district}, {p.location.city}</div>
-
-                      <div className="text-xs font-mono font-bold text-brand-gold">
-                        {p.price.amount.toLocaleString()} {p.price.currency}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
-                    <button
-                      onClick={() => handleToggleStatus(p.id, p.status, p.title.fr)}
-                      className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all ${
-                        p.status === 'DISPONIBLE'
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      }`}
-                    >
-                      {p.status}
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                      <Link
-                        href={`/properties/${p.id}`}
-                        target="_blank"
-                        className="p-2 rounded-lg bg-white/5 text-brand-gold hover:bg-white/10"
-                        title="Voir fiche publique"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Link>
-                      <button
-                        onClick={() => handleCreateLeadFromProperty(p)}
-                        className="p-2 rounded-lg bg-white/5 text-emerald-400 hover:bg-white/10"
-                        title="Créer Lead CRM"
-                      >
-                        <UserPlus className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => openEditPropertyModal(p)}
-                        className="p-2 rounded-lg bg-white/5 text-brand-travertine hover:text-brand-gold hover:bg-white/10"
-                        title="Modifier"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDuplicateProperty(p)}
-                        className="p-2 rounded-lg bg-white/5 text-sky-400 hover:bg-white/10"
-                        title="Dupliquer"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
-                      {hasPermission('properties.delete') && (
-                        <button
-                          onClick={() => handleDeleteProperty(p.id, p.title.fr)}
-                          className="p-2 rounded-lg bg-white/5 text-red-400 hover:bg-white/10"
-                          title="Supprimer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
+              {filteredProperties.length === 0 ? (
+                <div className="text-center py-12 text-xs font-mono text-brand-travertine/50">
+                  Aucune propriété ne correspond à votre filtre.
                 </div>
-              ))}
-            </div>
-
-            {/* Desktop View: Table */}
-            <div className="overflow-x-auto hidden lg:block">
-              <table className="w-full text-left text-xs text-brand-travertine/80">
-                <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
-                  <tr>
-                    <th className="p-3">Visuel</th>
-                    <th className="p-3">Intitulé du Bien</th>
-                    <th className="p-3">Univers</th>
-                    <th className="p-3">Catégorie</th>
-                    <th className="p-3">Localisation</th>
-                    <th className="p-3">Prix</th>
-                    <th className="p-3">Une</th>
-                    <th className="p-3">Statut</th>
-                    <th className="p-3 text-right">Actions Operatoires</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/10">
-                  {filteredProperties.map((p) => (
-                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
-                      <td className="p-3">
-                        <div className="relative w-12 h-10 rounded overflow-hidden">
+              ) : (
+                filteredProperties.map((p) => {
+                  const propLeads = leads.filter(l => l.propertyTitle?.toLowerCase() === p.title.fr.toLowerCase() || l.propertyTitle?.includes(p.id));
+                  const propBookings = reservations.filter(r => r.propertyId === p.id || r.propertyTitle === p.title.fr);
+                  return (
+                    <div
+                      key={p.id}
+                      className="glass-card p-4 rounded-2xl border border-white/10 space-y-3 shadow-xl"
+                    >
+                      <div className="flex gap-3">
+                        <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-brand-gold/30 shrink-0">
                           <Image src={p.images[0]?.url || ''} alt={p.title.fr} fill className="object-cover" />
                         </div>
-                      </td>
-                      <td className="p-3 font-semibold text-white max-w-xs truncate">
-                        {p.title.fr}
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <Link
-                            href={`/properties/${p.id}`}
-                            target="_blank"
-                            className="text-[10px] text-brand-gold hover:underline inline-flex items-center gap-1"
-                          >
-                            <span>Voir fiche</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </Link>
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-1">
+                            <span className="font-bold text-sm text-white line-clamp-1">{p.title.fr}</span>
+                            <button
+                              onClick={() => handleToggleFeatured(p.id, p.isFeatured || false, p.title.fr)}
+                              className={`p-1 rounded shrink-0 transition-colors ${
+                                p.isFeatured ? 'text-amber-400 bg-amber-400/10' : 'text-slate-600 hover:text-amber-400'
+                              }`}
+                              title="En Une"
+                            >
+                              <Star className="w-4 h-4 fill-current" />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono font-bold">
+                              {p.universe}
+                            </span>
+                            <span className="text-xs text-white/60">{p.category}</span>
+                          </div>
+
+                          <div className="text-xs text-white/70 truncate">{p.location.district}, {p.location.city}</div>
+
+                          <div className="text-xs font-mono font-bold text-brand-gold">
+                            {p.price.amount.toLocaleString()} {p.price.currency}
+                          </div>
                         </div>
-                      </td>
-                      <td className="p-3">
-                        <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono">
-                          {p.universe}
-                        </span>
-                      </td>
-                      <td className="p-3 text-brand-travertine/70">{p.category}</td>
-                      <td className="p-3 text-brand-travertine/70">{p.location.district}, {p.location.city}</td>
-                      <td className="p-3 font-mono text-brand-gold font-bold">
-                        {p.price.amount.toLocaleString()} {p.price.currency}
-                      </td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => handleToggleFeatured(p.id, p.isFeatured || false, p.title.fr)}
-                          className={`p-1.5 rounded transition-colors ${
-                            p.isFeatured ? 'text-amber-400 bg-amber-400/10' : 'text-slate-600 hover:text-amber-400'
-                          }`}
-                          title="Basculer En Une"
-                        >
-                          <Star className="w-4 h-4 fill-current" />
-                        </button>
-                      </td>
-                      <td className="p-3">
+                      </div>
+
+                      {/* Interconnected Activity Badges */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-white/5 flex-wrap">
+                        {propLeads.length > 0 && (
+                          <button
+                            onClick={() => jumpToCrmWithProperty(p.title.fr)}
+                            className="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[9px] font-mono font-bold px-2 py-0.5 rounded-lg flex items-center gap-1"
+                            title="Voir les demandes CRM pour ce bien"
+                          >
+                            <Users className="w-3 h-3 text-emerald-400" />
+                            <span>{propLeads.length} Lead(s) CRM</span>
+                          </button>
+                        )}
+                        {propBookings.length > 0 && (
+                          <button
+                            onClick={() => jumpToReservationsWithProperty(p.title.fr)}
+                            className="bg-brand-gold/15 hover:bg-brand-gold/25 text-brand-gold border border-brand-gold/30 text-[9px] font-mono font-bold px-2 py-0.5 rounded-lg flex items-center gap-1"
+                            title="Voir les réservations pour ce bien"
+                          >
+                            <Calendar className="w-3 h-3 text-brand-gold" />
+                            <span>{propBookings.length} Séjour(s)</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
                         <button
                           onClick={() => handleToggleStatus(p.id, p.status, p.title.fr)}
                           className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all ${
@@ -2083,7 +2713,152 @@ export default function AdminDashboardPage() {
                         >
                           {p.status}
                         </button>
+
+                        <div className="flex items-center gap-1">
+                          <Link
+                            href={`/properties/${p.id}`}
+                            target="_blank"
+                            className="p-2 rounded-lg bg-white/5 text-brand-gold hover:bg-white/10"
+                            title="Voir fiche publique"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Link>
+                          <button
+                            onClick={() => handleCreateLeadFromProperty(p)}
+                            className="p-2 rounded-lg bg-white/5 text-emerald-400 hover:bg-white/10"
+                            title="Créer Lead CRM"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => openEditPropertyModal(p)}
+                            className="p-2 rounded-lg bg-white/5 text-brand-travertine hover:text-brand-gold hover:bg-white/10"
+                            title="Modifier"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDuplicateProperty(p)}
+                            className="p-2 rounded-lg bg-white/5 text-sky-400 hover:bg-white/10"
+                            title="Dupliquer"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                          {hasPermission('properties.delete') && (
+                            <button
+                              onClick={() => handleDeleteProperty(p.id, p.title.fr)}
+                              className="p-2 rounded-lg bg-white/5 text-red-400 hover:bg-white/10"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="overflow-x-auto hidden lg:block">
+              <table className="w-full text-left text-xs text-brand-travertine/80">
+                <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
+                  <tr>
+                    <th className="p-3">Visuel</th>
+                    <th className="p-3">Intitulé & Interconnexions</th>
+                    <th className="p-3">Univers</th>
+                    <th className="p-3">Catégorie</th>
+                    <th className="p-3">Localisation</th>
+                    <th className="p-3">Prix</th>
+                    <th className="p-3">Une</th>
+                    <th className="p-3">Statut</th>
+                    <th className="p-3 text-right">Actions Operatoires</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {filteredProperties.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="text-center py-12 text-xs font-mono text-brand-travertine/50">
+                        Aucun bien ne correspond aux critères de recherche.
                       </td>
+                    </tr>
+                  ) : (
+                    filteredProperties.map((p) => {
+                      const propLeads = leads.filter(l => l.propertyTitle?.toLowerCase() === p.title.fr.toLowerCase() || l.propertyTitle?.includes(p.id));
+                      const propBookings = reservations.filter(r => r.propertyId === p.id || r.propertyTitle === p.title.fr);
+                      return (
+                        <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                          <td className="p-3">
+                            <div className="relative w-12 h-10 rounded overflow-hidden">
+                              <Image src={p.images[0]?.url || ''} alt={p.title.fr} fill className="object-cover" />
+                            </div>
+                          </td>
+                          <td className="p-3 font-semibold text-white max-w-xs">
+                            <div className="truncate">{p.title.fr}</div>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <Link
+                                href={`/properties/${p.id}`}
+                                target="_blank"
+                                className="text-[10px] text-brand-gold hover:underline inline-flex items-center gap-1 font-mono"
+                              >
+                                <span>Fiche public</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </Link>
+                              {propLeads.length > 0 && (
+                                <button
+                                  onClick={() => jumpToCrmWithProperty(p.title.fr)}
+                                  className="text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded hover:underline"
+                                  title="Voir les demandes CRM pour ce bien"
+                                >
+                                  {propLeads.length} Lead(s)
+                                </button>
+                              )}
+                              {propBookings.length > 0 && (
+                                <button
+                                  onClick={() => jumpToReservationsWithProperty(p.title.fr)}
+                                  className="text-[9px] font-mono font-bold bg-brand-gold/20 text-brand-gold border border-brand-gold/30 px-1.5 py-0.2 rounded hover:underline"
+                                  title="Voir les réservations pour ce bien"
+                                >
+                                  {propBookings.length} Séjour(s)
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <span className="bg-brand-gold/15 text-brand-gold px-2 py-0.5 rounded text-[10px] font-mono">
+                              {p.universe}
+                            </span>
+                          </td>
+                          <td className="p-3 text-brand-travertine/70">{p.category}</td>
+                          <td className="p-3 text-brand-travertine/70">{p.location.district}, {p.location.city}</td>
+                          <td className="p-3 font-mono text-brand-gold font-bold">
+                            {p.price.amount.toLocaleString()} {p.price.currency}
+                          </td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => handleToggleFeatured(p.id, p.isFeatured || false, p.title.fr)}
+                              className={`p-1.5 rounded transition-colors ${
+                                p.isFeatured ? 'text-amber-400 bg-amber-400/10' : 'text-slate-600 hover:text-amber-400'
+                              }`}
+                              title="Basculer En Une"
+                            >
+                              <Star className="w-4 h-4 fill-current" />
+                            </button>
+                          </td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => handleToggleStatus(p.id, p.status, p.title.fr)}
+                              className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all ${
+                                p.status === 'DISPONIBLE'
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                              }`}
+                            >
+                              {p.status}
+                            </button>
+                          </td>
                       <td className="p-3 text-right space-x-2">
                         <button
                           onClick={() => handleCreateLeadFromProperty(p)}
@@ -2095,7 +2870,7 @@ export default function AdminDashboardPage() {
                         <button
                           onClick={() => openEditPropertyModal(p)}
                           className="p-1.5 rounded bg-white/5 text-brand-travertine hover:text-brand-gold hover:bg-white/10"
-                          title="Éditer la fiche"
+                          title="Modifier"
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
@@ -2117,14 +2892,9 @@ export default function AdminDashboardPage() {
                         )}
                       </td>
                     </tr>
-                  ))}
-                  {filteredProperties.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="text-center py-12 text-white/50 text-xs font-mono">
-                        {isInitialLoading ? 'Chargement des biens depuis la base de données...' : 'Aucune propriété enregistrée.'}
-                      </td>
-                    </tr>
-                  )}
+                  );
+                })
+              )}
                 </tbody>
               </table>
             </div>
@@ -2141,30 +2911,56 @@ export default function AdminDashboardPage() {
         {/* TAB 3: FUNCTIONAL CRM LEAD PIPELINE */}
         {activeTab === 'crm' && hasPermission('leads.read') && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
-                  Pipeline Commercial CRM & Suivi Client
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-brand-gold" />
+                  <span>Pipeline Commercial CRM & Opportunités</span>
                 </h2>
-                <span className="text-xs text-brand-travertine/60 font-mono">
-                  {leads.length} opportunité(s) active(s)
-                </span>
+                <p className="text-xs text-brand-travertine/60 font-light mt-0.5">
+                  Suivi des acheteurs, investisseurs et locataires VIP qualifiés par le staff.
+                </p>
               </div>
 
-              <button
-                onClick={() => setNewLeadModalOpen(true)}
-                className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-3.5 py-2 rounded text-xs uppercase tracking-wider flex items-center gap-2 shadow"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Nouveau Lead Client</span>
-              </button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => setNewLeadModalOpen(true)}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow shrink-0"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Nouveau Lead Client</span>
+                </button>
+              </div>
+            </div>
+
+            {/* CRM Search & Filters */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-3.5 h-3.5 text-brand-gold absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filtrer leads par client, tél, email, bien..."
+                  value={crmSearch}
+                  onChange={(e) => setCrmSearch(e.target.value)}
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-brand-gold font-mono"
+                />
+              </div>
+
+              {crmSearch && (
+                <button
+                  onClick={() => setCrmSearch('')}
+                  className="text-xs text-brand-gold hover:underline font-mono"
+                >
+                  Réinitialiser le filtre ("{crmSearch}")
+                </button>
+              )}
             </div>
             
             <div className="flex md:grid md:grid-cols-5 gap-4 overflow-x-auto pb-4 scrollbar-none snap-x -mx-4 px-4 sm:mx-0 sm:px-0">
               {(['Nouveau', 'Contacté', 'Visite', 'Offre', 'Conclu'] as const).map((stage) => {
-                const stageLeads = leads.filter((l) => l.status === stage);
+                const stageLeads = filteredLeads.filter((l) => l.status === stage);
                 return (
-                  <div key={stage} className="glass-card rounded-xl p-4 space-y-3 min-h-[360px] border border-brand-gold/15 min-w-[280px] sm:min-w-[300px] md:min-w-0 snap-start flex-1 shrink-0">
+                  <div key={stage} className="glass-card rounded-2xl p-4 space-y-3 min-h-[360px] border border-brand-gold/15 min-w-[280px] sm:min-w-[300px] md:min-w-0 snap-start flex-1 shrink-0 shadow-lg">
                     <div className="flex justify-between items-center border-b border-white/10 pb-2">
                       <span className="text-xs font-mono font-bold text-brand-travertine uppercase">{stage}</span>
                       <span className="text-[10px] bg-brand-gold text-brand-navy px-2 py-0.5 rounded font-mono font-bold">
@@ -2173,57 +2969,96 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-3">
-                      {stageLeads.map((lead) => (
-                        <div
-                          key={lead.id}
-                          className="glass-navy p-4 rounded-lg border border-white/10 space-y-3 hover:border-brand-gold/40 transition-colors"
-                        >
-                          <div className="flex justify-between items-start">
-                            <span className="text-xs font-bold text-white">{lead.name}</span>
-                            <span className="text-[9px] bg-brand-gold/15 text-brand-gold px-1.5 py-0.5 rounded font-mono">
-                              {lead.universe}
-                            </span>
-                          </div>
-
-                          <p className="text-[11px] text-brand-travertine/70 line-clamp-1">{lead.propertyTitle}</p>
-
-                          <div className="space-y-1 text-[10px] text-brand-travertine/50">
-                            <div className="flex items-center gap-1.5">
-                              <Phone className="w-3 h-3 text-brand-gold shrink-0" />
-                              <span>{lead.phone}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <Mail className="w-3 h-3 text-brand-gold shrink-0" />
-                              <span className="truncate">{lead.email}</span>
-                            </div>
-                          </div>
-
-                          {lead.notes && (
-                            <p className="text-[10px] text-brand-travertine/60 italic bg-brand-navy p-2 rounded line-clamp-2">
-                              « {lead.notes} »
-                            </p>
-                          )}
-
-                          <div className="pt-2 border-t border-white/10 flex justify-between items-center text-[10px] font-mono">
-                            <span className="text-brand-travertine/60">{lead.assignedAgent || 'Non assigné'}</span>
-                            
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => openLeadModal(lead)}
-                                className="text-brand-gold hover:underline font-bold"
-                              >
-                                Gérer
-                              </button>
-                              <button
-                                onClick={() => handleDeleteLead(lead.id, lead.name)}
-                                className="text-brand-travertine/40 hover:text-red-400"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
+                      {stageLeads.length === 0 ? (
+                        <div className="text-center py-8 text-[11px] font-mono text-white/30">
+                          Aucun prospect
                         </div>
-                      ))}
+                      ) : (
+                        stageLeads.map((lead) => {
+                          const matchedProp = properties.find(p => p.title.fr.toLowerCase() === lead.propertyTitle?.toLowerCase() || (lead.propertyTitle && p.title.fr.toLowerCase().includes(lead.propertyTitle.toLowerCase())));
+                          return (
+                            <div
+                              key={lead.id}
+                              className="glass-navy p-4 rounded-xl border border-white/10 space-y-3 hover:border-brand-gold/40 transition-colors shadow-md"
+                            >
+                              <div className="flex justify-between items-start">
+                                <span className="text-xs font-bold text-white">{lead.name}</span>
+                                <span className="text-[9px] bg-brand-gold/15 text-brand-gold px-1.5 py-0.5 rounded font-mono font-bold">
+                                  {lead.universe}
+                                </span>
+                              </div>
+
+                              {/* Connected Property Thumbnail if matched */}
+                              {matchedProp ? (
+                                <div className="flex items-center gap-2 p-1.5 rounded-lg bg-white/5 border border-white/8">
+                                  <div className="relative w-10 h-10 rounded overflow-hidden shrink-0 border border-brand-gold/30">
+                                    <Image src={matchedProp.images[0]?.url || ''} alt="" fill className="object-cover" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <Link
+                                      href={`/properties/${matchedProp.id}`}
+                                      target="_blank"
+                                      className="text-[11px] font-semibold text-white hover:text-brand-gold truncate block"
+                                    >
+                                      {matchedProp.title.fr}
+                                    </Link>
+                                    <span className="text-[9px] font-mono text-brand-gold">
+                                      {matchedProp.price.amount.toLocaleString()} {matchedProp.price.currency}
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-brand-travertine/70 line-clamp-1">{lead.propertyTitle}</p>
+                              )}
+
+                              <div className="space-y-1 text-[10px] text-brand-travertine/50">
+                                <div className="flex items-center gap-1.5">
+                                  <Phone className="w-3 h-3 text-brand-gold shrink-0" />
+                                  <span>{lead.phone}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <Mail className="w-3 h-3 text-brand-gold shrink-0" />
+                                  <span className="truncate">{lead.email}</span>
+                                </div>
+                              </div>
+
+                              {lead.notes && (
+                                <p className="text-[10px] text-brand-travertine/60 italic bg-brand-navy p-2 rounded line-clamp-2">
+                                  « {lead.notes} »
+                                </p>
+                              )}
+
+                              <div className="pt-2 border-t border-white/10 flex justify-between items-center text-[10px] font-mono">
+                                <span className="text-brand-travertine/60 truncate max-w-[90px]">{lead.assignedAgent || 'Non assigné'}</span>
+                                
+                                <div className="flex items-center gap-1.5">
+                                  <a
+                                    href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${lead.name}, Villa Regia vous contacte au sujet de ${lead.propertyTitle || 'votre projet immobilier'}...`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1 rounded bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors"
+                                    title="Contacter par WhatsApp"
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                  </a>
+                                  <button
+                                    onClick={() => openLeadModal(lead)}
+                                    className="text-brand-gold hover:underline font-bold px-1 py-0.5"
+                                  >
+                                    Gérer
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteLead(lead.id, lead.name)}
+                                    className="text-brand-travertine/40 hover:text-red-400 p-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
                   </div>
                 );
@@ -2234,60 +3069,164 @@ export default function AdminDashboardPage() {
 
         {/* TAB 4: RESERVATIONS MANAGER */}
         {activeTab === 'reservations' && hasPermission('reservations.read') && (
-          <div className="glass-navy p-6 rounded-xl border border-brand-gold/30 space-y-6">
-            <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold">
-              Gestion des Réservations & Acomptes Court Séjour
-            </h2>
+          <div className="glass-navy p-6 rounded-2xl border border-brand-gold/30 space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-brand-gold flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-brand-gold" />
+                  <span>Gestion des Réservations & Acomptes Court Séjour</span>
+                </h2>
+                <p className="text-xs text-brand-travertine/60 font-light mt-0.5">
+                  Suivez les réservations de villas d'exception, vérifiez les acomptes et convertissez les voyageurs en leads CRM.
+                </p>
+              </div>
+
+              <div className="text-xs font-mono text-brand-gold font-bold">
+                Total Acomptes: {totalBookingsDeposit.toLocaleString()} TND
+              </div>
+            </div>
+
+            {/* Reservations Filter Toolbar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs font-mono">
+                {[
+                  { id: 'ALL', label: `Toutes (${reservations.length})` },
+                  { id: 'CONFIRMED', label: `Confirmées (${reservations.filter(r => r.status === 'CONFIRMED').length})` },
+                  { id: 'PENDING', label: `En Attente (${reservations.filter(r => r.status === 'PENDING').length})` },
+                  { id: 'CANCELLED', label: `Annulées (${reservations.filter(r => r.status === 'CANCELLED').length})` },
+                ].map((st) => (
+                  <button
+                    key={st.id}
+                    onClick={() => setReservationStatusFilter(st.id)}
+                    className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all ${
+                      reservationStatusFilter === st.id
+                        ? 'bg-brand-gold text-brand-navy font-bold shadow'
+                        : 'bg-white/5 text-brand-travertine/70 hover:text-white'
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 text-brand-gold absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Rechercher client, villa, tél, réf..."
+                  value={reservationSearch}
+                  onChange={(e) => setReservationSearch(e.target.value)}
+                  className="w-full bg-brand-navy border border-white/20 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-brand-gold font-mono"
+                />
+              </div>
+            </div>
 
             {/* Mobile View: Cards */}
             <div className="space-y-4 block lg:hidden">
-              {reservations.map((r) => (
-                <div key={r.id} className="glass-card p-4 rounded-xl border border-white/10 space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono font-bold text-xs text-brand-gold">{r.id}</span>
-                    <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                      r.status === 'CONFIRMED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
-                    }`}>
-                      {r.status}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-bold text-white">{r.propertyTitle}</h3>
-                    <div className="text-xs text-white/60 mt-0.5">{r.guestName} • <span className="font-mono text-brand-gold">{r.guestPhone}</span></div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 p-2.5 rounded-lg bg-white/5 border border-white/8 text-xs font-mono">
-                    <div>
-                      <span className="text-white/40 block text-[10px]">Dates</span>
-                      <span className="text-white/90 text-[11px]">{r.checkIn} → {r.checkOut}</span>
-                    </div>
-                    <div>
-                      <span className="text-white/40 block text-[10px]">Acompte ({r.totalNights} n.)</span>
-                      <span className="text-brand-gold font-bold text-xs">{r.depositAmount} TND</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-1 border-t border-white/10">
-                    {r.status !== 'CONFIRMED' && (
-                      <button
-                        onClick={() => handleUpdateReservationStatus(r.id, 'CONFIRMED')}
-                        className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 py-2 rounded-lg text-xs font-bold uppercase"
-                      >
-                        Valider
-                      </button>
-                    )}
-                    {r.status !== 'CANCELLED' && (
-                      <button
-                        onClick={() => handleUpdateReservationStatus(r.id, 'CANCELLED')}
-                        className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 py-2 rounded-lg text-xs font-bold uppercase"
-                      >
-                        Annuler
-                      </button>
-                    )}
-                  </div>
+              {filteredReservations.length === 0 ? (
+                <div className="text-center py-12 text-xs font-mono text-brand-travertine/50">
+                  Aucune réservation ne correspond à vos filtres.
                 </div>
-              ))}
+              ) : (
+                filteredReservations.map((r) => {
+                  const matchedProp = properties.find(p => p.id === r.propertyId || p.title.fr === r.propertyTitle);
+                  const guestLead = leads.find(l => l.phone === r.guestPhone || (r.guestEmail && l.email === r.guestEmail));
+                  return (
+                    <div key={r.id} className="glass-card p-4 rounded-2xl border border-white/10 space-y-3 shadow-xl">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono font-bold text-xs text-brand-gold">{r.id}</span>
+                        <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          r.status === 'CONFIRMED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        }`}>
+                          {r.status}
+                        </span>
+                      </div>
+
+                      <div className="flex gap-3">
+                        {matchedProp && (
+                          <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-brand-gold/30 shrink-0">
+                            <Image src={matchedProp.images[0]?.url || ''} alt="" fill className="object-cover" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm font-bold text-white truncate">{r.propertyTitle}</h3>
+                          <div className="text-xs text-white/60 mt-0.5">{r.guestName} • <span className="font-mono text-brand-gold">{r.guestPhone}</span></div>
+                          {matchedProp && (
+                            <Link
+                              href={`/properties/${matchedProp.id}`}
+                              target="_blank"
+                              className="text-[10px] text-brand-gold hover:underline inline-flex items-center gap-1 mt-0.5"
+                            >
+                              <span>Voir fiche publique</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-white/5 border border-white/8 text-xs font-mono">
+                        <div>
+                          <span className="text-white/40 block text-[10px]">Dates Séjour</span>
+                          <span className="text-white/90 text-[11px]">{r.checkIn} → {r.checkOut}</span>
+                        </div>
+                        <div>
+                          <span className="text-white/40 block text-[10px]">Acompte ({r.totalNights} n.)</span>
+                          <span className="text-brand-gold font-bold text-xs">{r.depositAmount} TND</span>
+                        </div>
+                      </div>
+
+                      {/* Interconnection with CRM */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-white/5 flex-wrap">
+                        {guestLead ? (
+                          <button
+                            onClick={() => jumpToCrmWithLead(guestLead.email || guestLead.phone)}
+                            className="text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1 hover:bg-emerald-500/25"
+                          >
+                            <Link2 className="w-3 h-3 text-emerald-400" />
+                            <span>Lead CRM ({guestLead.status})</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleCreateLeadFromReservation(r)}
+                            className="text-[9px] font-mono font-bold bg-white/5 text-brand-gold border border-brand-gold/30 px-2 py-0.5 rounded-lg flex items-center gap-1 hover:bg-brand-gold/20"
+                          >
+                            <UserPlus className="w-3 h-3 text-brand-gold" />
+                            <span>+ Créer Fiche CRM</span>
+                          </button>
+                        )}
+                        <a
+                          href={`https://wa.me/${r.guestPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${r.guestName}, Villa Regia vous contacte au sujet de votre réservation ${r.id} pour ${r.propertyTitle}...`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-lg flex items-center gap-1 hover:bg-emerald-500/20 ml-auto"
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                          <span>WhatsApp</span>
+                        </a>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1 border-t border-white/10">
+                        {r.status !== 'CONFIRMED' && (
+                          <button
+                            onClick={() => handleUpdateReservationStatus(r.id, 'CONFIRMED')}
+                            className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 py-2 rounded-xl text-xs font-bold uppercase"
+                          >
+                            Valider
+                          </button>
+                        )}
+                        {r.status !== 'CANCELLED' && (
+                          <button
+                            onClick={() => handleUpdateReservationStatus(r.id, 'CANCELLED')}
+                            className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 py-2 rounded-xl text-xs font-bold uppercase"
+                          >
+                            Annuler
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             {/* Desktop View: Table */}
@@ -2297,50 +3236,115 @@ export default function AdminDashboardPage() {
                   <tr>
                     <th className="p-3">Ref</th>
                     <th className="p-3">Propriété</th>
-                    <th className="p-3">Client</th>
+                    <th className="p-3">Client & CRM</th>
                     <th className="p-3">Dates</th>
                     <th className="p-3">Nuits</th>
                     <th className="p-3">Acompte</th>
                     <th className="p-3">Statut</th>
-                    <th className="p-3 text-right">Mettre à Jour</th>
+                    <th className="p-3 text-right">Actions Operatoires</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {reservations.map((r) => (
-                    <tr key={r.id} className="hover:bg-white/5">
-                      <td className="p-3 font-mono text-brand-gold">{r.id}</td>
-                      <td className="p-3 font-semibold text-white max-w-xs truncate">{r.propertyTitle}</td>
-                      <td className="p-3">{r.guestName}<br /><span className="text-[10px] text-brand-travertine/50">{r.guestPhone}</span></td>
-                      <td className="p-3 font-mono text-brand-travertine/70">{r.checkIn} au {r.checkOut}</td>
-                      <td className="p-3 font-mono">{r.totalNights} nuits</td>
-                      <td className="p-3 font-mono text-brand-gold font-bold">{r.depositAmount} TND</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          r.status === 'CONFIRMED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
-                        }`}>
-                          {r.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-right space-x-2">
-                        {r.status !== 'CONFIRMED' && (
-                          <button
-                            onClick={() => handleUpdateReservationStatus(r.id, 'CONFIRMED')}
-                            className="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded text-[10px] font-bold hover:bg-emerald-500/30"
-                          >
-                            Valider
-                          </button>
-                        )}
-                        {r.status !== 'CANCELLED' && (
-                          <button
-                            onClick={() => handleUpdateReservationStatus(r.id, 'CANCELLED')}
-                            className="bg-red-500/20 text-red-400 px-2.5 py-1 rounded text-[10px] font-bold hover:bg-red-500/30"
-                          >
-                            Annuler
-                          </button>
-                        )}
+                  {filteredReservations.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="text-center py-12 text-xs font-mono text-brand-travertine/50">
+                        Aucune réservation trouvée pour cette sélection.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredReservations.map((r) => {
+                      const matchedProp = properties.find(p => p.id === r.propertyId || p.title.fr === r.propertyTitle);
+                      const guestLead = leads.find(l => l.phone === r.guestPhone || (r.guestEmail && l.email === r.guestEmail));
+                      return (
+                        <tr key={r.id} className="hover:bg-white/5 transition-colors">
+                          <td className="p-3 font-mono text-brand-gold font-bold">{r.id}</td>
+                          <td className="p-3 font-semibold text-white max-w-xs">
+                            <div className="flex items-center gap-2">
+                              {matchedProp && (
+                                <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-brand-gold/30 shrink-0">
+                                  <Image src={matchedProp.images[0]?.url || ''} alt="" fill className="object-cover" />
+                                </div>
+                              )}
+                              <div className="truncate">
+                                <span>{r.propertyTitle}</span>
+                                {matchedProp && (
+                                  <Link
+                                    href={`/properties/${matchedProp.id}`}
+                                    target="_blank"
+                                    className="text-[10px] text-brand-gold hover:underline block font-mono font-normal"
+                                  >
+                                    Fiche villa ↗
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-white font-medium">{r.guestName}</span>
+                              {guestLead ? (
+                                <button
+                                  onClick={() => jumpToCrmWithLead(guestLead.email || guestLead.phone)}
+                                  className="text-[8px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded hover:underline"
+                                  title="Voir fiche CRM"
+                                >
+                                  CRM
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleCreateLeadFromReservation(r)}
+                                  className="text-[8px] font-mono bg-white/5 text-brand-gold border border-brand-gold/30 px-1.5 py-0.2 rounded hover:bg-brand-gold/20"
+                                  title="Créer prospect CRM"
+                                >
+                                  + CRM
+                                </button>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-brand-travertine/50 font-mono flex items-center gap-1 mt-0.5">
+                              <span>{r.guestPhone}</span>
+                              <a
+                                href={`https://wa.me/${r.guestPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Bonjour ${r.guestName}, Villa Regia vous contacte au sujet de votre réservation ${r.id}...`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-400 hover:text-emerald-300 ml-1"
+                                title="WhatsApp"
+                              >
+                                <MessageCircle className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </td>
+                          <td className="p-3 font-mono text-brand-travertine/70">{r.checkIn} au {r.checkOut}</td>
+                          <td className="p-3 font-mono">{r.totalNights} nuits</td>
+                          <td className="p-3 font-mono text-brand-gold font-bold">{r.depositAmount} TND</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              r.status === 'CONFIRMED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            }`}>
+                              {r.status}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right space-x-2">
+                            {r.status !== 'CONFIRMED' && (
+                              <button
+                                onClick={() => handleUpdateReservationStatus(r.id, 'CONFIRMED')}
+                                className="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg text-[10px] font-bold hover:bg-emerald-500/30"
+                              >
+                                Valider
+                              </button>
+                            )}
+                            {r.status !== 'CANCELLED' && (
+                              <button
+                                onClick={() => handleUpdateReservationStatus(r.id, 'CANCELLED')}
+                                className="bg-red-500/20 text-red-400 px-2.5 py-1 rounded-lg text-[10px] font-bold hover:bg-red-500/30"
+                              >
+                                Annuler
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -2492,65 +3496,118 @@ export default function AdminDashboardPage() {
                   }
                   return true;
                 })
-                .map((u) => (
-                  <div key={u.id} className="glass-card p-4 rounded-xl border border-white/10 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="font-bold text-sm text-white flex items-center gap-2 flex-wrap">
-                          <span>{u.name}</span>
-                          {u.role === 'CLIENT' ? (
-                            <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">
-                              Compte Client
-                            </span>
-                          ) : u.role === 'SUPER_ADMIN' ? (
-                            <span className="text-[9px] font-mono bg-amber-400/20 text-amber-400 border border-amber-400/30 px-2 py-0.5 rounded font-bold">
-                              Direction Générale
-                            </span>
-                          ) : (
-                            <span className="text-[9px] font-mono bg-brand-gold/15 text-brand-gold border border-brand-gold/30 px-2 py-0.5 rounded font-bold">
-                              {u.role}
-                            </span>
+                .map((u) => {
+                  const userSubmissions = submissions.filter(s => s.ownerEmail === u.email || (u.phone && s.ownerPhone === u.phone));
+                  const userReservations = reservations.filter(r => r.guestEmail === u.email || (u.phone && r.guestPhone === u.phone));
+                  const userLeads = leads.filter(l => l.email === u.email || (u.phone && l.phone === u.phone));
+
+                  return (
+                    <div key={u.id} className="glass-card p-4 rounded-2xl border border-white/10 space-y-3 shadow-xl">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-bold text-sm text-white flex items-center gap-2 flex-wrap">
+                            <span>{u.name}</span>
+                            {u.role === 'CLIENT' ? (
+                              <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">
+                                Compte Client
+                              </span>
+                            ) : u.role === 'SUPER_ADMIN' ? (
+                              <span className="text-[9px] font-mono bg-amber-400/20 text-amber-400 border border-amber-400/30 px-2 py-0.5 rounded font-bold">
+                                Direction Générale
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-mono bg-brand-gold/15 text-brand-gold border border-brand-gold/30 px-2 py-0.5 rounded font-bold">
+                                {u.role}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs font-mono text-brand-travertine/70">{u.email}</div>
+                          {u.phone && (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[11px] font-mono text-brand-gold">{u.phone}</span>
+                              <a
+                                href={`https://wa.me/${u.phone.replace(/[^0-9]/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-400 hover:text-emerald-300"
+                                title="WhatsApp"
+                              >
+                                <MessageCircle className="w-3 h-3" />
+                              </a>
+                            </div>
                           )}
                         </div>
-                        <div className="text-xs font-mono text-brand-travertine/70">{u.email}</div>
-                        {u.phone && <div className="text-[11px] font-mono text-brand-gold mt-0.5">{u.phone}</div>}
                       </div>
-                    </div>
 
-                    <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
-                      <select
-                        value={u.role}
-                        onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
-                        className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none flex-1"
-                      >
-                        <option value="CLIENT">CLIENT (Espace Privé)</option>
-                        <option value="AGENT">AGENT (Commercial)</option>
-                        <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
-                        <option value="ADMIN">ADMIN (Gestionnaire)</option>
-                        <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
-                      </select>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          onClick={() => handleOpenEditStaff(u)}
-                          className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
-                          title="Configurer ce compte (Nom, Mot de passe, Coordonnées)"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-                        {u.email !== 'yassinealoulou6@gmail.com' && (
+                      {/* Cross-Connected Metrics */}
+                      <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-white/5">
+                        {userSubmissions.length > 0 && (
                           <button
-                            onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
-                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
-                            title="Supprimer définitivement de la base de données"
+                            onClick={() => jumpToSubmissionsWithOwner(u.name)}
+                            className="text-[9px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1 hover:bg-amber-500/25"
+                            title="Voir les mandats proposés par cet utilisateur"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <FileCheck className="w-3 h-3 text-amber-400" />
+                            <span>{userSubmissions.length} Mandat(s)</span>
+                          </button>
+                        )}
+                        {userReservations.length > 0 && (
+                          <button
+                            onClick={() => jumpToReservationsWithGuest(u.name)}
+                            className="text-[9px] font-mono font-bold bg-brand-gold/15 text-brand-gold border border-brand-gold/30 px-2 py-0.5 rounded-lg flex items-center gap-1 hover:bg-brand-gold/25"
+                            title="Voir les séjours réservés par cet utilisateur"
+                          >
+                            <Calendar className="w-3 h-3 text-brand-gold" />
+                            <span>{userReservations.length} Séjour(s)</span>
+                          </button>
+                        )}
+                        {userLeads.length > 0 && (
+                          <button
+                            onClick={() => jumpToCrmWithLead(u.email || u.phone || '')}
+                            className="text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1 hover:bg-emerald-500/25"
+                            title="Voir les fiches CRM associées"
+                          >
+                            <Users className="w-3 h-3 text-emerald-400" />
+                            <span>{userLeads.length} Lead(s) CRM</span>
                           </button>
                         )}
                       </div>
+
+                      <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                        <select
+                          value={u.role}
+                          onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
+                          className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none flex-1"
+                        >
+                          <option value="CLIENT">CLIENT (Espace Privé)</option>
+                          <option value="AGENT">AGENT (Commercial)</option>
+                          <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
+                          <option value="ADMIN">ADMIN (Gestionnaire)</option>
+                          <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
+                        </select>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => handleOpenEditStaff(u)}
+                            className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
+                            title="Configurer ce compte (Nom, Mot de passe, Coordonnées)"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          {u.email !== 'yassinealoulou6@gmail.com' && (
+                            <button
+                              onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
+                              className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                              title="Supprimer définitivement de la base de données"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
 
             {/* Desktop View: Table */}
@@ -2558,7 +3615,7 @@ export default function AdminDashboardPage() {
               <table className="w-full text-left text-xs text-brand-travertine/80">
                 <thead className="bg-brand-navy text-brand-gold font-mono uppercase text-[10px]">
                   <tr>
-                    <th className="p-3">Utilisateur / Profil</th>
+                    <th className="p-3">Utilisateur & Dossiers Connectés</th>
                     <th className="p-3">Email Identifiant</th>
                     <th className="p-3">Téléphone</th>
                     <th className="p-3">Type & Rôle Attribué</th>
@@ -2576,60 +3633,113 @@ export default function AdminDashboardPage() {
                       }
                       return true;
                     })
-                    .map((u) => (
-                      <tr key={u.id} className="hover:bg-white/5 transition-colors">
-                        <td className="p-3">
-                          <div className="font-semibold text-white flex items-center gap-2">
-                            <span>{u.name}</span>
-                            {u.role === 'CLIENT' && (
-                              <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">
-                                Client
-                              </span>
+                    .map((u) => {
+                      const userSubmissions = submissions.filter(s => s.ownerEmail === u.email || (u.phone && s.ownerPhone === u.phone));
+                      const userReservations = reservations.filter(r => r.guestEmail === u.email || (u.phone && r.guestPhone === u.phone));
+                      const userLeads = leads.filter(l => l.email === u.email || (u.phone && l.phone === u.phone));
+
+                      return (
+                        <tr key={u.id} className="hover:bg-white/5 transition-colors">
+                          <td className="p-3">
+                            <div className="font-semibold text-white flex items-center gap-2 flex-wrap">
+                              <span>{u.name}</span>
+                              {u.role === 'CLIENT' && (
+                                <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">
+                                  Client
+                                </span>
+                              )}
+                              {u.role === 'SUPER_ADMIN' && (
+                                <span className="text-[9px] font-mono text-amber-400 font-bold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                                  Direction
+                                </span>
+                              )}
+                            </div>
+                            {/* Connected Activity Badges */}
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                              {userSubmissions.length > 0 && (
+                                <button
+                                  onClick={() => jumpToSubmissionsWithOwner(u.name)}
+                                  className="text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.2 rounded hover:underline"
+                                  title="Voir les mandats"
+                                >
+                                  {userSubmissions.length} Mandat(s)
+                                </button>
+                              )}
+                              {userReservations.length > 0 && (
+                                <button
+                                  onClick={() => jumpToReservationsWithGuest(u.name)}
+                                  className="text-[9px] font-mono bg-brand-gold/20 text-brand-gold border border-brand-gold/30 px-1.5 py-0.2 rounded hover:underline"
+                                  title="Voir les réservations"
+                                >
+                                  {userReservations.length} Séjour(s)
+                                </button>
+                              )}
+                              {userLeads.length > 0 && (
+                                <button
+                                  onClick={() => jumpToCrmWithLead(u.email || u.phone || '')}
+                                  className="text-[9px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded hover:underline"
+                                  title="Voir les fiches CRM"
+                                >
+                                  {userLeads.length} Lead(s) CRM
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-3 font-mono text-brand-travertine/70">{u.email}</td>
+                          <td className="p-3 font-mono text-brand-travertine/60">
+                            {u.phone ? (
+                              <div className="flex items-center gap-1.5">
+                                <span>{u.phone}</span>
+                                <a
+                                  href={`https://wa.me/${u.phone.replace(/[^0-9]/g, '')}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-emerald-400 hover:text-emerald-300"
+                                  title="WhatsApp"
+                                >
+                                  <MessageCircle className="w-3 h-3" />
+                                </a>
+                              </div>
+                            ) : (
+                              '—'
                             )}
-                            {u.role === 'SUPER_ADMIN' && (
-                              <span className="text-[9px] font-mono text-amber-400 font-bold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
-                                Direction
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-3 font-mono text-brand-travertine/70">{u.email}</td>
-                        <td className="p-3 font-mono text-brand-travertine/60">{u.phone || '—'}</td>
-                        <td className="p-3">
-                          <select
-                            value={u.role}
-                            onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
-                            className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none"
-                          >
-                            <option value="CLIENT">CLIENT (Espace Privé)</option>
-                            <option value="AGENT">AGENT (Commercial)</option>
-                            <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
-                            <option value="ADMIN">ADMIN (Gestionnaire)</option>
-                            <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
-                          </select>
-                        </td>
-                        <td className="p-3 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => handleOpenEditStaff(u)}
-                              className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
-                              title="Configurer (Nom, Mot de Passe, Téléphone, Rôle)"
+                          </td>
+                          <td className="p-3">
+                            <select
+                              value={u.role}
+                              onChange={(e) => handleChangeStaffRole(u.id, e.target.value as UserRole, u.name, u.email)}
+                              className="bg-brand-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-brand-gold font-mono font-bold focus:border-brand-gold focus:outline-none"
                             >
-                              <Edit className="w-3.5 h-3.5" />
-                            </button>
-                            {u.email !== 'yassinealoulou6@gmail.com' && (
+                              <option value="CLIENT">CLIENT (Espace Privé)</option>
+                              <option value="AGENT">AGENT (Commercial)</option>
+                              <option value="CONTENT_MANAGER">CONTENT_MANAGER (Éditeur)</option>
+                              <option value="ADMIN">ADMIN (Gestionnaire)</option>
+                              <option value="SUPER_ADMIN">SUPER_ADMIN (Directeur)</option>
+                            </select>
+                          </td>
+                          <td className="p-3 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
                               <button
-                                onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
-                                className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
-                                title="Supprimer définitivement de la base de données"
+                                onClick={() => handleOpenEditStaff(u)}
+                                className="p-2 rounded-lg bg-brand-gold/15 text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-all"
+                                title="Configurer (Nom, Mot de Passe, Téléphone, Rôle)"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Edit className="w-3.5 h-3.5" />
                               </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                              {u.email !== 'yassinealoulou6@gmail.com' && (
+                                <button
+                                  onClick={() => handleDeleteStaffUser(u.id, u.name, u.email)}
+                                  className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                                  title="Supprimer définitivement de la base de données"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>

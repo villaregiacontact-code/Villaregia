@@ -1,1 +1,20 @@
-{}
+{
+  "client.auto.1788529416221@villaregia.tn": {
+    "name": "Client Auto",
+    "email": "client.auto.1788529416221@villaregia.tn",
+    "phone": "+216 27 000 000",
+    "password": "Password123",
+    "role": "CLIENT",
+    "confirmationCode": "184111",
+    "expiresAt": 1788530316550
+  },
+  "client.auto.1788548694169@villaregia.tn": {
+    "name": "Client Auto",
+    "email": "client.auto.1788548694169@villaregia.tn",
+    "phone": "+216 27 000 000",
+    "password": "Password123",
+    "role": "CLIENT",
+    "confirmationCode": "276476",
+    "expiresAt": 1788549594598
+  }
+}

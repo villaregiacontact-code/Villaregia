@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
+import { broadcastDataChange } from '@/hooks/useRealtimeSync';
 import { INITIAL_PROPERTIES } from '@/data/properties';
 import {
   MapPin,
@@ -149,6 +150,7 @@ export default function PropertyDetailPage() {
         setInquirySending(false);
         return;
       }
+      broadcastDataChange('LEAD_UPDATED');
       setInquirySuccess(true);
       setTimeout(() => {
         setInquirySuccess(false);

@@ -35,7 +35,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, role, password, phone } = body;
+    const { name, email, role, password, phone, twoFactorEnabled } = body;
 
     if (!name || name.trim().length < 2) {
       return NextResponse.json(
@@ -70,6 +70,7 @@ export async function POST(request: Request) {
 
     const validRoles: UserRole[] = ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER', 'CLIENT'];
     const accountRole: UserRole = validRoles.includes(role) ? role : 'ADMIN';
+    const is2FA = twoFactorEnabled !== undefined ? Boolean(twoFactorEnabled) : false;
 
     const newUser = await createDbUser({
       name: name.trim(),
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
       phone: phone?.trim() || '+216 -- --- ---',
       password: password,
       role: accountRole,
-      twoFactorEnabled: accountRole !== 'CLIENT',
+      twoFactorEnabled: is2FA,
       emailVerified: true,
     });
 

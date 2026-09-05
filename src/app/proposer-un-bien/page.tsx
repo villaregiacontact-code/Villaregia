@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { generateSubmissionPdf } from '@/lib/generateSubmissionPdf';
+import { broadcastDataChange } from '@/hooks/useRealtimeSync';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { PropertyCategory, UniverseType } from '@/types';
@@ -759,11 +761,17 @@ export default function SubmitPropertyPage() {
         body: JSON.stringify(submissionPayload),
       });
       const data = await res.json();
-      if (data.success && data.whatsappLink) {
+      if (!res.ok || !data.success) {
+        setStepValidationError(data.error || 'Erreur lors de l\'enregistrement de la soumission.');
+        setIsSubmitting(false);
+        return;
+      }
+      if (data.whatsappLink) {
         setDynamicWhatsappUrl(data.whatsappLink);
       }
+      broadcastDataChange('SUBMISSION_CREATED', data.submission?.id);
     } catch (err) {
-      console.warn('API submission fallback to local:', err);
+      console.warn('API submission notice:', err);
     } finally {
       setIsSubmitting(false);
     }

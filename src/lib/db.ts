@@ -53,12 +53,174 @@ if (!localUsers.some(u => u.email.toLowerCase() === DEFAULT_SUPERADMIN.email)) {
 }
 
 // Populate ACCOUNTS_STORE from localUsers
+// Populate ACCOUNTS_STORE from localUsers
 localUsers.forEach(u => {
   ACCOUNTS_STORE.set(u.email.toLowerCase().trim(), u);
 });
 
+// ----------------------------------------------------------------------------
+// SUPABASE BIDIRECTIONAL NORMALIZATION & HYBRID MAPPING HELPERS
+// ----------------------------------------------------------------------------
+
+function normalizeSubmission(raw: any): OwnerSubmission {
+  return {
+    id: raw.id || `prop-sub-${Date.now()}`,
+    refCode: raw.ref_code || raw.refCode || raw.id || `DOS-${Date.now()}`,
+    propertyType: raw.property_type || raw.propertyType || 'Villa',
+    objective: raw.objective || 'VENTE',
+    surfaceM2: Number(raw.surface_m2 ?? raw.surfaceM2 ?? 0),
+    bedrooms: Number(raw.bedrooms ?? 0),
+    estimatedValue: Number(raw.estimated_value ?? raw.estimatedValue ?? raw.estimatedPrice ?? 0),
+    estimatedPrice: Number(raw.estimated_value ?? raw.estimatedValue ?? raw.estimatedPrice ?? 0),
+    city: raw.city || 'Sfax',
+    district: raw.district || 'Centre',
+    gouvernorat: raw.gouvernorat || 'Sfax',
+    address: raw.address || '',
+    googleMapsLink: raw.google_maps_link || raw.googleMapsLink || '',
+    ownerName: raw.owner_name || raw.ownerName || 'Propriétaire',
+    ownerPhone: raw.owner_phone || raw.ownerPhone || '',
+    ownerEmail: raw.owner_email || raw.ownerEmail || '',
+    titleType: raw.title_type || raw.titleType || '',
+    titleNumber: raw.title_number || raw.titleNumber || '',
+    hasCertificate: String(raw.has_certificate ?? raw.hasCertificate ?? ''),
+    hasBuildingPermit: raw.has_building_permit || raw.hasBuildingPermit || '',
+    tunisianLawCertified: Boolean(raw.tunisian_law_certified ?? raw.tunisianLawCertified ?? true),
+    details: raw.details || '',
+    specificDetails: raw.specific_details || raw.specificDetails || {},
+    photos: Array.isArray(raw.photos) ? raw.photos : [],
+    status: raw.status || 'PENDING',
+    isPublished: Boolean(raw.is_published ?? raw.isPublished ?? false),
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+  };
+}
+
+function toSupabaseSubmissionPayload(sub: OwnerSubmission): Record<string, any> {
+  return {
+    id: sub.id,
+    ref_code: sub.refCode,
+    property_type: sub.propertyType,
+    objective: sub.objective,
+    surface_m2: sub.surfaceM2,
+    bedrooms: sub.bedrooms,
+    estimated_value: sub.estimatedValue || sub.estimatedPrice,
+    city: sub.city,
+    district: sub.district,
+    address: sub.address,
+    owner_name: sub.ownerName,
+    owner_phone: sub.ownerPhone,
+    owner_email: sub.ownerEmail,
+    details: sub.details,
+    photos: sub.photos || [],
+    status: sub.status,
+    is_published: sub.isPublished || false,
+    created_at: sub.createdAt,
+  };
+}
+
+function normalizeBooking(raw: any): BookingRequest {
+  return {
+    id: raw.id || `res-${Date.now()}`,
+    propertyId: raw.property_id || raw.propertyId || '',
+    propertyTitle: raw.property_title || raw.propertyTitle || 'Villa de Luxe',
+    guestName: raw.guest_name || raw.guestName || '',
+    guestEmail: raw.guest_email || raw.guestEmail || '',
+    guestPhone: raw.guest_phone || raw.guestPhone || '',
+    checkIn: raw.check_in || raw.checkIn || '',
+    checkOut: raw.check_out || raw.checkOut || '',
+    guestsCount: Number(raw.guests_count ?? raw.guestsCount ?? raw.guests ?? 1),
+    totalNights: Number(raw.total_nights ?? raw.totalNights ?? 1),
+    pricePerNight: Number(raw.price_per_night ?? raw.pricePerNight ?? 0),
+    totalAmount: Number(raw.total_amount ?? raw.totalAmount ?? raw.price ?? 0),
+    depositAmount: Number(raw.deposit_amount ?? raw.depositAmount ?? 0),
+    status: raw.status || 'PENDING',
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+  };
+}
+
+function toSupabaseBookingPayload(b: BookingRequest): Record<string, any> {
+  return {
+    id: b.id,
+    property_id: b.propertyId,
+    property_title: b.propertyTitle,
+    guest_name: b.guestName,
+    guest_email: b.guestEmail,
+    guest_phone: b.guestPhone,
+    check_in: b.checkIn,
+    check_out: b.checkOut,
+    guests_count: b.guestsCount || 1,
+    total_nights: b.totalNights || 1,
+    price_per_night: b.pricePerNight || 0,
+    total_amount: b.totalAmount || 0,
+    deposit_amount: b.depositAmount || 0,
+    status: b.status,
+    created_at: b.createdAt,
+  };
+}
+
+function normalizeLead(raw: any): Lead {
+  return {
+    id: raw.id || `lead-${Date.now()}`,
+    name: raw.name || '',
+    email: raw.email || '',
+    phone: raw.phone || '',
+    source: raw.source || 'Formulaire Contact',
+    universe: raw.universe || 'VENTE',
+    propertyTitle: raw.property_title || raw.propertyTitle || '',
+    status: raw.status || 'Nouveau',
+    notes: raw.notes || '',
+    assignedAgent: raw.assigned_agent || raw.assignedAgent || '',
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+  };
+}
+
+function toSupabaseLeadPayload(l: Lead): Record<string, any> {
+  return {
+    id: l.id,
+    name: l.name,
+    email: l.email,
+    phone: l.phone,
+    source: l.source,
+    universe: l.universe,
+    property_title: l.propertyTitle,
+    status: l.status,
+    notes: l.notes,
+    assigned_agent: l.assignedAgent,
+    created_at: l.createdAt,
+  };
+}
+
+function normalizeUser(raw: any): StoredUserAccount {
+  return {
+    id: raw.id || `usr-${Date.now()}`,
+    name: raw.name || '',
+    email: (raw.email || '').toLowerCase().trim(),
+    phone: raw.phone || '',
+    password: raw.password || '',
+    role: raw.role || 'CLIENT',
+    twoFactorEnabled: Boolean(raw.two_factor_enabled ?? raw.twoFactorEnabled ?? false),
+    emailVerified: Boolean(raw.email_verified ?? raw.emailVerified ?? true),
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString().split('T')[0],
+  };
+}
+
+function toSupabaseUserPayload(u: StoredUserAccount): Record<string, any> {
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email.toLowerCase().trim(),
+    phone: u.phone,
+    password: u.password,
+    role: u.role,
+    two_factor_enabled: Boolean(u.twoFactorEnabled),
+    email_verified: Boolean(u.emailVerified),
+    created_at: u.createdAt,
+  };
+}
+
 // Helper functions for properties
 export async function getProperties(filters?: Partial<FilterState>): Promise<Property[]> {
+  const freshProps = loadPersistedProperties();
+  if (freshProps.length > 0) localProperties = freshProps;
   if (isSupabaseConfigured && supabase) {
     try {
       let query = supabase.from('properties').select('*');
@@ -230,10 +392,21 @@ export async function deleteProperty(id: string): Promise<boolean> {
 
 // Bookings
 export async function getBookings(): Promise<BookingRequest[]> {
+  const freshBookings = loadPersistedBookings();
+  if (freshBookings.length > 0) localBookings = freshBookings;
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('bookings').select('*').order('createdAt', { ascending: false });
-      if (!error && data && data.length > 0) return data as BookingRequest[];
+      const { data, error } = await supabase.from('bookings').select('*').order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        const supaBookings = data.map(normalizeBooking);
+        const map = new Map<string, BookingRequest>();
+        localBookings.forEach(b => map.set(b.id, b));
+        supaBookings.forEach(b => { if (!map.has(b.id)) map.set(b.id, b); });
+        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        localBookings = merged;
+        savePersistedBookings(localBookings);
+        return merged;
+      }
     } catch (e) {
       console.warn('Supabase fetch bookings failed:', e);
     }
@@ -251,11 +424,13 @@ export async function createBooking(booking: Omit<BookingRequest, 'id' | 'create
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('bookings').insert([newBooking]).select().single();
+      const payload = toSupabaseBookingPayload(newBooking);
+      const { data, error } = await supabase.from('bookings').insert([payload]).select().single();
       if (!error && data) {
-        localBookings.unshift(data as BookingRequest);
+        const normalized = normalizeBooking(data);
+        localBookings.unshift(normalized);
         savePersistedBookings(localBookings);
-        return data as BookingRequest;
+        return normalized;
       }
     } catch (e) {
       console.warn('Supabase insert booking failed:', e);
@@ -305,10 +480,21 @@ export async function updateBookingStatus(id: string, status: 'PENDING' | 'CONFI
 
 // Leads / CRM
 export async function getLeads(): Promise<Lead[]> {
+  const freshLeads = loadPersistedLeads();
+  if (freshLeads.length > 0) localLeads = freshLeads;
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('leads').select('*').order('createdAt', { ascending: false });
-      if (!error && data && data.length > 0) return data as Lead[];
+      const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        const supaLeads = data.map(normalizeLead);
+        const map = new Map<string, Lead>();
+        localLeads.forEach(l => map.set(l.id, l));
+        supaLeads.forEach(l => { if (!map.has(l.id)) map.set(l.id, l); });
+        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        localLeads = merged;
+        savePersistedLeads(localLeads);
+        return merged;
+      }
     } catch (e) {
       console.warn('Supabase fetch leads failed:', e);
     }
@@ -326,11 +512,13 @@ export async function createLead(leadData: Omit<Lead, 'id' | 'createdAt' | 'stat
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('leads').insert([newLead]).select().single();
+      const payload = toSupabaseLeadPayload(newLead);
+      const { data, error } = await supabase.from('leads').insert([payload]).select().single();
       if (!error && data) {
-        localLeads.unshift(data as Lead);
+        const normalized = normalizeLead(data);
+        localLeads.unshift(normalized);
         savePersistedLeads(localLeads);
-        return data as Lead;
+        return normalized;
       }
     } catch (e) {
       console.warn('Supabase insert lead failed:', e);
@@ -385,11 +573,20 @@ export async function deleteLead(id: string): Promise<boolean> {
 
 // Owner Submissions ("Proposer un bien")
 export async function getOwnerSubmissions(): Promise<OwnerSubmission[]> {
+  const freshSubs = loadPersistedSubmissions();
+  if (freshSubs.length > 0) localSubmissions = freshSubs;
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('submissions').select('*').order('created_at', { ascending: false });
       if (!error && data && data.length > 0) {
-        return data as OwnerSubmission[];
+        const supaSubs = data.map(normalizeSubmission);
+        const map = new Map<string, OwnerSubmission>();
+        localSubmissions.forEach(s => map.set(s.id, s));
+        supaSubs.forEach(s => { if (!map.has(s.id)) map.set(s.id, s); });
+        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        localSubmissions = merged;
+        savePersistedSubmissions(localSubmissions);
+        return merged;
       }
     } catch (e) {
       console.warn('Supabase fetch submissions failed:', e);
@@ -437,7 +634,7 @@ export async function createOwnerSubmission(submission: Omit<OwnerSubmission, 'i
 
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('submissions').insert([newSubmission]);
+      await supabase.from('submissions').insert([toSupabaseSubmissionPayload(newSubmission)]);
     } catch (e) {
       console.warn('Supabase owner submission failed:', e);
     }
@@ -502,32 +699,34 @@ export async function getAdminStats() {
 // ----------------------------------------------------------------------------
 
 export async function getDbUsers(): Promise<StoredUserAccount[]> {
-  // Refresh from disk to ensure cross-process consistency
   const freshPersisted = loadPersistedUsers();
   if (freshPersisted.length > 0) {
     localUsers = freshPersisted;
     freshPersisted.forEach(u => ACCOUNTS_STORE.set(u.email.toLowerCase().trim(), u));
   }
 
-  // Ensure default superadmin exists
   if (!localUsers.some(u => u.email.toLowerCase() === DEFAULT_SUPERADMIN.email)) {
     localUsers.unshift(DEFAULT_SUPERADMIN);
     ACCOUNTS_STORE.set(DEFAULT_SUPERADMIN.email, DEFAULT_SUPERADMIN);
   }
 
-  // If Supabase is connected
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase.from('users').select('*').order('createdAt', { ascending: false });
+      const { data, error } = await supabase.from('users').select('*');
       if (!error && data && data.length > 0) {
-        localUsers = data as StoredUserAccount[];
-        localUsers.forEach(u => {
-          ACCOUNTS_STORE.set(u.email.toLowerCase().trim(), u);
+        const supaUsers = data.map(normalizeUser);
+        const map = new Map<string, StoredUserAccount>();
+        localUsers.forEach(u => map.set(u.email.toLowerCase().trim(), u));
+        supaUsers.forEach(u => {
+          if (!map.has(u.email.toLowerCase().trim())) map.set(u.email.toLowerCase().trim(), u);
         });
+        localUsers = Array.from(map.values());
+        localUsers.forEach(u => ACCOUNTS_STORE.set(u.email.toLowerCase().trim(), u));
+        savePersistedUsers(localUsers);
         return localUsers;
       }
     } catch (e) {
-      console.warn('Supabase fetch users failed, fallback to memory store:', e);
+      console.warn('Supabase fetch users failed:', e);
     }
   }
 
@@ -597,7 +796,7 @@ export async function createDbUser(userData: Omit<StoredUserAccount, 'id' | 'cre
   // 3. Persist in Supabase if configured
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from('users').upsert([newUser], { onConflict: 'email' });
+      await supabase.from('users').upsert([toSupabaseUserPayload(newUser)], { onConflict: 'email' });
     } catch (e) {
       console.warn('Supabase user insert/upsert failed:', e);
     }
@@ -697,6 +896,8 @@ export async function deleteDbUser(email?: string, id?: string): Promise<boolean
 // ----------------------------------------------------------------------------
 
 export async function getArticles(category?: string): Promise<BlogPost[]> {
+  const freshArticles = loadPersistedArticles();
+  if (freshArticles.length > 0) localArticles = freshArticles;
   if (isSupabaseConfigured && supabase) {
     try {
       let query = supabase.from('articles').select('*').order('publishedAt', { ascending: false });
