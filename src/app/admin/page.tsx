@@ -119,36 +119,19 @@ export default function AdminDashboardPage() {
   const loadAdminData = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsSyncing(true);
     try {
-      const [statsRes, propsRes, bookingsRes, crmRes, usersRes, subsRes, articlesRes] = await Promise.all([
-        fetch('/api/admin/stats').then(r => r.json()).catch(() => null),
-        fetch('/api/properties').then(r => r.json()).catch(() => null),
-        fetch('/api/bookings').then(r => r.json()).catch(() => null),
-        fetch('/api/admin/crm').then(r => r.json()).catch(() => null),
-        fetch('/api/admin/users').then(r => r.json()).catch(() => null),
-        fetch('/api/submissions').then(r => r.json()).catch(() => null),
-        fetch('/api/articles').then(r => r.json()).catch(() => null),
-      ]);
+      const res = await fetch('/api/admin/all');
+      const data = await res.json();
 
-      if (statsRes?.success && statsRes.stats) setDbStats(statsRes.stats);
-      if (propsRes?.success && Array.isArray(propsRes.properties) && propsRes.properties.length > 0) {
-        setProperties(propsRes.properties);
+      if (data?.success) {
+        if (data.stats) setDbStats(data.stats);
+        if (Array.isArray(data.properties) && data.properties.length > 0) setProperties(data.properties);
+        if (Array.isArray(data.bookings) && data.bookings.length > 0) setReservations(data.bookings);
+        if (Array.isArray(data.leads) && data.leads.length > 0) setLeads(data.leads);
+        if (Array.isArray(data.users) && data.users.length > 0) setStaffUsers(data.users);
+        if (Array.isArray(data.submissions) && data.submissions.length > 0) setSubmissions(data.submissions);
+        if (Array.isArray(data.articles) && data.articles.length > 0) setArticles(data.articles);
+        setLastSyncTime(new Date());
       }
-      if (bookingsRes?.success && Array.isArray(bookingsRes.bookings) && bookingsRes.bookings.length > 0) {
-        setReservations(bookingsRes.bookings);
-      }
-      if (crmRes?.success && Array.isArray(crmRes.leads) && crmRes.leads.length > 0) {
-        setLeads(crmRes.leads);
-      }
-      if (usersRes?.success && Array.isArray(usersRes.users) && usersRes.users.length > 0) {
-        setStaffUsers(usersRes.users);
-      }
-      if (subsRes?.success && Array.isArray(subsRes.submissions) && subsRes.submissions.length > 0) {
-        setSubmissions(subsRes.submissions);
-      }
-      if (articlesRes?.success && Array.isArray(articlesRes.articles) && articlesRes.articles.length > 0) {
-        setArticles(articlesRes.articles);
-      }
-      setLastSyncTime(new Date());
     } catch (err) {
       console.warn('Admin API load fallback:', err);
     } finally {
