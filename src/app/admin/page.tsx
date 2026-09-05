@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -252,6 +252,81 @@ export default function AdminDashboardPage() {
     setActiveTab('crm');
     setCrmSearch(emailOrPhone);
   };
+
+  // Memoized Filtered Datasets for Fast Rendering & Zero Input Lag
+  const filteredProperties = useMemo(() => {
+    return properties.filter((p) => {
+      const pTitle = typeof p.title === 'string' ? p.title : p.title?.fr || '';
+      const matchesSearch =
+        !propertySearch ||
+        pTitle.toLowerCase().includes(propertySearch.toLowerCase()) ||
+        p.id.toLowerCase().includes(propertySearch.toLowerCase()) ||
+        (p.location?.city || '').toLowerCase().includes(propertySearch.toLowerCase()) ||
+        (p.location?.district || '').toLowerCase().includes(propertySearch.toLowerCase());
+      const matchesUniverse = universeFilter === 'ALL' || p.universe === universeFilter;
+      const matchesCategory = propertyCategoryFilter === 'ALL' || p.category === propertyCategoryFilter;
+      const matchesStatus = propertyStatusFilter === 'ALL' || p.status === propertyStatusFilter;
+      return matchesSearch && matchesUniverse && matchesCategory && matchesStatus;
+    });
+  }, [properties, propertySearch, universeFilter, propertyCategoryFilter, propertyStatusFilter]);
+
+  const filteredSubmissions = useMemo(() => {
+    return submissions.filter((s) => {
+      const matchesFilter = submissionFilter === 'ALL' || s.status === submissionFilter;
+      const matchesSearch =
+        !submissionSearch ||
+        (s.refCode || '').toLowerCase().includes(submissionSearch.toLowerCase()) ||
+        (s.ownerName || '').toLowerCase().includes(submissionSearch.toLowerCase()) ||
+        (s.ownerPhone || '').includes(submissionSearch) ||
+        (s.ownerEmail || '').toLowerCase().includes(submissionSearch.toLowerCase()) ||
+        (s.city || '').toLowerCase().includes(submissionSearch.toLowerCase());
+      return matchesFilter && matchesSearch;
+    });
+  }, [submissions, submissionFilter, submissionSearch]);
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter((l) => {
+      const matchesStatus = crmStatusFilter === 'ALL' || l.status === crmStatusFilter;
+      const matchesSearch =
+        !crmSearch ||
+        (l.name || '').toLowerCase().includes(crmSearch.toLowerCase()) ||
+        (l.phone || '').includes(crmSearch) ||
+        (l.email || '').toLowerCase().includes(crmSearch.toLowerCase()) ||
+        (l.propertyTitle || '').toLowerCase().includes(crmSearch.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [leads, crmStatusFilter, crmSearch]);
+
+  const filteredReservations = useMemo(() => {
+    return reservations.filter((r) => {
+      const matchesStatus = reservationStatusFilter === 'ALL' || r.status === reservationStatusFilter;
+      const matchesSearch =
+        !reservationSearch ||
+        (r.guestName || '').toLowerCase().includes(reservationSearch.toLowerCase()) ||
+        (r.guestPhone || '').includes(reservationSearch) ||
+        (r.guestEmail || '').toLowerCase().includes(reservationSearch.toLowerCase()) ||
+        (r.propertyTitle || '').toLowerCase().includes(reservationSearch.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [reservations, reservationStatusFilter, reservationSearch]);
+
+  const filteredStaffUsers = useMemo(() => {
+    return staffUsers.filter((u) => {
+      const isStaff = u.role !== 'CLIENT';
+      const matchesRoleFilter =
+        accountRoleFilter === 'ALL'
+          ? true
+          : accountRoleFilter === 'STAFF'
+          ? isStaff
+          : u.role === 'CLIENT';
+      const matchesSearch =
+        !accountSearchQuery ||
+        (u.name || '').toLowerCase().includes(accountSearchQuery.toLowerCase()) ||
+        (u.email || '').toLowerCase().includes(accountSearchQuery.toLowerCase()) ||
+        (u.phone && u.phone.includes(accountSearchQuery));
+      return matchesRoleFilter && matchesSearch;
+    });
+  }, [staffUsers, accountRoleFilter, accountSearchQuery]);
 
   // Modal States
   const [propertyModalOpen, setPropertyModalOpen] = useState(false);
