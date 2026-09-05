@@ -6,19 +6,20 @@ import {
   getDbUsers,
   getOwnerSubmissions,
   getArticles,
-  getAdminStats,
 } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-// Fast in-memory cache for ultra-low latency (< 15ms response)
 let cachedAdminData: any = null;
 let lastCacheTime = 0;
-const CACHE_TTL_MS = 1500; // 1.5s cache
+const CACHE_TTL_MS = 2000;
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const forceFresh = searchParams.get('force') === 'true';
   const now = Date.now();
-  if (cachedAdminData && now - lastCacheTime < CACHE_TTL_MS) {
+
+  if (!forceFresh && cachedAdminData && now - lastCacheTime < CACHE_TTL_MS) {
     return NextResponse.json({ success: true, ...cachedAdminData, cached: true });
   }
 
@@ -61,6 +62,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       ...cachedAdminData,
+      cached: false,
     });
   } catch (error: any) {
     console.error('Error fetching consolidated admin data:', error);

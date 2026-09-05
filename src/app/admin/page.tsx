@@ -116,20 +116,20 @@ export default function AdminDashboardPage() {
   };
 
   // Sync data from live APIs & database
-  const loadAdminData = useCallback(async (isSilent = false) => {
+  const loadAdminData = useCallback(async (isSilent = false, forceFresh = false) => {
     if (!isSilent) setIsSyncing(true);
     try {
-      const res = await fetch('/api/admin/all');
+      const res = await fetch(`/api/admin/all${forceFresh ? '?force=true' : ''}`);
       const data = await res.json();
 
       if (data?.success) {
         if (data.stats) setDbStats(data.stats);
-        if (Array.isArray(data.properties) && data.properties.length > 0) setProperties(data.properties);
-        if (Array.isArray(data.bookings) && data.bookings.length > 0) setReservations(data.bookings);
-        if (Array.isArray(data.leads) && data.leads.length > 0) setLeads(data.leads);
-        if (Array.isArray(data.users) && data.users.length > 0) setStaffUsers(data.users);
-        if (Array.isArray(data.submissions) && data.submissions.length > 0) setSubmissions(data.submissions);
-        if (Array.isArray(data.articles) && data.articles.length > 0) setArticles(data.articles);
+        if (Array.isArray(data.properties)) setProperties(data.properties);
+        if (Array.isArray(data.bookings)) setReservations(data.bookings);
+        if (Array.isArray(data.leads)) setLeads(data.leads);
+        if (Array.isArray(data.users)) setStaffUsers(data.users);
+        if (Array.isArray(data.submissions)) setSubmissions(data.submissions);
+        if (Array.isArray(data.articles)) setArticles(data.articles);
         setLastSyncTime(new Date());
       }
     } catch (err) {
@@ -707,7 +707,7 @@ export default function AdminDashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProp),
       }).then(() => {
-        loadAdminData(true);
+        loadAdminData(true, true);
         showToast('Nouvelle propriété créée et synchronisée avec succès');
       }).catch(err => console.warn('Property create error:', err));
     }
@@ -726,7 +726,7 @@ export default function AdminDashboardPage() {
       fetch(`/api/properties/${id}`, {
         method: 'DELETE',
       }).then(() => {
-        loadAdminData(true);
+        loadAdminData(true, true);
         showToast(`Propriété "${title}" supprimée de la base`, 'info');
       }).catch(err => console.warn('Property delete error:', err));
     }
@@ -1167,7 +1167,7 @@ export default function AdminDashboardPage() {
       }
 
       setUserModalOpen(false);
-      await loadAdminData(true);
+      await loadAdminData(true, true);
     } catch (err) {
       setUserModalError('Erreur de communication avec le serveur.');
     }
@@ -1182,21 +1182,21 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({ id: userId, email: userEmail, role: newRole }),
       });
       showToast(`Rôle de "${userName}" modifié en ${newRole}`);
-      await loadAdminData(true);
+      await loadAdminData(true, true);
     } catch {}
     logAction(`Rôle modifié (${newRole})`, userName);
   };
 
   const handleDeleteStaffUser = async (userId: string, userName: string, userEmail: string) => {
     if (confirm(`Révoquer et supprimer définitivement le compte staff de ${userName} (${userEmail}) ?`)) {
+      setStaffUsers((prev) => prev.filter((u) => u.id !== userId));
       try {
         await fetch(`/api/admin/users?email=${encodeURIComponent(userEmail)}&id=${userId}`, {
           method: 'DELETE',
         });
         showToast(`Compte de "${userName}" révoqué`, 'info');
-        await loadAdminData(true);
+        await loadAdminData(true, true);
       } catch {}
-      setStaffUsers((prev) => prev.filter((u) => u.id !== userId));
       logAction('Révocation compte staff', userName);
     }
   };
