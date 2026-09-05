@@ -14,7 +14,7 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
-    CREATE TYPE user_role AS ENUM ('SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER');
+    CREATE TYPE user_role AS ENUM ('SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER', 'CLIENT');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- 2. Create Properties Table
@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS leads (
 -- 5. Create Owner Submissions Table ("Proposer un bien")
 CREATE TABLE IF NOT EXISTS submissions (
     id TEXT PRIMARY KEY DEFAULT ('prop-sub-' || gen_random_uuid()::text),
+    ref_code TEXT,
     property_type TEXT NOT NULL,
     objective universe_type NOT NULL,
     surface_m2 NUMERIC NOT NULL,
@@ -82,23 +83,57 @@ CREATE TABLE IF NOT EXISTS submissions (
     city TEXT NOT NULL,
     district TEXT NOT NULL,
     address TEXT,
+    google_maps_link TEXT,
     owner_name TEXT NOT NULL,
     owner_phone TEXT NOT NULL,
     owner_email TEXT,
+    title_type TEXT,
+    title_number TEXT,
+    has_certificate TEXT,
+    has_building_permit TEXT,
+    tunisian_law_certified BOOLEAN DEFAULT TRUE,
     details TEXT,
+    specific_details JSONB DEFAULT '{}'::jsonb,
     photos JSONB DEFAULT '[]'::jsonb,
-    status TEXT NOT NULL DEFAULT 'NOUVEAU',
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    is_published BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. Indexes for Maximum Performance
+-- 6. Create Users / Staff Table
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY DEFAULT ('usr-' || gen_random_uuid()::text),
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    phone TEXT,
+    password TEXT,
+    role TEXT NOT NULL DEFAULT 'AGENT',
+    two_factor_enabled BOOLEAN DEFAULT FALSE,
+    email_verified BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. Disable Row Level Security (RLS) to allow direct Vercel API reads & writes
+ALTER TABLE properties DISABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE leads DISABLE ROW LEVEL SECURITY;
+ALTER TABLE submissions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+
+-- 8. Indexes for Maximum Performance
 CREATE INDEX IF NOT EXISTS idx_properties_universe ON properties(universe);
 CREATE INDEX IF NOT EXISTS idx_properties_category ON properties(category);
 CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
 CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
--- 7. Seed Initial Signature Properties
+-- 9. Seed Super Admin User
+INSERT INTO users (id, name, email, phone, password, role, two_factor_enabled, email_verified)
+VALUES ('user-superadmin-01', 'Yassine Aloulou (Directeur Général)', 'yassinealoulou6@gmail.com', '+216 98 000 000', 'Yassine.123', 'SUPER_ADMIN', false, true)
+ON CONFLICT (email) DO NOTHING;
+
+-- 10. Seed Initial Signature Properties
 INSERT INTO properties (id, title, universe, category, price, location, specs, images, description, status, is_featured, is_new)
 VALUES 
 (
@@ -110,12 +145,11 @@ VALUES
     '{"city": "Sfax", "district": "Route de la Soukra", "country": "Tunisie", "lat": 34.7431, "lng": 10.7412, "isExactPosition": false}'::jsonb,
     '{"surfaceM2": 680, "bedrooms": 5, "bathrooms": 5, "livingRooms": 3, "parkingSpaces": 4, "pool": true, "garden": true, "guestCapacity": 12}'::jsonb,
     '[{"url": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=85", "alt": "Façade contemporaine Villa la Soukra Sfax", "isCover": true}]'::jsonb,
-    '{"fr": "Une résidence d’exception nichée au cœur d’un parc privé d’oliviers centenaires sur la Route de la Soukra à Sfax. Alliant architecture épurée méditerranéenne et touches de marbre noble.", "ar": "إقامة استثنائية تقع في قلب حديقة خاصة من أشجار الزيتون المعمرة.", "en": "An exceptional residence nestled in the heart of a private park of century-old olive trees."}'::jsonb,
+    '{"fr": "Une résidence d’exception nichée au cœur d’un parc privé d’oliviers centenaires sur la Route de la Soukra à Sfax.", "ar": "إقامة استثنائية تقع في قلب حديقة خاصة من أشجار الزيتون المعمرة.", "en": "An exceptional residence nestled in the heart of a private park of century-old olive trees."}'::jsonb,
     'DISPONIBLE',
     true,
     true
 )
 ON CONFLICT (id) DO NOTHING;
 
--- Confirmation Query
-SELECT count(*) AS total_properties FROM properties;
+SELECT count(*) AS total_users FROM users;

@@ -115,20 +115,40 @@ export default function AdminDashboardPage() {
     setTimeout(() => setAdminToast(null), 4000);
   };
 
-  // Sync data from live APIs & database
+  // Sync data from live APIs & database with client localStorage fallback for serverless deployments
   const loadAdminData = useCallback(async (isSilent = false, forceFresh = false) => {
     if (!isSilent) setIsSyncing(true);
     try {
       const res = await fetch(`/api/admin/all${forceFresh ? '?force=true' : ''}`);
       const data = await res.json();
 
+      const mergeWithLocal = <T extends { id: string }>(serverList: T[], storageKey: string): T[] => {
+        if (typeof window === 'undefined') return serverList || [];
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (!raw) return serverList || [];
+          const localList: T[] = JSON.parse(raw);
+          if (!Array.isArray(localList) || localList.length === 0) return serverList || [];
+          const map = new Map<string, T>();
+          (serverList || []).forEach(item => map.set(item.id, item));
+          localList.forEach(item => {
+            if (item && item.id && !map.has(item.id)) {
+              map.set(item.id, item);
+            }
+          });
+          return Array.from(map.values());
+        } catch {
+          return serverList || [];
+        }
+      };
+
       if (data?.success) {
         if (data.stats) setDbStats(data.stats);
-        if (Array.isArray(data.properties)) setProperties(data.properties);
-        if (Array.isArray(data.bookings)) setReservations(data.bookings);
-        if (Array.isArray(data.leads)) setLeads(data.leads);
-        if (Array.isArray(data.users)) setStaffUsers(data.users);
-        if (Array.isArray(data.submissions)) setSubmissions(data.submissions);
+        if (Array.isArray(data.properties)) setProperties(mergeWithLocal(data.properties, 'vr_admin_properties'));
+        if (Array.isArray(data.bookings)) setReservations(mergeWithLocal(data.bookings, 'vr_admin_bookings'));
+        if (Array.isArray(data.leads)) setLeads(mergeWithLocal(data.leads, 'vr_admin_leads'));
+        if (Array.isArray(data.users)) setStaffUsers(mergeWithLocal(data.users, 'vr_admin_staff'));
+        if (Array.isArray(data.submissions)) setSubmissions(mergeWithLocal(data.submissions, 'vr_owner_submissions'));
         if (Array.isArray(data.articles)) setArticles(data.articles);
         setLastSyncTime(new Date());
       }
@@ -700,7 +720,11 @@ export default function AdminDashboardPage() {
         createdAt: new Date().toISOString().split('T')[0],
         updatedAt: new Date().toISOString().split('T')[0],
       };
-      setProperties((prev) => [newProp, ...prev]);
+      setProperties((prev) => {
+        const nextProps = [newProp, ...prev];
+        try { localStorage.setItem('vr_admin_properties', JSON.stringify(nextProps)); } catch {}
+        return nextProps;
+      });
       logAction('Création nouvelle propriété', propTitle);
       fetch('/api/properties', {
         method: 'POST',
@@ -721,7 +745,11 @@ export default function AdminDashboardPage() {
       return;
     }
     if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement la propriété "${title}" ?`)) {
-      setProperties((prev) => prev.filter((p) => p.id !== id));
+      setProperties((prev) => {
+        const nextProps = prev.filter((p) => p.id !== id);
+        try { localStorage.setItem('vr_admin_properties', JSON.stringify(nextProps)); } catch {}
+        return nextProps;
+      });
       logAction('Suppression propriété', title);
       fetch(`/api/properties/${id}`, {
         method: 'DELETE',
@@ -1161,7 +1189,11 @@ export default function AdminDashboardPage() {
           createdAt: new Date().toISOString().split('T')[0],
         };
 
-        setStaffUsers((prev) => [...prev, createdUser]);
+        setStaffUsers((prev) => {
+          const nextStaff = [...prev, createdUser];
+          try { localStorage.setItem('vr_admin_staff', JSON.stringify(nextStaff)); } catch {}
+          return nextStaff;
+        });
         logAction('Création compte staff avec mot de passe', `${newUserName} (${newUserRole})`);
         showToast(`Collaborateur "${newUserName}" ajouté avec succès`);
       }
@@ -1174,7 +1206,11 @@ export default function AdminDashboardPage() {
   };
 
   const handleChangeStaffRole = async (userId: string, newRole: UserRole, userName: string, userEmail: string) => {
-    setStaffUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+    setStaffUsers((prev) => {
+      const nextStaff = prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u));
+      try { localStorage.setItem('vr_admin_staff', JSON.stringify(nextStaff)); } catch {}
+      return nextStaff;
+    });
     try {
       await fetch('/api/admin/users', {
         method: 'PUT',
@@ -1189,7 +1225,11 @@ export default function AdminDashboardPage() {
 
   const handleDeleteStaffUser = async (userId: string, userName: string, userEmail: string) => {
     if (confirm(`Révoquer et supprimer définitivement le compte staff de ${userName} (${userEmail}) ?`)) {
-      setStaffUsers((prev) => prev.filter((u) => u.id !== userId));
+      setStaffUsers((prev) => {
+        const nextStaff = prev.filter((u) => u.id !== userId);
+        try { localStorage.setItem('vr_admin_staff', JSON.stringify(nextStaff)); } catch {}
+        return nextStaff;
+      });
       try {
         await fetch(`/api/admin/users?email=${encodeURIComponent(userEmail)}&id=${userId}`, {
           method: 'DELETE',
