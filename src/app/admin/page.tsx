@@ -218,6 +218,8 @@ export default function AdminDashboardPage() {
   const [crmStatusFilter, setCrmStatusFilter] = useState<string>('ALL');
   const [reservationSearch, setReservationSearch] = useState<string>('');
   const [reservationStatusFilter, setReservationStatusFilter] = useState<string>('ALL');
+  const [accountRoleFilter, setAccountRoleFilter] = useState<'ALL' | 'STAFF' | 'CLIENT'>('ALL');
+  const [accountSearchQuery, setAccountSearchQuery] = useState('');
 
   // Interconnected Navigation Helpers ("Everything Connected")
   const jumpToPropertiesWithCategory = (cat: string) => {
@@ -364,8 +366,6 @@ export default function AdminDashboardPage() {
   const [newUserPhone, setNewUserPhone] = useState('');
   const [showUserPassword, setShowUserPassword] = useState(false);
   const [userModalError, setUserModalError] = useState<string | null>(null);
-  const [accountRoleFilter, setAccountRoleFilter] = useState<'ALL' | 'STAFF' | 'CLIENT'>('ALL');
-  const [accountSearchQuery, setAccountSearchQuery] = useState('');
 
   // Property Form State
   const [propTitle, setPropTitle] = useState('');
