@@ -126,18 +126,33 @@ export default function AdminDashboardPage() {
       const mergeWithLocal = <T extends { id: string }>(serverList: T[], storageKey: string): T[] => {
         if (typeof window === 'undefined') return serverList || [];
         try {
-          const raw = localStorage.getItem(storageKey);
-          if (!raw) return serverList || [];
-          const localList: T[] = JSON.parse(raw);
-          if (!Array.isArray(localList) || localList.length === 0) return serverList || [];
+          const deletedRaw = localStorage.getItem(storageKey + '_deleted');
+          const deletedSet = new Set<string>(deletedRaw ? JSON.parse(deletedRaw) : []);
+
+          const localRaw = localStorage.getItem(storageKey);
+          const localList: T[] = localRaw ? JSON.parse(localRaw) : [];
+
           const map = new Map<string, T>();
-          (serverList || []).forEach(item => map.set(item.id, item));
-          localList.forEach(item => {
-            if (item && item.id && !map.has(item.id)) {
+
+          // 1. Load local items into map (respecting local creations/updates)
+          (localList || []).forEach(item => {
+            if (item && item.id && !deletedSet.has(item.id)) {
               map.set(item.id, item);
             }
           });
-          return Array.from(map.values());
+
+          // 2. Load server items into map if not locally overridden or deleted
+          (serverList || []).forEach(item => {
+            if (item && item.id && !deletedSet.has(item.id)) {
+              if (!map.has(item.id)) {
+                map.set(item.id, item);
+              }
+            }
+          });
+
+          const merged = Array.from(map.values());
+          localStorage.setItem(storageKey, JSON.stringify(merged));
+          return merged;
         } catch {
           return serverList || [];
         }
@@ -150,7 +165,7 @@ export default function AdminDashboardPage() {
         if (Array.isArray(data.leads)) setLeads(mergeWithLocal(data.leads, 'vr_admin_leads'));
         if (Array.isArray(data.users)) setStaffUsers(mergeWithLocal(data.users, 'vr_admin_staff'));
         if (Array.isArray(data.submissions)) setSubmissions(mergeWithLocal(data.submissions, 'vr_owner_submissions'));
-        if (Array.isArray(data.articles)) setArticles(data.articles);
+        if (Array.isArray(data.articles)) setArticles(mergeWithLocal(data.articles, 'vr_admin_articles'));
         setLastSyncTime(new Date());
       }
     } catch (err) {
@@ -748,7 +763,13 @@ export default function AdminDashboardPage() {
     if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement la propriété "${title}" ?`)) {
       setProperties((prev) => {
         const nextProps = prev.filter((p) => p.id !== id);
-        try { localStorage.setItem('vr_admin_properties', JSON.stringify(nextProps)); } catch {}
+        try {
+          localStorage.setItem('vr_admin_properties', JSON.stringify(nextProps));
+          const delRaw = localStorage.getItem('vr_admin_properties_deleted');
+          const delList: string[] = delRaw ? JSON.parse(delRaw) : [];
+          if (!delList.includes(id)) delList.push(id);
+          localStorage.setItem('vr_admin_properties_deleted', JSON.stringify(delList));
+        } catch {}
         return nextProps;
       });
       logAction('Suppression propriété', title);
@@ -919,7 +940,17 @@ export default function AdminDashboardPage() {
 
   const handleDeleteLead = (id: string, name: string) => {
     if (confirm(`Supprimer le lead commercial de ${name} ?`)) {
-      setLeads((prev) => prev.filter((l) => l.id !== id));
+      setLeads((prev) => {
+        const nextLeads = prev.filter((l) => l.id !== id);
+        try {
+          localStorage.setItem('vr_admin_leads', JSON.stringify(nextLeads));
+          const delRaw = localStorage.getItem('vr_admin_leads_deleted');
+          const delList: string[] = delRaw ? JSON.parse(delRaw) : [];
+          if (!delList.includes(id)) delList.push(id);
+          localStorage.setItem('vr_admin_leads_deleted', JSON.stringify(delList));
+        } catch {}
+        return nextLeads;
+      });
       logAction('Suppression lead', name);
       fetch(`/api/admin/crm?id=${id}`, {
         method: 'DELETE',
@@ -1067,7 +1098,17 @@ export default function AdminDashboardPage() {
   const handleDeleteArticle = (id: string, title: string) => {
     if (confirm(`Supprimer l'article "${title}" ?`)) {
       const art = articles.find(a => a.id === id);
-      setArticles((prev) => prev.filter((a) => a.id !== id));
+      setArticles((prev) => {
+        const nextArts = prev.filter((a) => a.id !== id);
+        try {
+          localStorage.setItem('vr_admin_articles', JSON.stringify(nextArts));
+          const delRaw = localStorage.getItem('vr_admin_articles_deleted');
+          const delList: string[] = delRaw ? JSON.parse(delRaw) : [];
+          if (!delList.includes(id)) delList.push(id);
+          localStorage.setItem('vr_admin_articles_deleted', JSON.stringify(delList));
+        } catch {}
+        return nextArts;
+      });
       logAction('Suppression article', title);
 
       if (art) {
@@ -1228,7 +1269,13 @@ export default function AdminDashboardPage() {
     if (confirm(`Révoquer et supprimer définitivement le compte staff de ${userName} (${userEmail}) ?`)) {
       setStaffUsers((prev) => {
         const nextStaff = prev.filter((u) => u.id !== userId);
-        try { localStorage.setItem('vr_admin_staff', JSON.stringify(nextStaff)); } catch {}
+        try {
+          localStorage.setItem('vr_admin_staff', JSON.stringify(nextStaff));
+          const delRaw = localStorage.getItem('vr_admin_staff_deleted');
+          const delList: string[] = delRaw ? JSON.parse(delRaw) : [];
+          if (!delList.includes(userId)) delList.push(userId);
+          localStorage.setItem('vr_admin_staff_deleted', JSON.stringify(delList));
+        } catch {}
         return nextStaff;
       });
       try {

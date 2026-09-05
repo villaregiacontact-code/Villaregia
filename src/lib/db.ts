@@ -224,6 +224,49 @@ async function withTimeout<T>(promise: any, timeoutMs = 350, fallbackValue: T): 
   ]);
 }
 
+function normalizeProperty(raw: any): Property {
+  if (!raw) return raw;
+  return {
+    id: raw.id || `vr-prop-${Date.now()}`,
+    title: typeof raw.title === 'string' && raw.title.startsWith('{') ? JSON.parse(raw.title) : (typeof raw.title === 'string' ? { fr: raw.title, ar: raw.title, en: raw.title } : raw.title),
+    universe: raw.universe || 'VENTE',
+    category: raw.category || 'Villa',
+    price: typeof raw.price === 'string' && raw.price.startsWith('{') ? JSON.parse(raw.price) : (raw.price || { amount: 0, currency: 'TND', period: 'total' }),
+    location: typeof raw.location === 'string' && raw.location.startsWith('{') ? JSON.parse(raw.location) : (raw.location || { city: 'Sfax', district: 'Centre', country: 'Tunisie', lat: 34.74, lng: 10.74, isExactPosition: false }),
+    specs: typeof raw.specs === 'string' && raw.specs.startsWith('{') ? JSON.parse(raw.specs) : (raw.specs || { surfaceM2: 0 }),
+    images: typeof raw.images === 'string' && raw.images.startsWith('[') ? JSON.parse(raw.images) : (Array.isArray(raw.images) ? raw.images : []),
+    description: typeof raw.description === 'string' && raw.description.startsWith('{') ? JSON.parse(raw.description) : (typeof raw.description === 'string' ? { fr: raw.description, ar: raw.description, en: raw.description } : (raw.description || { fr: '', ar: '', en: '' })),
+    story: raw.story ? (typeof raw.story === 'string' && raw.story.startsWith('{') ? JSON.parse(raw.story) : raw.story) : undefined,
+    amenities: Array.isArray(raw.amenities) ? raw.amenities : [],
+    status: raw.status || 'DISPONIBLE',
+    isFeatured: Boolean(raw.is_featured ?? raw.isFeatured ?? false),
+    isNew: Boolean(raw.is_new ?? raw.isNew ?? true),
+    createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
+    updatedAt: raw.updated_at || raw.updatedAt || new Date().toISOString(),
+  };
+}
+
+function toSupabasePropertyPayload(p: Partial<Property>): Record<string, any> {
+  const payload: Record<string, any> = {};
+  if (p.id !== undefined) payload.id = p.id;
+  if (p.title !== undefined) payload.title = p.title;
+  if (p.universe !== undefined) payload.universe = p.universe;
+  if (p.category !== undefined) payload.category = p.category;
+  if (p.price !== undefined) payload.price = p.price;
+  if (p.location !== undefined) payload.location = p.location;
+  if (p.specs !== undefined) payload.specs = p.specs;
+  if (p.images !== undefined) payload.images = p.images;
+  if (p.description !== undefined) payload.description = p.description;
+  if (p.story !== undefined) payload.story = p.story;
+  if (p.amenities !== undefined) payload.amenities = p.amenities;
+  if (p.status !== undefined) payload.status = p.status;
+  if (p.isFeatured !== undefined) payload.is_featured = p.isFeatured;
+  if (p.isNew !== undefined) payload.is_new = p.isNew;
+  if (p.createdAt !== undefined) payload.created_at = p.createdAt;
+  if (p.updatedAt !== undefined) payload.updated_at = p.updatedAt;
+  return payload;
+}
+
 // Helper functions for properties
 export async function getProperties(filters?: Partial<FilterState>): Promise<Property[]> {
   const freshProps = loadPersistedProperties();
@@ -242,7 +285,14 @@ export async function getProperties(filters?: Partial<FilterState>): Promise<Pro
       }
       const res = await withTimeout(query, 350, { data: null, error: new Error('Timeout') } as any);
       if (!res.error && res.data && res.data.length > 0) {
-        return res.data as Property[];
+        const supaProps: Property[] = (res.data as any[]).map(normalizeProperty);
+        const map = new Map<string, Property>();
+        localProperties.forEach((p: Property) => map.set(p.id, p));
+        supaProps.forEach((p: Property) => { if (!map.has(p.id)) map.set(p.id, p); });
+        const merged = Array.from(map.values());
+        localProperties = merged;
+        savePersistedProperties(localProperties);
+        return merged;
       }
     } catch (e) {
       console.warn('Supabase fetch failed, using fallback memory state:', e);
@@ -305,7 +355,7 @@ export async function getPropertyById(id: string): Promise<Property | null> {
         350,
         { data: null, error: new Error('Timeout') } as any
       );
-      if (!res.error && res.data) return res.data as Property;
+      if (!res.error && res.data) return normalizeProperty(res.data);
     } catch (e) {
       console.warn('Supabase fetch single property failed:', e);
     }
@@ -323,15 +373,19 @@ export async function createProperty(property: Omit<Property, 'id' | 'createdAt'
 
   if (isSupabaseConfigured && supabase) {
     try {
+      const payload = toSupabasePropertyPayload(newProperty);
       const res = await withTimeout(
-        supabase.from('properties').insert([newProperty]).select().single(),
-        500,
+        supabase.from('properties').insert([payload]).select().single(),
+        800,
         { data: null, error: new Error('Timeout') } as any
       );
       if (!res.error && res.data) {
-        localProperties.unshift(res.data as Property);
+        const normalized = normalizeProperty(res.data);
+        localProperties.unshift(normalized);
         savePersistedProperties(localProperties);
-        return res.data as Property;
+        return normalized;
+      } else if (res.error) {
+        console.error('Supabase property insert error:', res.error);
       }
     } catch (e) {
       console.warn('Supabase insert property failed:', e);
@@ -346,16 +400,20 @@ export async function createProperty(property: Omit<Property, 'id' | 'createdAt'
 export async function updateProperty(id: string, updates: Partial<Property>): Promise<Property | null> {
   if (isSupabaseConfigured && supabase) {
     try {
+      const payload = toSupabasePropertyPayload({ ...updates, updatedAt: new Date().toISOString() });
       const res = await withTimeout(
-        supabase.from('properties').update(updates).eq('id', id).select().single(),
-        500,
+        supabase.from('properties').update(payload).eq('id', id).select().single(),
+        800,
         { data: null, error: new Error('Timeout') } as any
       );
       if (!res.error && res.data) {
+        const normalized = normalizeProperty(res.data);
         const idx = localProperties.findIndex(p => p.id === id);
-        if (idx >= 0) localProperties[idx] = res.data as Property;
+        if (idx >= 0) localProperties[idx] = normalized;
         savePersistedProperties(localProperties);
-        return res.data as Property;
+        return normalized;
+      } else if (res.error) {
+        console.error('Supabase property update error:', res.error);
       }
     } catch (e) {
       console.warn('Supabase update property failed:', e);
@@ -376,32 +434,7 @@ export async function updateProperty(id: string, updates: Partial<Property>): Pr
 }
 
 export async function updatePropertyStatus(id: string, status: Property['status']): Promise<Property | null> {
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const res = await withTimeout(
-        supabase.from('properties').update({ status }).eq('id', id).select().single(),
-        500,
-        { data: null, error: new Error('Timeout') } as any
-      );
-      if (!res.error && res.data) {
-        const idx = localProperties.findIndex(p => p.id === id);
-        if (idx >= 0) localProperties[idx] = res.data as Property;
-        savePersistedProperties(localProperties);
-        return res.data as Property;
-      }
-    } catch (e) {
-      console.warn('Supabase update status failed:', e);
-    }
-  }
-
-  const prop = localProperties.find(p => p.id === id);
-  if (prop) {
-    prop.status = status;
-    prop.updatedAt = new Date().toISOString();
-    savePersistedProperties(localProperties);
-    return { ...prop };
-  }
-  return null;
+  return updateProperty(id, { status });
 }
 
 export async function deleteProperty(id: string): Promise<boolean> {
