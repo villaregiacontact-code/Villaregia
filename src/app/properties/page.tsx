@@ -8,6 +8,9 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { INITIAL_PROPERTIES } from '@/data/properties';
 import { Property, UniverseType, PropertyCategory } from '@/types';
+import { getMergedProperties } from '@/lib/clientStorage';
+
+// ─── Category definitions ──────────────────────────────────────────────────
 import {
   Grid,
   List,
@@ -105,10 +108,13 @@ function CatalogContent() {
         const res = await fetch('/api/properties');
         const data = await res.json();
         if (data.success && Array.isArray(data.properties)) {
-          setPropertiesList(data.properties);
+          setPropertiesList(getMergedProperties(data.properties));
+        } else {
+          setPropertiesList(getMergedProperties(INITIAL_PROPERTIES));
         }
       } catch (err) {
         console.warn('API fetch properties fallback:', err);
+        setPropertiesList(getMergedProperties(INITIAL_PROPERTIES));
       } finally {
         setLoadingProperties(false);
       }

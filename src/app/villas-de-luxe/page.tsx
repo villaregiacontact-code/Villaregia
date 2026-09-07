@@ -18,13 +18,16 @@ import {
   Star,
 } from 'lucide-react';
 
+import { getMergedProperties } from '@/lib/clientStorage';
+
 export default function LuxuryVillasPage() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
 
-  const [luxuryVillas, setLuxuryVillas] = useState<Property[]>(() =>
-    INITIAL_PROPERTIES.filter((p) => p.universe === 'LUXE')
-  );
+  const [luxuryVillas, setLuxuryVillas] = useState<Property[]>(() => {
+    const merged = getMergedProperties(INITIAL_PROPERTIES);
+    return merged.filter((p) => p.universe === 'LUXE');
+  });
   const [selectedVilla, setSelectedVilla] = useState<Property>(() => luxuryVillas[0] || INITIAL_PROPERTIES[0]);
   const [loadingVillas, setLoadingVillas] = useState<boolean>(true);
 
@@ -34,12 +37,16 @@ export default function LuxuryVillasPage() {
         setLoadingVillas(true);
         const res = await fetch('/api/properties?universe=LUXE');
         const data = await res.json();
-        if (data.success && Array.isArray(data.properties)) {
-          setLuxuryVillas(data.properties);
-          setSelectedVilla((prev: Property) => data.properties.find((p: Property) => p.id === prev?.id) || data.properties[0]);
-        }
+        const serverProps = data.success && Array.isArray(data.properties) ? data.properties : [];
+        const merged = getMergedProperties(serverProps.length > 0 ? serverProps : INITIAL_PROPERTIES);
+        const luxList = merged.filter((p) => p.universe === 'LUXE');
+        setLuxuryVillas(luxList);
+        setSelectedVilla((prev: Property) => luxList.find((p: Property) => p.id === prev?.id) || luxList[0]);
       } catch (err) {
         console.warn('Luxury villas live fetch fallback:', err);
+        const merged = getMergedProperties(INITIAL_PROPERTIES);
+        const luxList = merged.filter((p) => p.universe === 'LUXE');
+        setLuxuryVillas(luxList);
       } finally {
         setLoadingVillas(false);
       }

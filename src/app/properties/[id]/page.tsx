@@ -30,6 +30,8 @@ import {
   Briefcase,
 } from 'lucide-react';
 
+import { getMergedProperties } from '@/lib/clientStorage';
+
 export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -38,7 +40,10 @@ export default function PropertyDetailPage() {
   const { user } = useAuth();
 
   const propertyId = params?.id ? String(params.id) : '';
-  const [property, setProperty] = useState(() => INITIAL_PROPERTIES.find((p) => p.id === propertyId) || null);
+  const [property, setProperty] = useState(() => {
+    const merged = getMergedProperties(INITIAL_PROPERTIES);
+    return merged.find((p) => p.id === propertyId) || null;
+  });
   const [isLoading, setIsLoading] = useState(!property);
 
   React.useEffect(() => {
@@ -49,9 +54,16 @@ export default function PropertyDetailPage() {
         const data = await res.json();
         if (data.success && data.property) {
           setProperty(data.property);
+        } else {
+          const merged = getMergedProperties(INITIAL_PROPERTIES);
+          const found = merged.find((p) => p.id === propertyId);
+          if (found) setProperty(found);
         }
       } catch (err) {
         console.warn('Live property fetch fallback:', err);
+        const merged = getMergedProperties(INITIAL_PROPERTIES);
+        const found = merged.find((p) => p.id === propertyId);
+        if (found) setProperty(found);
       } finally {
         setIsLoading(false);
       }

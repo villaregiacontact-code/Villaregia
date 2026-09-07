@@ -8,6 +8,8 @@ import { useFavorites } from '@/context/FavoritesContext';
 import { Property } from '@/types';
 import { Heart, MapPin, Maximize2, Bed, Bath, ArrowUpRight, Sparkles } from 'lucide-react';
 
+import { getMergedProperties } from '@/lib/clientStorage';
+
 export const FeaturedProperties: React.FC = () => {
   const { t, language } = useLanguage();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -21,10 +23,13 @@ export const FeaturedProperties: React.FC = () => {
         const res = await fetch('/api/properties');
         const data = await res.json();
         if (data.success && Array.isArray(data.properties)) {
-          setAllProperties(data.properties);
+          setAllProperties(getMergedProperties(data.properties));
+        } else {
+          setAllProperties(getMergedProperties([]));
         }
       } catch (err) {
         console.warn('FeaturedProperties: API fetch error:', err);
+        setAllProperties(getMergedProperties([]));
       } finally {
         setIsLoading(false);
       }
