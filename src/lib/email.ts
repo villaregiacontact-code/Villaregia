@@ -255,7 +255,7 @@ export async function sendWelcomeEmail({ to, name }: SendWelcomeEmailParams) {
           </div>
         </div>
 
-        <a href="https://villaregia.vercel.app" class="cta-btn">Découvrir la Collection</a>
+        <a href="https://www.villaregiarealestates.com" class="cta-btn">Découvrir la Collection</a>
 
         <div class="signature">
           Bien cordialement,<br>
@@ -275,8 +275,9 @@ export async function sendWelcomeEmail({ to, name }: SendWelcomeEmailParams) {
     to,
     subject,
     htmlContent,
-    textContent: `Bienvenue chez Villa Regia, ${name} !\n\nVotre compte client a été activé avec succès. Découvrez notre collection exclusive de villas et demeures de maître à Sfax et en Tunisie sur https://villaregia.vercel.app\n\nLa Direction Villa Regia`,
+    textContent: `Bienvenue chez Villa Regia, ${name} !\n\nVotre compte client a été activé avec succès. Découvrez notre collection exclusive de villas et demeures de maître à Sfax et en Tunisie sur https://www.villaregiarealestates.com\n\nLa Direction Villa Regia`,
   });
+
 }
 
 export interface OwnerSubmissionEmailData {

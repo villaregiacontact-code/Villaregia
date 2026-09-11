@@ -8,14 +8,20 @@ import { Footer } from '@/components/layout/Footer';
 import { WhatsAppButton } from '@/components/common/WhatsAppButton';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.villaregiarealestates.com'),
   title: 'Villa Regia — Immobilier d’Exception & Villas de Luxe Sfax',
   description: 'Maison de sélection immobilière et d’hospitalité de prestige basée à Sfax, Tunisie. Vente de villas de maître, résidences de standing, villas avec piscine et espaces événementiels.',
   keywords: ['Immobilier Sfax', 'Villa de luxe Sfax', 'Soukra Sfax', 'Thyna Sfax', 'Vente villa Sfax', 'Location villa Tunisie', 'Villa Regia'],
   openGraph: {
     title: 'Villa Regia — Demeures & Séjours d’Exception',
     description: 'Des lieux qui méritent d’être vécus. Sélection exclusive de villas et résidences à Sfax, Tunisie.',
+    url: 'https://www.villaregiarealestates.com',
+    siteName: 'Villa Regia Real Estates',
     locale: 'fr_FR',
     type: 'website',
+  },
+  alternates: {
+    canonical: 'https://www.villaregiarealestates.com',
   },
 };
 
