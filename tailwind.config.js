@@ -9,37 +9,64 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        ink: {
+          DEFAULT: '#132339',
+          soft: '#2c3f57',
+        },
+        paper: {
+          DEFAULT: '#FAF8F3',
+        },
+        sand: {
+          DEFAULT: '#EFE8D8',
+          deep: '#E1D6BC',
+        },
+        clay: {
+          DEFAULT: '#B15A3C',
+        },
+        olive: {
+          DEFAULT: '#6E7A52',
+        },
+        brass: {
+          DEFAULT: '#B8912E',
+        },
+        line: 'rgba(19, 35, 57, 0.14)',
         brand: {
           navy: {
-            DEFAULT: '#0A1120',
-            dark: '#050912',
-            light: '#131E35',
-            muted: '#1E2D4A',
+            DEFAULT: '#132339',
+            dark: '#0B1523',
+            light: '#2c3f57',
+            muted: '#2c3f57',
           },
           gold: {
-            DEFAULT: '#C5A059',
+            DEFAULT: '#B8912E',
             light: '#E6C575',
             dark: '#A37F39',
-            champagne: '#F4E8C1',
-            glow: 'rgba(197, 160, 89, 0.25)',
+            champagne: '#EFE8D8',
+            glow: 'rgba(184, 145, 46, 0.25)',
           },
           travertine: {
-            DEFAULT: '#FAF8F5',
-            soft: '#F3EFE9',
-            dark: '#E4DDD2',
+            DEFAULT: '#FAF8F3',
+            soft: '#EFE8D8',
+            dark: '#E1D6BC',
           },
-          sand: '#EBE5D9',
-          charcoal: '#1A212D',
+          sand: '#EFE8D8',
+          charcoal: '#132339',
+          clay: '#B15A3C',
+          olive: '#6E7A52',
         },
       },
       fontFamily: {
-        serif: ['var(--font-serif)', 'Cormorant Garamond', 'Cinzel', 'Georgia', 'serif'],
-        sans: ['var(--font-sans)', 'Manrope', 'Inter', 'sans-serif'],
+        serif: ['var(--font-serif)', 'Fraunces', 'Cormorant Garamond', 'Georgia', 'serif'],
+        sans: ['var(--font-sans)', 'IBM Plex Sans', 'Manrope', 'sans-serif'],
+      },
+      borderRadius: {
+        'arch': '400px 400px 12px 12px',
+        'xs': '2px',
       },
       backgroundImage: {
-        'gold-gradient': 'linear-gradient(135deg, #E6C575 0%, #C5A059 50%, #A37F39 100%)',
-        'navy-gradient': 'linear-gradient(180deg, #0A1120 0%, #050912 100%)',
-        'radial-glow': 'radial-gradient(circle at center, rgba(197, 160, 89, 0.15) 0%, transparent 70%)',
+        'gold-gradient': 'linear-gradient(135deg, #E6C575 0%, #B8912E 50%, #A37F39 100%)',
+        'navy-gradient': 'linear-gradient(180deg, #132339 0%, #0B1523 100%)',
+        'radial-glow': 'radial-gradient(circle at center, rgba(184, 145, 46, 0.15) 0%, transparent 70%)',
       },
       animation: {
         'fade-in': 'fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',

@@ -1,47 +1,26 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { useLanguage } from '@/context/LanguageContext';
-import { Compass, PlusCircle } from 'lucide-react';
 
 export const FinalCTA: React.FC = () => {
-  const { t } = useLanguage();
-
   return (
-    <section className="py-28 bg-gradient-to-b from-brand-navy to-brand-navy-dark border-t border-brand-gold/15 relative overflow-hidden text-center">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 space-y-8">
-        
-        <span className="text-xs font-mono tracking-[0.3em] uppercase text-brand-gold">
-          Prochaine Étape
-        </span>
-
-        <h2 className="font-editorial text-4xl sm:text-6xl text-brand-travertine font-light leading-tight">
-          Votre prochaine adresse vous attend peut-être déjà.
-        </h2>
-
-        <p className="text-sm sm:text-base text-brand-travertine/80 max-w-2xl mx-auto font-light leading-relaxed">
-          Que vous cherchiez à acquérir une villa d’exception à Sfax, louer une demeure de prestige ou proposer votre bien au catalogue Villa Regia, notre équipe vous accompagne avec discrétion.
-        </p>
-
-        <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-          <Link
-            href="/properties"
-            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand-gold via-brand-gold-light to-brand-gold-dark text-brand-navy px-8 py-4 rounded text-xs font-bold uppercase tracking-widest hover:opacity-95 transition-all shadow-xl shadow-brand-gold/20"
+    <section className="py-16 sm:py-24 bg-[#FAF8F3]">
+      <div className="max-w-[1180px] mx-auto px-4 sm:px-8">
+        <div className="bg-[#132339] text-[#FAF8F3] rounded-xs px-8 sm:px-14 py-12 sm:py-16 flex flex-col md:flex-row justify-between items-center gap-8">
+          <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-[#FAF8F3] font-semibold max-w-[16ch] leading-snug text-center md:text-left">
+            Un projet en tête ? Parlons-en aujourd'hui.
+          </h2>
+          <a
+            href="https://wa.me/21627745403"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-[#B15A3C] text-[#FAF8F3] hover:bg-[#97492e] px-7 py-3.5 text-sm sm:text-base font-medium rounded-xs transition-colors whitespace-nowrap"
           >
-            <Compass className="w-4 h-4" />
-            <span>EXPLORER LES PROPRIÉTÉS</span>
-          </Link>
-
-          <Link
-            href="/proposer-un-bien"
-            className="inline-flex items-center justify-center gap-2 glass-navy text-brand-travertine border border-brand-gold/30 hover:border-brand-gold px-8 py-4 rounded text-xs font-semibold uppercase tracking-widest transition-all"
-          >
-            <PlusCircle className="w-4 h-4 text-brand-gold" />
-            <span>PROPOSER UN BIEN</span>
-          </Link>
+            Discuter sur WhatsApp
+          </a>
         </div>
       </div>
     </section>
   );
 };
+

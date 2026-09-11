@@ -46,40 +46,33 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'py-3 glass-navy shadow-2xl border-b border-brand-gold/15'
-            : 'py-6 bg-gradient-to-b from-brand-navy/90 to-transparent'
+            ? 'py-3 bg-[#FAF8F3]/95 backdrop-blur-md shadow-sm border-b border-[rgba(19,35,57,0.14)]'
+            : 'py-4 bg-[#FAF8F3]/90 backdrop-blur-md border-b border-[rgba(19,35,57,0.14)]'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             
             {/* Brand Emblem / Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative w-36 sm:w-44 h-11 transition-transform duration-300 group-hover:scale-105">
-                <Image
-                  src="/images/logo-light.png"
-                  alt="Villa Regia Real Estates Sfax"
-                  fill
-                  priority
-                  className="object-contain"
-                />
-              </div>
+            <Link href="/" className="flex items-baseline gap-2 group">
+              <span className="font-serif text-2xl font-semibold text-[#132339] tracking-tight">Villa Regia</span>
+              <span className="text-xs text-[#2c3f57] tracking-wider hidden sm:inline">— Sfax, Tunisie</span>
             </Link>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse">
-              {navLinks.slice(1, 6).map((link) => {
+            <nav className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse text-[14.5px]">
+              {navLinks.slice(1, 7).map((link) => {
                 const isActive = pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`text-xs uppercase tracking-widest transition-colors duration-300 py-1 border-b ${
+                    className={`py-1 border-b-2 transition-colors duration-200 ${
                       isActive
-                        ? 'text-brand-gold border-brand-gold font-medium'
-                        : 'text-brand-travertine/80 border-transparent hover:text-brand-gold hover:border-brand-gold/40'
+                        ? 'text-[#132339] border-[#B15A3C] font-medium'
+                        : 'text-[#132339] border-transparent hover:border-[#B15A3C]'
                     }`}
                   >
                     {link.label}
@@ -93,12 +86,12 @@ export const Navbar: React.FC = () => {
               {/* Favorites Counter */}
               <Link
                 href="/properties?saved=true"
-                className="relative p-2 text-brand-travertine/80 hover:text-brand-gold transition-colors"
+                className="relative p-2 text-[#2c3f57] hover:text-[#B15A3C] transition-colors"
                 title={t('btn.favorites')}
               >
                 <Heart className="w-5 h-5" />
                 {favorites.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-brand-gold text-brand-navy text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-[#B15A3C] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                     {favorites.length}
                   </span>
                 )}
@@ -108,10 +101,10 @@ export const Navbar: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setLangMenuOpen(!langMenuOpen)}
-                  className="flex items-center gap-1.5 text-xs tracking-wider uppercase text-brand-travertine/80 hover:text-brand-gold px-2.5 py-1.5 rounded border border-white/10 hover:border-brand-gold/40 transition-all"
+                  className="flex items-center gap-1 text-xs tracking-wider uppercase text-[#2c3f57] hover:text-[#132339] px-2.5 py-1.5 rounded border border-[rgba(19,35,57,0.14)] transition-all"
                 >
-                  <Globe className="w-3.5 h-3.5 text-brand-gold" />
-                  <span>{language.toUpperCase()}</span>
+                  <Globe className="w-3.5 h-3.5 text-[#B8912E]" />
+                  <span className="font-semibold">{language.toUpperCase()}</span>
                   <ChevronDown className="w-3 h-3 opacity-60" />
                 </button>
 
@@ -121,7 +114,7 @@ export const Navbar: React.FC = () => {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
-                      className="absolute right-0 rtl:left-0 rtl:right-auto mt-2 w-28 glass-navy rounded shadow-xl border border-brand-gold/20 py-1 overflow-hidden"
+                      className="absolute right-0 rtl:left-0 rtl:right-auto mt-2 w-28 bg-[#FAF8F3] rounded shadow-xl border border-[rgba(19,35,57,0.14)] py-1 overflow-hidden z-50"
                     >
                       {(['fr', 'ar', 'en'] as Language[]).map((lang) => (
                         <button
@@ -132,8 +125,8 @@ export const Navbar: React.FC = () => {
                           }}
                           className={`w-full text-left rtl:text-right px-3 py-1.5 text-xs tracking-wider uppercase transition-colors ${
                             language === lang
-                              ? 'bg-brand-gold/20 text-brand-gold font-bold'
-                              : 'text-brand-travertine/80 hover:bg-white/5 hover:text-white'
+                              ? 'bg-[#EFE8D8] text-[#132339] font-bold'
+                              : 'text-[#2c3f57] hover:bg-[#EFE8D8]/50 hover:text-[#132339]'
                           }`}
                         >
                           {lang === 'fr' ? 'Français' : lang === 'ar' ? 'العربية' : 'English'}
@@ -155,18 +148,18 @@ export const Navbar: React.FC = () => {
                     setAuthModalOpen(true);
                   }
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 rounded border border-brand-gold/30 hover:border-brand-gold text-xs text-brand-travertine transition-all glass-card hover:bg-white/5"
+                className="flex items-center gap-2 px-3 py-1.5 rounded border border-[rgba(19,35,57,0.14)] hover:border-[#132339] text-xs text-[#132339] transition-all hover:bg-[#EFE8D8]/40"
               >
                 {user ? (
                   <>
-                    <UserCheck className="w-4 h-4 text-emerald-400" />
-                    <span className="font-mono text-[11px] text-brand-gold uppercase font-bold">{user.name.split(' ')[0]}</span>
-                    <span className="text-[10px] text-white/50 font-mono">({user.role})</span>
+                    <UserCheck className="w-4 h-4 text-emerald-600" />
+                    <span className="font-mono text-[11px] text-[#132339] uppercase font-bold">{user.name.split(' ')[0]}</span>
+                    <span className="text-[10px] text-[#2c3f57] font-mono">({user.role})</span>
                   </>
                 ) : (
                   <>
-                    <LogIn className="w-4 h-4 text-brand-gold" />
-                    <span className="uppercase text-[11px]">Connexion / Inscription</span>
+                    <LogIn className="w-4 h-4 text-[#B15A3C]" />
+                    <span className="uppercase text-[11px] font-medium">Connexion</span>
                   </>
                 )}
               </button>
@@ -175,7 +168,7 @@ export const Navbar: React.FC = () => {
               {user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role) && (
                 <Link
                   href="/admin"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-brand-gold text-brand-navy hover:opacity-95 transition-all text-xs font-mono font-bold shadow-md"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#132339] text-[#FAF8F3] hover:bg-[#2c3f57] transition-all text-xs font-mono font-bold shadow"
                   title="Accéder au Tableau de Bord Admin"
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
@@ -185,11 +178,10 @@ export const Navbar: React.FC = () => {
 
               {/* Submit Property CTA */}
               <Link
-                href="/proposer-un-bien"
-                className="flex items-center gap-2 bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-all shadow-lg shadow-brand-gold/10"
+                href="/contact"
+                className="flex items-center gap-2 bg-[#132339] text-[#FAF8F3] hover:bg-[#2c3f57] px-4 py-2 rounded-sm text-xs font-medium uppercase tracking-wider transition-all shadow-sm"
               >
-                <PlusCircle className="w-4 h-4" />
-                <span>{t('nav.submit_property')}</span>
+                <span>Nous contacter</span>
               </Link>
             </div>
 

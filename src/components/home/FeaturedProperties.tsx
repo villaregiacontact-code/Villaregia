@@ -6,12 +6,11 @@ import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { Property } from '@/types';
-import { Heart, MapPin, Maximize2, Bed, Bath, ArrowUpRight, Sparkles } from 'lucide-react';
-
+import { Heart } from 'lucide-react';
 import { getMergedProperties } from '@/lib/clientStorage';
 
 export const FeaturedProperties: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -39,188 +38,121 @@ export const FeaturedProperties: React.FC = () => {
 
   const featured = allProperties.filter((p) => p.isFeatured).slice(0, 3);
 
+  // Fallback items matching mockup if DB empty
+  const displayProperties = featured.length > 0 ? featured : [
+    {
+      id: 'mock-1',
+      title: { fr: 'Villa Les Oliviers', ar: 'فيلا الزيتون', en: 'Villa Les Oliviers' },
+      universe: 'À VENDRE',
+      location: { district: 'Route de la Soukra', city: 'Sfax' },
+      specs: { surfaceM2: 420, bedrooms: 4 },
+      price: { amount: 890000, currency: 'DT' },
+      images: [{ url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80' }],
+      tag: 'À vendre',
+      meta: 'Sfax, Route de la Soukra · 420 m² · 4 chambres',
+      subPrice: 'Vue jardin & piscine'
+    },
+    {
+      id: 'mock-2',
+      title: { fr: 'Villa Azur Djerba', ar: 'فيلا أزور جربة', en: 'Villa Azur Djerba' },
+      universe: 'LOCATION DE LUXE',
+      location: { district: 'front de mer', city: 'Djerba' },
+      specs: { surfaceM2: 350, bedrooms: 6 },
+      price: { amount: 2400, currency: 'DT / nuit' },
+      images: [{ url: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80' }],
+      tag: 'Location de luxe',
+      meta: 'Djerba, front de mer · 6 chambres · Piscine chauffée',
+      subPrice: 'Min. 2 nuits'
+    },
+    {
+      id: 'mock-3',
+      title: { fr: 'Domaine El Bostan', ar: 'ضيافة البستان', en: 'Domaine El Bostan' },
+      universe: 'ÉVÉNEMENTIEL',
+      location: { district: 'Hammamet', city: 'Hammamet' },
+      specs: { surfaceM2: 3000, bedrooms: 0 },
+      price: { amount: 0, currency: 'Sur devis' },
+      images: [{ url: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80' }],
+      tag: 'Événementiel',
+      meta: 'Hammamet · Jardin 3000 m² · Capacité 300 invités',
+      subPrice: 'Mariages & tournages'
+    }
+  ];
+
   return (
-    <section className="py-24 bg-brand-navy border-t border-brand-gold/15">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-[#132339] text-[#FAF8F3] py-20 sm:py-24">
+      <div className="max-w-[1180px] mx-auto px-4 sm:px-8">
         
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.3em] uppercase text-brand-gold mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Sélection d’Exception</span>
-            </div>
-            <h2 className="font-editorial text-3xl sm:text-5xl text-brand-travertine font-light">
-              Propriétés Remarquables
-            </h2>
-          </div>
+        {/* Header */}
+        <div className="flex justify-between items-end mb-11">
+          <h2 className="font-serif text-3xl sm:text-4xl text-[#FAF8F3] font-semibold max-w-[14ch]">
+            Sélection du moment
+          </h2>
           <Link
             href="/properties"
-            className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-brand-gold font-bold hover:underline"
+            className="text-sm font-medium text-[#B8912E] border-b border-[#B8912E] pb-0.5 hover:opacity-80 transition-opacity"
           >
-            <span>Consulter le portfolio complet</span>
-            <ArrowUpRight className="w-4 h-4" />
+            Voir tous les biens
           </Link>
         </div>
 
-        {/* Editorial Layout: Large Highlight + 2 Grid Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* Main Large Hero Feature (Left Col-7) */}
-          {featured[0] && (
-            <div className="lg:col-span-7 group relative rounded-xl overflow-hidden glass-card border border-brand-gold/20 flex flex-col justify-between min-h-[520px]">
-              {/* Image & Overlay */}
-              <div className="absolute inset-0 z-0 overflow-hidden">
-                <Image
-                  src={featured[0].images[0].url}
-                  alt={featured[0].title[language]}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/40 to-transparent" />
-              </div>
-
-              {/* Top Badges */}
-              <div className="relative z-10 p-6 flex justify-between items-start">
-                <div className="flex gap-2">
-                  <span className="bg-brand-gold text-brand-navy font-bold text-[10px] uppercase tracking-widest px-3 py-1 rounded shadow">
-                    {featured[0].universe}
-                  </span>
-                  {featured[0].isNew && (
-                    <span className="bg-white/20 backdrop-blur text-white text-[10px] uppercase tracking-widest px-3 py-1 rounded">
-                      Nouveau
-                    </span>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => toggleFavorite(featured[0].id)}
-                  className={`p-2.5 rounded-full backdrop-blur transition-all ${
-                    isFavorite(featured[0].id)
-                      ? 'bg-brand-gold text-brand-navy'
-                      : 'bg-brand-navy/60 text-white hover:text-brand-gold'
-                  }`}
-                >
-                  <Heart className={`w-4 h-4 ${isFavorite(featured[0].id) ? 'fill-current' : ''}`} />
-                </button>
-              </div>
-
-              {/* Bottom Specs & Title */}
-              <div className="relative z-10 p-8 space-y-4 text-brand-travertine">
-                <div className="flex items-center gap-2 text-xs text-brand-gold font-mono uppercase tracking-wider">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>{featured[0].location.district}, {featured[0].location.city}</span>
-                </div>
-
-                <h3 className="font-editorial text-2xl sm:text-3xl font-light leading-snug">
-                  {featured[0].title[language]}
-                </h3>
-
-                <p className="text-xs text-brand-travertine/80 font-light line-clamp-2">
-                  {featured[0].description[language]}
-                </p>
-
-                {/* Specs Row */}
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                  <div className="flex items-center space-x-4 rtl:space-x-reverse text-xs text-brand-travertine/70">
-                    <span className="flex items-center gap-1">
-                      <Maximize2 className="w-3.5 h-3.5 text-brand-gold" />
-                      {featured[0].specs.surfaceM2} m²
-                    </span>
-                    {featured[0].specs.bedrooms && (
-                      <span className="flex items-center gap-1">
-                        <Bed className="w-3.5 h-3.5 text-brand-gold" />
-                        {featured[0].specs.bedrooms} ch.
-                      </span>
-                    )}
-                    {featured[0].specs.pool && (
-                      <span className="text-brand-gold text-[11px] font-mono uppercase">Piscine</span>
-                    )}
-                  </div>
-
-                  <div className="text-right">
-                    <span className="font-editorial text-2xl font-normal text-brand-gold">
-                      {featured[0].price.amount.toLocaleString()} {featured[0].price.currency}
-                    </span>
-                    {featured[0].price.period && (
-                      <span className="text-[10px] text-brand-travertine/60 block uppercase">
-                        / {featured[0].price.period}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <Link
-                  href={`/properties/${featured[0].id}`}
-                  className="block w-full text-center bg-brand-gold/15 hover:bg-brand-gold hover:text-brand-navy text-brand-gold py-3 rounded text-xs font-bold uppercase tracking-widest transition-all mt-4"
-                >
-                  {t('btn.discover')}
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Secondary Stack (Right Col-5) */}
-          <div className="lg:col-span-5 flex flex-col gap-8">
-            {featured.slice(1).map((prop) => (
-              <div
-                key={prop.id}
-                className="group relative rounded-xl overflow-hidden glass-card border border-brand-gold/20 flex flex-col justify-between p-6 hover:border-brand-gold/50 transition-all"
-              >
-                <div className="relative w-full h-48 rounded-lg overflow-hidden mb-4">
+        {/* Listing Row Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7">
+          {displayProperties.map((prop: any) => (
+            <div key={prop.id} className="bg-[#2c3f57] rounded-xs overflow-hidden flex flex-col group">
+              
+              {/* Image & Tag */}
+              <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-gradient-to-tr from-[#16273f] via-[#2c3f57] to-[#B15A3C]">
+                {prop.images?.[0]?.url && (
                   <Image
                     src={prop.images[0].url}
-                    alt={prop.title[language]}
+                    alt={prop.title[language] || prop.title.fr}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="bg-brand-gold text-brand-navy font-bold text-[9px] uppercase tracking-widest px-2.5 py-0.5 rounded shadow">
-                      {prop.universe}
-                    </span>
+                )}
+                <span className="absolute top-3.5 left-3.5 bg-[#FAF8F3] text-[#132339] text-xs font-semibold px-2.5 py-1 rounded-xs">
+                  {prop.tag || prop.universe || 'Exclusivité'}
+                </span>
+                
+                <button
+                  onClick={() => toggleFavorite(prop.id)}
+                  className={`absolute top-3.5 right-3.5 p-2 rounded-full backdrop-blur transition-all ${
+                    isFavorite(prop.id)
+                      ? 'bg-[#B15A3C] text-white'
+                      : 'bg-[#132339]/60 text-white hover:text-[#B8912E]'
+                  }`}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${isFavorite(prop.id) ? 'fill-current' : ''}`} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <h4 className="font-serif text-lg font-semibold text-[#FAF8F3] mb-1.5 line-clamp-1">
+                    {prop.title[language] || prop.title.fr}
+                  </h4>
+                  <div className="text-xs text-[#c7cedb] mb-4 line-clamp-2">
+                    {prop.meta || `${prop.location?.city || ''}, ${prop.location?.district || ''} · ${prop.specs?.surfaceM2 || ''} m²`}
                   </div>
-                  <button
-                    onClick={() => toggleFavorite(prop.id)}
-                    className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur transition-all ${
-                      isFavorite(prop.id)
-                        ? 'bg-brand-gold text-brand-navy'
-                        : 'bg-brand-navy/60 text-white hover:text-brand-gold'
-                    }`}
-                  >
-                    <Heart className={`w-3.5 h-3.5 ${isFavorite(prop.id) ? 'fill-current' : ''}`} />
-                  </button>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-[11px] text-brand-gold font-mono uppercase">
-                    <MapPin className="w-3 h-3" />
-                    <span>{prop.location.district}, {prop.location.city}</span>
-                  </div>
-                  <h4 className="font-editorial text-xl font-light text-brand-travertine line-clamp-1">
-                    {prop.title[language]}
-                  </h4>
-                  <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                    <span className="text-xs text-brand-travertine/70">
-                      {prop.specs.surfaceM2} m² • {prop.specs.bedrooms ? `${prop.specs.bedrooms} ch.` : prop.category}
-                    </span>
-                    <span className="font-editorial text-lg font-normal text-brand-gold">
-                      {prop.price.amount.toLocaleString()} {prop.price.currency}
-                    </span>
-                  </div>
-
-                  <Link
-                    href={`/properties/${prop.id}`}
-                    className="block text-center text-xs uppercase tracking-widest text-brand-gold font-bold hover:underline pt-2"
-                  >
-                    {t('btn.discover')} →
-                  </Link>
+                <div className="flex justify-between items-center border-t border-white/12 pt-3.5 mt-2">
+                  <b className="font-serif text-base sm:text-lg text-[#FAF8F3]">
+                    {prop.price.amount > 0 ? `${prop.price.amount.toLocaleString()} ${prop.price.currency}` : prop.price.currency}
+                  </b>
+                  <span className="text-[12.5px] text-[#c7cedb]">
+                    {prop.subPrice || `${prop.specs?.bedrooms ? `${prop.specs.bedrooms} ch.` : 'Disponible'}`}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
 
+            </div>
+          ))}
         </div>
+
       </div>
     </section>
   );
 };
+

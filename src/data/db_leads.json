@@ -1,5 +1,29 @@
 [
   {
+    "name": "Kamel Test",
+    "email": "kamel@example.com",
+    "phone": "+216 99 888 777",
+    "source": "Soumission Propriétaire",
+    "universe": "VENTE",
+    "propertyTitle": "Bien proposé: Villa à Route de Téniour, Sfax (DOS-2026-9062)",
+    "notes": "Surface: 500m². Valeur: 1500000 TND. Titre: Titre Bleu (S/O). Détails: Villa de test soumission",
+    "id": "lead-1789136168923",
+    "status": "Nouveau",
+    "createdAt": "2026-09-11T14:16:08.923Z"
+  },
+  {
+    "name": "Mounir Sfaxi",
+    "email": "mounir@example.com",
+    "phone": "+216 22 333 444",
+    "source": "Réservation",
+    "universe": "LUXE",
+    "propertyTitle": "Villa Luxe Test",
+    "notes": "Réservation enregistrée du 2026-10-01 au 2026-10-05 (4 personnes). Montant total: 2000 TND.",
+    "id": "lead-1789136168919",
+    "status": "Nouveau",
+    "createdAt": "2026-09-11T14:16:08.919Z"
+  },
+  {
     "name": "Yassine Admin",
     "email": "yassine@villaregia.tn",
     "phone": "27745403",

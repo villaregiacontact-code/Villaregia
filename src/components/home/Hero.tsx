@@ -1,108 +1,84 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
-import { ChevronDown, Sparkles, Compass } from 'lucide-react';
 
 export const Hero: React.FC = () => {
   const { t } = useLanguage();
 
   return (
-    <section className="relative w-full h-screen min-h-[700px] flex items-center justify-center overflow-hidden bg-brand-navy">
-      
-      {/* Background Architectural Image with Slow Zoom */}
-      <div className="absolute inset-0 z-0">
-        <motion.div
-          initial={{ scale: 1.15, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.55 }}
-          transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full h-full"
-        >
-          <Image
-            src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2400&q=90"
-            alt="Villa Regia Mediterranean Architecture Sfax"
-            fill
-            priority
-            className="object-cover object-center"
-          />
-        </motion.div>
-        {/* Gradients to blend seamless dark luxury */}
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/60 to-brand-navy/30" />
-        <div className="absolute inset-0 bg-radial-glow opacity-60" />
-      </div>
-
-      {/* Hero Content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20">
+    <section className="pt-32 pb-16 px-4 sm:px-8 max-w-[1180px] mx-auto min-h-[85vh] flex items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center w-full">
         
-        {/* Location Eyebrow Badge */}
+        {/* Left Column Content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-navy border border-brand-gold/30 text-brand-gold text-[11px] font-mono tracking-[0.25em] uppercase mb-6"
+          transition={{ duration: 0.8 }}
         >
-          <Sparkles className="w-3 h-3 text-brand-gold animate-pulse" />
-          <span>{t('hero.badge')}</span>
+          <div className="text-sm sm:text-base text-[#B15A3C] font-medium mb-4 max-w-[32ch]">
+            Agence immobilière basée à Sfax, active sur toute la Tunisie
+          </div>
+
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[58px] text-[#132339] font-semibold leading-[1.05] tracking-tight max-w-[13ch]">
+            Chaque bien a sa propre histoire à vivre.
+          </h1>
+
+          <p className="mt-6 text-base sm:text-lg text-[#2c3f57] max-w-[44ch] leading-relaxed">
+            Villa Regia accompagne la vente et la location de biens d'exception : villas, terrains, appartements — et des expériences uniques, du séjour de luxe à la réception de rêve.
+          </p>
+
+          <div className="flex flex-wrap gap-3.5 mt-8">
+            <Link
+              href="/properties?universe=VENTE"
+              className="bg-[#B15A3C] text-[#FAF8F3] hover:bg-[#97492e] px-6 py-3.5 text-sm sm:text-base font-medium rounded-xs transition-colors shadow-sm"
+            >
+              Voir les biens à vendre
+            </Link>
+            <Link
+              href="/villas-de-luxe"
+              className="border border-[#132339] text-[#132339] hover:bg-[#132339] hover:text-[#FAF8F3] px-6 py-3.5 text-sm sm:text-base font-medium rounded-xs transition-colors"
+            >
+              Réserver une villa
+            </Link>
+          </div>
+
+          <div className="flex gap-8 sm:gap-10 mt-12 pt-6 border-t border-[rgba(19,35,57,0.1)]">
+            <div className="stat">
+              <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#132339]">240+</b>
+              <span className="text-xs sm:text-sm text-[#2c3f57]">biens gérés</span>
+            </div>
+            <div className="stat">
+              <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#132339]">18</b>
+              <span className="text-xs sm:text-sm text-[#2c3f57]">gouvernorats couverts</span>
+            </div>
+            <div className="stat">
+              <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#132339]">4</b>
+              <span className="text-xs sm:text-sm text-[#2c3f57]">métiers, une seule agence</span>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Editorial Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-          className="font-editorial text-4xl sm:text-6xl lg:text-7xl font-light text-brand-travertine tracking-tight leading-[1.1] mb-6 max-w-4xl mx-auto"
-        >
-          Des lieux qui méritent d’être <span className="text-gold-gradient font-normal italic">vécus.</span>
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 25 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.7 }}
-          className="text-base sm:text-xl text-brand-travertine/80 font-light max-w-2xl mx-auto leading-relaxed mb-10"
-        >
-          {t('hero.subhead')}
-        </motion.p>
-
-        {/* Action Buttons */}
+        {/* Right Column Arch Art SVG */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.9 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, delay: 0.2 }}
+          className="relative h-[360px] sm:h-[460px] w-full flex items-center justify-center"
         >
-          <Link
-            href="#universes"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-brand-gold via-brand-gold-light to-brand-gold-dark text-brand-navy px-8 py-4 rounded text-xs font-bold uppercase tracking-widest hover:opacity-95 transition-all shadow-xl shadow-brand-gold/20 group"
-          >
-            <Compass className="w-4 h-4 group-hover:rotate-45 transition-transform duration-500" />
-            <span>{t('hero.cta_explore')}</span>
-          </Link>
-
-          <Link
-            href="/proposer-un-bien"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 glass-navy hover:bg-white/10 text-brand-travertine border border-brand-gold/30 hover:border-brand-gold px-8 py-4 rounded text-xs font-semibold uppercase tracking-widest transition-all"
-          >
-            <span>{t('hero.cta_propose')}</span>
-          </Link>
+          <svg className="w-full h-full max-h-[460px]" viewBox="0 0 420 460" xmlns="http://www.w3.org/2000/svg">
+            <path d="M40 460 V220 A170 170 0 0 1 380 220 V460" fill="none" stroke="#132339" strokeWidth="2"/>
+            <path d="M80 460 V225 A130 130 0 0 1 340 225 V460" fill="none" stroke="#B8912E" strokeWidth="1.4"/>
+            <path d="M120 460 V230 A90 90 0 0 1 300 230 V460" fill="#EFE8D8" stroke="#132339" strokeWidth="1.4"/>
+            <circle cx="210" cy="120" r="4" fill="#B15A3C"/>
+            <path d="M210 120 L210 90" stroke="#B15A3C" strokeWidth="1.4"/>
+            <path d="M30 460 H390" stroke="#132339" strokeWidth="2"/>
+          </svg>
         </motion.div>
+
       </div>
-
-      {/* Scroll Down Indicator */}
-      <motion.a
-        href="#universes"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-brand-travertine/60 hover:text-brand-gold transition-colors z-10"
-      >
-        <span className="text-[10px] font-mono tracking-widest uppercase">Découvrir</span>
-        <ChevronDown className="w-4 h-4 animate-bounce text-brand-gold" />
-      </motion.a>
     </section>
   );
 };

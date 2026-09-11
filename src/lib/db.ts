@@ -554,6 +554,24 @@ export async function updateBookingStatus(id: string, status: 'PENDING' | 'CONFI
   return null;
 }
 
+export async function deleteBooking(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await withTimeout(
+        supabase.from('bookings').delete().eq('id', id),
+        500,
+        { error: new Error('Timeout') } as any
+      );
+    } catch (e) {
+      console.warn('Supabase booking delete failed:', e);
+    }
+  }
+  localBookings = localBookings.filter(b => b.id !== id);
+  savePersistedBookings(localBookings);
+  return true;
+}
+
+
 // Leads / CRM
 export async function getLeads(): Promise<Lead[]> {
   const freshLeads = loadPersistedLeads();
@@ -752,6 +770,24 @@ export async function updateOwnerSubmissionStatus(id: string, status: OwnerSubmi
   }
   return null;
 }
+
+export async function deleteOwnerSubmission(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await withTimeout(
+        supabase.from('submissions').delete().or(`id.eq.${id},ref_code.eq.${id}`),
+        500,
+        { error: new Error('Timeout') } as any
+      );
+    } catch (e) {
+      console.warn('Supabase submission delete failed:', e);
+    }
+  }
+  localSubmissions = localSubmissions.filter(s => s.id !== id && s.refCode !== id);
+  savePersistedSubmissions(localSubmissions);
+  return true;
+}
+
 
 export async function createOwnerSubmission(submission: Omit<OwnerSubmission, 'id' | 'createdAt' | 'status'> & { refCode?: string }): Promise<{ submission: OwnerSubmission; whatsappLink: string }> {
   const refCode = submission.refCode || `DOS-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;

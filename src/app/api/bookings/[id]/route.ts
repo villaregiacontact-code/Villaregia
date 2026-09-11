@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateBookingStatus } from '@/lib/db';
+import { updateBookingStatus, deleteBooking } from '@/lib/db';
 
 export async function PATCH(
   request: NextRequest,
@@ -16,3 +16,16 @@ export async function PATCH(
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const success = await deleteBooking(params.id);
+    return NextResponse.json({ success });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
