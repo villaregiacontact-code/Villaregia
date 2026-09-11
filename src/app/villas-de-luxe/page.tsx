@@ -138,13 +138,14 @@ export default function LuxuryVillasPage() {
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.25em] uppercase text-brand-gold">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.25em] uppercase text-[#B8912E] bg-[#B8912E]/10 border border-[#B8912E]/30 px-3.5 py-1.5 rounded-full">
+            <Sparkles className="w-3.5 h-3.5 text-[#B8912E]" />
             <span>Univers Hospitality & Court Séjour</span>
           </div>
           <h1 className="font-editorial text-4xl sm:text-6xl font-light text-brand-travertine">
             Villas de Luxe & Conciergerie Privée
           </h1>
+
           <p className="text-sm text-brand-travertine/80 font-light leading-relaxed">
             Passez quelques jours dans un lieu hors du commun. Profitez d’un service d’hospitalité haut de gamme, d’un chef cuisinier sur demande et de piscines à débordement privées à Sfax.
           </p>

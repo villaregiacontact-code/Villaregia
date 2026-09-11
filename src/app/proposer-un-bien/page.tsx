@@ -59,18 +59,19 @@ const PROPERTY_ICONS: Record<PropertyCategory, React.ElementType> = {
 };
 
 const PROPERTY_COLORS: Record<PropertyCategory, string> = {
-  Villa: 'from-amber-500/20 to-amber-600/10 border-amber-500/30',
-  'Villa Semi-Construite': 'from-orange-500/20 to-orange-600/10 border-orange-500/30',
-  'Espace Commercial': 'from-sky-500/20 to-sky-600/10 border-sky-500/30',
-  'Fonds de Commerce': 'from-teal-500/20 to-teal-600/10 border-teal-500/30',
-  Appartement: 'from-sky-500/20 to-sky-600/10 border-sky-500/30',
-  Duplex: 'from-violet-500/20 to-violet-600/10 border-violet-500/30',
-  Penthouse: 'from-rose-500/20 to-rose-600/10 border-rose-500/30',
-  Terrain: 'from-emerald-500/20 to-emerald-600/10 border-emerald-500/30',
-  'Terrain Agricole': 'from-green-500/20 to-green-600/10 border-green-500/30',
-  'Domaine Événementiel': 'from-purple-500/20 to-purple-600/10 border-purple-500/30',
-  'Maison de Charme': 'from-yellow-500/20 to-yellow-600/10 border-yellow-500/30',
+  Villa: 'from-[#B15A3C]/20 to-[#B15A3C]/10 border-[#B15A3C]/40 text-[#B15A3C]',
+  'Villa Semi-Construite': 'from-[#B15A3C]/25 to-[#B8912E]/10 border-[#B15A3C]/40 text-[#B15A3C]',
+  'Espace Commercial': 'from-[#132339]/40 to-[#2c3f57]/20 border-white/20 text-[#FAF8F3]',
+  'Fonds de Commerce': 'from-[#132339]/40 to-[#2c3f57]/20 border-white/20 text-[#FAF8F3]',
+  Appartement: 'from-[#132339]/30 to-[#2c3f57]/15 border-white/15 text-[#FAF8F3]',
+  Duplex: 'from-[#B8912E]/20 to-[#B8912E]/10 border-[#B8912E]/30 text-[#B8912E]',
+  Penthouse: 'from-[#B8912E]/25 to-[#B15A3C]/10 border-[#B8912E]/40 text-[#B8912E]',
+  Terrain: 'from-[#6E7A52]/20 to-[#6E7A52]/10 border-[#6E7A52]/30 text-[#6E7A52]',
+  'Terrain Agricole': 'from-[#6E7A52]/25 to-[#6E7A52]/10 border-[#6E7A52]/40 text-[#6E7A52]',
+  'Domaine Événementiel': 'from-[#6E7A52]/30 to-[#B8912E]/15 border-[#6E7A52]/40 text-[#6E7A52]',
+  'Maison de Charme': 'from-[#B15A3C]/20 to-[#B8912E]/10 border-[#B15A3C]/30 text-[#B15A3C]',
 };
+
 
 type SpecificDetails = {
   // Villa & Villa Semi-Construite

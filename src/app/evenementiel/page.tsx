@@ -50,8 +50,8 @@ export default function EventsPage() {
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.25em] uppercase text-brand-gold">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.25em] uppercase text-[#6E7A52] bg-[#6E7A52]/10 border border-[#6E7A52]/30 px-3.5 py-1.5 rounded-full">
+            <Sparkles className="w-3.5 h-3.5 text-[#6E7A52]" />
             <span>Univers Événementiel & Mariages</span>
           </div>
           <h1 className="font-editorial text-4xl sm:text-6xl font-light text-brand-travertine">
@@ -61,6 +61,7 @@ export default function EventsPage() {
             Organisez vos mariages d’exception, soirées de gala, séminaires de prestige et shootings photo dans nos domaines privés à Sfax.
           </p>
         </div>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           

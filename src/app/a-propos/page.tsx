@@ -15,13 +15,14 @@ export default function AboutPage() {
         
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.25em] uppercase text-brand-gold">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.25em] uppercase text-[#B15A3C] bg-[#B15A3C]/10 border border-[#B15A3C]/30 px-3.5 py-1.5 rounded-full">
+            <Sparkles className="w-3.5 h-3.5 text-[#B15A3C]" />
             <span>Maison de Sélection Immobilière</span>
           </div>
           <h1 className="font-editorial text-4xl sm:text-6xl font-light text-brand-travertine">
             Plus qu’une adresse, une manière de vivre.
           </h1>
+
           <p className="text-sm sm:text-base text-brand-travertine/80 font-light leading-relaxed">
             Fondée à Sfax, Villa Regia est née de la conviction que l’immobilier de prestige et l’hospitalité d’exception reposent sur un curatage rigoureux, une discrétion absolue et un profond respect du patrimoine méditerranéen.
           </p>

@@ -235,13 +235,19 @@ export default function PropertyDetailPage() {
         <div className="absolute bottom-12 left-6 right-6 z-20 max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-brand-gold text-brand-navy text-[10px] font-bold font-mono uppercase tracking-widest rounded-full">
+              <span className={`px-3 py-1 text-[10px] font-bold font-mono uppercase tracking-widest rounded-full shadow-sm ${
+                property.universe === 'VENTE' ? 'bg-[#B15A3C] text-white' :
+                property.universe === 'LUXE' ? 'bg-[#B8912E] text-white' :
+                property.universe === 'EVENT' ? 'bg-[#6E7A52] text-white' :
+                'bg-[#132339] text-[#FAF8F3] border border-white/20'
+              }`}>
                 {property.universe}
               </span>
               <span className="text-xs font-mono text-brand-travertine/80 uppercase">
                 {property.category}
               </span>
             </div>
+
             <h1 className="font-editorial text-3xl sm:text-5xl text-brand-travertine font-light max-w-3xl">
               {property.title[language]}
             </h1>
