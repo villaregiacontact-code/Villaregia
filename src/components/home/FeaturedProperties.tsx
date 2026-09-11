@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { Property } from '@/types';
@@ -79,11 +80,17 @@ export const FeaturedProperties: React.FC = () => {
   ];
 
   return (
-    <section className="bg-[#132339] text-[#FAF8F3] py-20 sm:py-24">
+    <section className="bg-[#132339] text-[#FAF8F3] py-20 sm:py-24 overflow-hidden">
       <div className="max-w-[1180px] mx-auto px-4 sm:px-8">
         
         {/* Header */}
-        <div className="flex justify-between items-end mb-11">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="flex justify-between items-end mb-11"
+        >
           <h2 className="font-serif text-3xl sm:text-4xl text-[#FAF8F3] font-semibold max-w-[14ch]">
             Sélection du moment
           </h2>
@@ -93,12 +100,19 @@ export const FeaturedProperties: React.FC = () => {
           >
             Voir tous les biens
           </Link>
-        </div>
+        </motion.div>
 
         {/* Listing Row Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7">
-          {displayProperties.map((prop: any) => (
-            <div key={prop.id} className="bg-[#2c3f57] rounded-xs overflow-hidden flex flex-col group">
+          {displayProperties.map((prop: any, idx: number) => (
+            <motion.div
+              key={prop.id}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: idx * 0.15 }}
+              className="bg-[#2c3f57] rounded-xs overflow-hidden flex flex-col group border border-white/5 hover:border-[#B8912E]/40 transition-all duration-300 shadow-lg"
+            >
               
               {/* Image & Tag */}
               <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-gradient-to-tr from-[#16273f] via-[#2c3f57] to-[#B15A3C]">
@@ -129,7 +143,7 @@ export const FeaturedProperties: React.FC = () => {
               {/* Body */}
               <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                 <div>
-                  <h4 className="font-serif text-lg font-semibold text-[#FAF8F3] mb-1.5 line-clamp-1">
+                  <h4 className="font-serif text-lg font-semibold text-[#FAF8F3] mb-1.5 line-clamp-1 group-hover:text-[#B8912E] transition-colors">
                     {prop.title[language] || prop.title.fr}
                   </h4>
                   <div className="text-xs text-[#c7cedb] mb-4 line-clamp-2">
@@ -147,7 +161,7 @@ export const FeaturedProperties: React.FC = () => {
                 </div>
               </div>
 
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -155,4 +169,3 @@ export const FeaturedProperties: React.FC = () => {
     </section>
   );
 };
-

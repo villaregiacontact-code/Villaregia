@@ -3,6 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 
+import Image from 'next/image';
+
 export const Footer: React.FC = () => {
   return (
     <footer className="border-t border-[rgba(19,35,57,0.14)] bg-[#FAF8F3] pt-14 pb-10 text-[#132339]">
@@ -11,9 +13,14 @@ export const Footer: React.FC = () => {
         {/* Foot Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-11">
           <div>
-            <h5 className="font-serif text-xl font-semibold mb-3 text-[#132339]">
-              Villa Regia
-            </h5>
+            <div className="relative w-44 h-11 mb-3">
+              <Image
+                src="/images/logo-light.png"
+                alt="Villa Regia Real Estates Sfax"
+                fill
+                className="object-contain object-left"
+              />
+            </div>
             <p className="text-sm text-[#2c3f57] mb-2">
               Agence immobilière basée à Sfax, active dans toute la Tunisie.
             </p>

@@ -56,9 +56,19 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center justify-between">
             
             {/* Brand Emblem / Logo */}
-            <Link href="/" className="flex items-baseline gap-2 group">
-              <span className="font-serif text-2xl font-semibold text-[#132339] tracking-tight">Villa Regia</span>
-              <span className="text-xs text-[#2c3f57] tracking-wider hidden sm:inline">— Sfax, Tunisie</span>
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative w-36 sm:w-44 h-10 transition-transform duration-300 group-hover:scale-105">
+                <Image
+                  src="/images/logo-light.png"
+                  alt="Villa Regia Real Estates Sfax"
+                  fill
+                  priority
+                  className="object-contain object-left"
+                />
+              </div>
+              <span className="text-xs text-[#2c3f57] tracking-wider hidden xl:inline border-l border-[#132339]/15 pl-3">
+                Sfax, Tunisie
+              </span>
             </Link>
 
             {/* Desktop Navigation Links */}

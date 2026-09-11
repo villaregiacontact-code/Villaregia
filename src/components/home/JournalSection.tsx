@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export const JournalSection: React.FC = () => {
   const steps = [
@@ -27,21 +28,31 @@ export const JournalSection: React.FC = () => {
   ];
 
   return (
-    <section className="bg-[#EFE8D8] py-20 sm:py-24 text-[#132339]">
+    <section className="bg-[#EFE8D8] py-20 sm:py-24 text-[#132339] overflow-hidden">
       <div className="max-w-[1180px] mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-12 lg:gap-16">
         
         {/* Left Title */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
+          <span className="text-xs uppercase tracking-widest text-[#B15A3C] font-semibold block mb-2">Accompagnement Sur-Mesure</span>
           <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-[#132339] max-w-[12ch] leading-tight">
             Comment ça se passe avec nous
           </h2>
-        </div>
+        </motion.div>
 
         {/* Right Step List */}
         <div className="flex flex-col">
           {steps.map((step, idx) => (
-            <div
+            <motion.div
               key={step.num}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.12 }}
               className={`grid grid-cols-[50px_1fr] sm:grid-cols-[70px_1fr] gap-5 py-6 border-t border-[#E1D6BC] ${
                 idx === steps.length - 1 ? 'border-b border-[#E1D6BC]' : ''
               }`}
@@ -57,7 +68,7 @@ export const JournalSection: React.FC = () => {
                   {step.desc}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -65,4 +76,5 @@ export const JournalSection: React.FC = () => {
     </section>
   );
 };
+
 
