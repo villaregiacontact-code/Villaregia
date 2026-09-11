@@ -11,42 +11,58 @@ export const FourWorlds: React.FC = () => {
     {
       id: 'vente',
       title: 'Vente de biens',
-      subtitle: 'Villas, terrains, terrains agricoles, appartements, duplex',
-      desc: 'Dans toute la Tunisie, avec carte interactive et simulation de financement.',
+      subtitle: 'Villas, terrains, appartements, duplex',
+      desc: 'Dans toute la Tunisie, avec carte interactive et accompagnement sur-mesure.',
       cta: 'Explorer les annonces',
       href: '/properties?universe=VENTE',
       image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=85',
       badge: 'Patrimoine',
+      badgeBg: 'bg-[#B15A3C] text-white',
+      accentColor: 'text-[#B15A3C]',
+      borderHover: 'hover:border-[#B15A3C]/50 hover:shadow-[#B15A3C]/10',
+      btnBg: 'bg-[#B15A3C]/10 text-[#B15A3C] group-hover:bg-[#B15A3C] group-hover:text-white',
     },
     {
       id: 'residence',
-      title: 'Résidence, mensuelle ou annuelle',
-      subtitle: 'Un logement pour vivre',
-      desc: 'Candidature en ligne et disponibilité mise à jour en temps réel.',
+      title: 'Résidence & Location',
+      subtitle: 'Un logement pour s\'installer',
+      desc: 'Location mensuelle ou annuelle avec disponibilité vérifiée en temps réel.',
       cta: 'Trouver un logement',
       href: '/properties?universe=RESIDENCE',
       image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=85',
       badge: 'Location',
+      badgeBg: 'bg-[#132339] text-[#FAF8F3]',
+      accentColor: 'text-[#132339]',
+      borderHover: 'hover:border-[#132339]/50 hover:shadow-[#132339]/10',
+      btnBg: 'bg-[#132339]/10 text-[#132339] group-hover:bg-[#132339] group-hover:text-white',
     },
     {
       id: 'luxe',
       title: 'Villas de luxe',
-      subtitle: 'À la nuitée ou à l\'année',
-      desc: 'Séjours d\'exception avec piscine privée. Calendrier en direct & réservation.',
+      subtitle: 'À la nuitée ou à la saison',
+      desc: 'Séjours d\'exception avec piscine privée. Réservation & conciergerie.',
       cta: 'Réserver un séjour',
       href: '/villas-de-luxe',
       image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=85',
       badge: 'Prestige',
+      badgeBg: 'bg-[#B8912E] text-white',
+      accentColor: 'text-[#B8912E]',
+      borderHover: 'hover:border-[#B8912E]/50 hover:shadow-[#B8912E]/10',
+      btnBg: 'bg-[#B8912E]/10 text-[#B8912E] group-hover:bg-[#B8912E] group-hover:text-white',
     },
     {
       id: 'event',
-      title: 'Espaces pour événements',
+      title: 'Espaces Événementiels',
       subtitle: 'Jardins & piscines de réception',
-      desc: 'Location pour mariages, soirées et tournages, avec devis instantané.',
+      desc: 'Location pour mariages, soirées privées et tournages photographiques.',
       cta: 'Demander un devis',
       href: '/evenementiel',
       image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=85',
       badge: 'Réceptions',
+      badgeBg: 'bg-[#6E7A52] text-white',
+      accentColor: 'text-[#6E7A52]',
+      borderHover: 'hover:border-[#6E7A52]/50 hover:shadow-[#6E7A52]/10',
+      btnBg: 'bg-[#6E7A52]/10 text-[#6E7A52] group-hover:bg-[#6E7A52] group-hover:text-white',
     },
   ];
 
@@ -88,11 +104,11 @@ export const FourWorlds: React.FC = () => {
               initial={{ opacity: 0, y: 35 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: idx * 0.15 }}
+              transition={{ duration: 0.7, delay: idx * 0.12 }}
             >
               <Link
                 href={card.href}
-                className="group relative bg-[#FAF8F3] border border-[rgba(19,35,57,0.14)] rounded-xs overflow-hidden flex flex-col justify-between h-full hover:shadow-xl hover:border-[#B8912E]/40 transition-all duration-300"
+                className={`group relative bg-[#FAF8F3] border border-[rgba(19,35,57,0.14)] rounded-xs overflow-hidden flex flex-col justify-between h-full hover:shadow-2xl transition-all duration-300 ${card.borderHover}`}
               >
                 <div>
                   {/* Photo Header */}
@@ -104,7 +120,7 @@ export const FourWorlds: React.FC = () => {
                       className="object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#132339]/60 via-transparent to-transparent" />
-                    <span className="absolute top-3 left-3 bg-[#FAF8F3] text-[#132339] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-xs shadow-sm">
+                    <span className={`absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-xs shadow-sm ${card.badgeBg}`}>
                       {card.badge}
                     </span>
                   </div>
@@ -114,7 +130,7 @@ export const FourWorlds: React.FC = () => {
                     <h3 className="font-serif text-xl font-semibold text-[#132339] mb-1.5 group-hover:text-[#B15A3C] transition-colors">
                       {card.title}
                     </h3>
-                    <p className="text-xs font-semibold text-[#B8912E] mb-3">
+                    <p className={`text-xs font-semibold mb-3 ${card.accentColor}`}>
                       {card.subtitle}
                     </p>
                     <p className="text-xs sm:text-sm text-[#2c3f57] leading-relaxed">
@@ -125,11 +141,11 @@ export const FourWorlds: React.FC = () => {
 
                 {/* Footer Link */}
                 <div className="px-6 pb-6 pt-2 flex items-center justify-between border-t border-[rgba(19,35,57,0.08)] mt-4">
-                  <span className="text-xs font-semibold text-[#B15A3C] group-hover:underline">
+                  <span className={`text-xs font-semibold ${card.accentColor} group-hover:underline`}>
                     {card.cta}
                   </span>
-                  <div className="w-7 h-7 rounded-full bg-[#B15A3C]/10 flex items-center justify-center text-[#B15A3C] group-hover:bg-[#B15A3C] group-hover:text-white transition-all">
-                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${card.btnBg}`}>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </div>
                 </div>
               </Link>
@@ -140,5 +156,6 @@ export const FourWorlds: React.FC = () => {
     </section>
   );
 };
+
 
 

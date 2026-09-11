@@ -50,12 +50,13 @@ const CATEGORIES: { value: PropertyCategory | 'ALL'; label: string; icon: React.
 ];
 
 const UNIVERSES: { value: UniverseType | 'ALL'; label: string; color: string }[] = [
-  { value: 'ALL', label: 'Tous', color: 'bg-white/10 text-white/70' },
-  { value: 'VENTE', label: 'Vente', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
-  { value: 'RESIDENCE', label: 'Résidence', color: 'bg-sky-500/20 text-sky-300 border-sky-500/30' },
-  { value: 'LUXE', label: 'Séjour Luxe', color: 'bg-violet-500/20 text-violet-300 border-violet-500/30' },
-  { value: 'EVENT', label: 'Événementiel', color: 'bg-rose-500/20 text-rose-300 border-rose-500/30' },
+  { value: 'ALL', label: 'Tous', color: 'bg-white/10 text-white/70 border-white/20' },
+  { value: 'VENTE', label: 'Vente', color: 'bg-[#B15A3C]/30 text-[#FAF8F3] border-[#B15A3C]/60' },
+  { value: 'RESIDENCE', label: 'Résidence', color: 'bg-white/15 text-[#FAF8F3] border-white/30' },
+  { value: 'LUXE', label: 'Séjour Luxe', color: 'bg-[#B8912E]/30 text-amber-200 border-[#B8912E]/60' },
+  { value: 'EVENT', label: 'Événementiel', color: 'bg-[#6E7A52]/30 text-emerald-200 border-[#6E7A52]/60' },
 ];
+
 
 const SORT_OPTIONS = [
   { value: 'featured', label: 'Sélection Villa Regia' },

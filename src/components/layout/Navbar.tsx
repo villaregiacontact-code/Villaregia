@@ -79,17 +79,25 @@ export const Navbar: React.FC = () => {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`py-1 border-b-2 transition-colors duration-200 ${
+                    className={`relative py-1.5 transition-colors duration-200 ${
                       isActive
-                        ? 'text-[#132339] border-[#B15A3C] font-medium'
-                        : 'text-[#132339] border-transparent hover:border-[#B15A3C]'
+                        ? 'text-[#132339] font-semibold'
+                        : 'text-[#2c3f57] hover:text-[#132339]'
                     }`}
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    {isActive && (
+                      <motion.span
+                        layoutId="activeNavIndicator"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#B15A3C] rounded-full"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
                   </Link>
                 );
               })}
             </nav>
+
 
             {/* Desktop Actions */}
             <div className="hidden lg:flex items-center space-x-4 rtl:space-x-reverse">
