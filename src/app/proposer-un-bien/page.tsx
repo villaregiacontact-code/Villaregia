@@ -59,17 +59,17 @@ const PROPERTY_ICONS: Record<PropertyCategory, React.ElementType> = {
 };
 
 const PROPERTY_COLORS: Record<PropertyCategory, string> = {
-  Villa: 'from-[#B15A3C]/20 to-[#B15A3C]/10 border-[#B15A3C]/40 text-[#B15A3C]',
-  'Villa Semi-Construite': 'from-[#B15A3C]/25 to-[#B8912E]/10 border-[#B15A3C]/40 text-[#B15A3C]',
-  'Espace Commercial': 'from-[#132339]/40 to-[#2c3f57]/20 border-white/20 text-[#FAF8F3]',
-  'Fonds de Commerce': 'from-[#132339]/40 to-[#2c3f57]/20 border-white/20 text-[#FAF8F3]',
-  Appartement: 'from-[#132339]/30 to-[#2c3f57]/15 border-white/15 text-[#FAF8F3]',
-  Duplex: 'from-[#B8912E]/20 to-[#B8912E]/10 border-[#B8912E]/30 text-[#B8912E]',
-  Penthouse: 'from-[#B8912E]/25 to-[#B15A3C]/10 border-[#B8912E]/40 text-[#B8912E]',
-  Terrain: 'from-[#6E7A52]/20 to-[#6E7A52]/10 border-[#6E7A52]/30 text-[#6E7A52]',
-  'Terrain Agricole': 'from-[#6E7A52]/25 to-[#6E7A52]/10 border-[#6E7A52]/40 text-[#6E7A52]',
-  'Domaine Événementiel': 'from-[#6E7A52]/30 to-[#B8912E]/15 border-[#6E7A52]/40 text-[#6E7A52]',
-  'Maison de Charme': 'from-[#B15A3C]/20 to-[#B8912E]/10 border-[#B15A3C]/30 text-[#B15A3C]',
+  Villa: 'from-[#B15A3C]/40 to-[#132339] border-[#B15A3C] text-white',
+  'Villa Semi-Construite': 'from-[#B15A3C]/40 to-[#B8912E]/30 border-[#B15A3C] text-white',
+  'Espace Commercial': 'from-[#B8912E]/30 to-[#132339] border-[#B8912E] text-white',
+  'Fonds de Commerce': 'from-[#B8912E]/30 to-[#132339] border-[#B8912E] text-white',
+  Appartement: 'from-[#132339] to-[#2c3f57] border-white/30 text-white',
+  Duplex: 'from-[#B8912E]/40 to-[#132339] border-[#B8912E] text-white',
+  Penthouse: 'from-[#B8912E]/50 to-[#132339] border-[#B8912E] text-white',
+  Terrain: 'from-[#6E7A52]/40 to-[#132339] border-[#6E7A52] text-white',
+  'Terrain Agricole': 'from-[#6E7A52]/50 to-[#132339] border-[#6E7A52] text-white',
+  'Domaine Événementiel': 'from-[#6E7A52]/40 to-[#B8912E]/40 border-[#6E7A52] text-white',
+  'Maison de Charme': 'from-[#B15A3C]/40 to-[#132339] border-[#B15A3C] text-white',
 };
 
 
@@ -116,13 +116,13 @@ type SpecificDetails = {
   isNew?: boolean;
 };
 
-const inputCls = 'w-full bg-white border border-[#132339]/15 rounded-xl px-4 py-3 text-sm text-[#132339] placeholder:text-[#132339]/40 focus:outline-none focus:border-[#B15A3C] transition-all';
-const labelCls = 'text-[10px] font-mono font-bold uppercase tracking-wider text-[#B15A3C] block mb-1.5';
+const inputCls = 'w-full bg-[#132339] border border-white/20 rounded-xl px-4 py-3 text-sm text-[#FAF8F3] placeholder:text-white/40 focus:outline-none focus:border-[#B8912E] transition-all';
+const labelCls = 'text-[11px] font-mono font-bold uppercase tracking-wider text-[#B8912E] block mb-1.5';
 const toggleCls = (active: boolean) =>
   `px-4 py-2.5 rounded-xl border text-xs font-semibold uppercase tracking-wider text-center transition-all cursor-pointer select-none ${
     active
-      ? 'bg-[#B15A3C] text-white border-[#B15A3C] shadow-md'
-      : 'bg-white border-[#132339]/15 text-[#132339]/70 hover:border-[#B15A3C]/40 hover:text-[#132339]'
+      ? 'bg-[#B15A3C] text-white border-[#B15A3C] shadow-md font-bold'
+      : 'bg-[#132339] border-white/15 text-[#FAF8F3]/70 hover:border-[#B8912E]/40 hover:text-white'
   }`;
 
 // ─────────────────────────────────────────────
@@ -1190,53 +1190,53 @@ export default function SubmitPropertyPage() {
   const TypeIcon = PROPERTY_ICONS[propertyType] || Home;
 
   return (
-    <div className="pt-24 pb-20 bg-[#FAF8F3] text-[#132339] min-h-screen">
+    <div className="pt-28 pb-24 bg-[#132339] text-[#FAF8F3] min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Header ── */}
-        <div className="text-center mb-10 space-y-3">
-          <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-[0.25em] uppercase text-[#B15A3C] bg-[#B15A3C]/10 px-3 py-1 rounded-full border border-[#B15A3C]/20">
-            <Sparkles className="w-3.5 h-3.5" />
+        <div className="text-center mb-10 space-y-4">
+          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.25em] uppercase text-[#B8912E] bg-[#B8912E]/10 px-3.5 py-1.5 rounded-full border border-[#B8912E]/30">
+            <Sparkles className="w-3.5 h-3.5 text-[#B8912E]" />
             <span>Service Propriétaires Prestige</span>
           </div>
-          <h1 className="font-editorial text-3xl sm:text-5xl font-light text-[#132339] leading-tight">
+          <h1 className="font-editorial text-4xl sm:text-6xl font-light text-[#FAF8F3] leading-tight">
             Proposer un Patrimoine<br />
-            <span className="text-[#B15A3C]">à Villa Regia</span>
+            <span className="text-[#B15A3C] font-normal">à Villa Regia</span>
           </h1>
-          <p className="text-sm text-[#132339]/70 max-w-lg mx-auto font-light leading-relaxed">
+          <p className="text-sm sm:text-base text-[#FAF8F3]/80 max-w-lg mx-auto font-light leading-relaxed">
             Confiez-nous l'estimation, la sélection et la mise en valeur confidentielle de votre bien à Sfax.
           </p>
         </div>
 
         {/* ── Confidentiality Banner ── */}
-        <div className="mb-8 p-4 rounded-xl bg-gradient-to-r from-brand-gold/10 to-transparent border border-brand-gold/20 flex items-start gap-3">
-          <ShieldCheck className="w-6 h-6 text-brand-gold shrink-0 mt-0.5" />
-          <div className="text-xs text-white/70 leading-relaxed">
-            <span className="font-bold text-brand-gold uppercase tracking-wider block mb-0.5">Garantie de Discrétion & Confidentialité</span>
+        <div className="mb-8 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-[#B8912E]/30 flex items-start gap-3 shadow-lg">
+          <ShieldCheck className="w-6 h-6 text-[#B8912E] shrink-0 mt-0.5" />
+          <div className="text-xs text-[#FAF8F3]/85 leading-relaxed">
+            <span className="font-bold text-[#B8912E] uppercase tracking-wider block mb-0.5 font-mono">Garantie de Discrétion & Confidentialité</span>
             Toutes les informations transmises restent strictement confidentielles et réservées au comité d'évaluation privé Villa Regia.
           </div>
         </div>
 
         {/* ── Wizard Card ── */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+        <div className="bg-[#1a2c45] backdrop-blur-xl rounded-2xl border border-white/15 shadow-2xl overflow-hidden">
 
           {/* ── Step Progress Header ── */}
           {!submitted && (
-            <div className="p-5 sm:p-6 border-b border-white/8">
+            <div className="p-5 sm:p-6 border-b border-white/10">
               {/* Mobile: step counter */}
               <div className="flex justify-between items-center mb-3">
                 <div className="flex items-center gap-2">
-                  <TypeIcon className="w-4 h-4 text-brand-gold" />
-                  <span className="text-xs font-mono font-bold text-brand-gold uppercase tracking-widest">
+                  <TypeIcon className="w-4 h-4 text-[#B8912E]" />
+                  <span className="text-xs font-mono font-bold text-[#B8912E] uppercase tracking-widest">
                     Étape {step} / {TOTAL_STEPS}
                   </span>
                 </div>
-                <span className="text-[10px] font-mono text-white/40">{Math.round((step / TOTAL_STEPS) * 100)}% complété</span>
+                <span className="text-[10px] font-mono text-[#FAF8F3]/60">{Math.round((step / TOTAL_STEPS) * 100)}% complété</span>
               </div>
               {/* Progress Bar */}
-              <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-3">
+              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mb-3">
                 <div
-                  className="h-full bg-gradient-to-r from-brand-gold to-amber-300 rounded-full transition-all duration-500"
+                  className="h-full bg-gradient-to-r from-[#B15A3C] via-[#B8912E] to-amber-300 rounded-full transition-all duration-500"
                   style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
                 />
               </div>
@@ -1244,10 +1244,10 @@ export default function SubmitPropertyPage() {
               <div className="hidden sm:flex gap-1 items-center">
                 {stepLabels.map((label, i) => (
                   <div key={i} className="flex items-center gap-1 flex-1">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all ${i + 1 < step ? 'bg-emerald-500/30 text-emerald-400 border border-emerald-500/40' : i + 1 === step ? 'bg-brand-gold text-brand-navy shadow-lg shadow-brand-gold/30' : 'bg-white/8 text-white/30 border border-white/10'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all ${i + 1 < step ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : i + 1 === step ? 'bg-[#B8912E] text-[#132339] shadow-md' : 'bg-white/10 text-white/40 border border-white/10'}`}>
                       {i + 1 < step ? '✓' : i + 1}
                     </div>
-                    {i < stepLabels.length - 1 && <div className={`flex-1 h-px transition-all ${i + 1 < step ? 'bg-emerald-500/30' : 'bg-white/8'}`} />}
+                    {i < stepLabels.length - 1 && <div className={`flex-1 h-px transition-all ${i + 1 < step ? 'bg-emerald-500/30' : 'bg-white/10'}`} />}
                   </div>
                 ))}
               </div>
