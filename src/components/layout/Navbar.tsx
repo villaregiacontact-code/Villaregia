@@ -38,6 +38,7 @@ export const Navbar: React.FC = () => {
     { href: '/properties?universe=RESIDENCE', label: t('nav.residence') },
     { href: '/villas-de-luxe', label: t('nav.luxe') },
     { href: '/evenementiel', label: t('nav.event') },
+    { href: '/proposer-un-bien', label: 'Proposer un bien' },
     { href: '/journal', label: t('nav.journal') },
     { href: '/a-propos', label: t('nav.about') },
     { href: '/contact', label: t('nav.contact') },
@@ -196,10 +197,11 @@ export const Navbar: React.FC = () => {
 
               {/* Submit Property CTA */}
               <Link
-                href="/contact"
-                className="flex items-center gap-2 bg-[#132339] text-[#FAF8F3] hover:bg-[#2c3f57] px-4 py-2 rounded-sm text-xs font-medium uppercase tracking-wider transition-all shadow-sm"
+                href="/proposer-un-bien"
+                className="flex items-center gap-1.5 bg-[#B15A3C] hover:bg-[#96472e] text-white px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all shadow-sm"
               >
-                <span>Nous contacter</span>
+                <PlusCircle className="w-4 h-4" />
+                <span>Proposer un bien</span>
               </Link>
             </div>
 

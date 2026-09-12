@@ -57,6 +57,7 @@ export const Footer: React.FC = () => {
               Agence
             </h5>
             <div className="flex flex-col space-y-2 text-sm text-[#2c3f57]">
+              <Link href="/proposer-un-bien" className="hover:text-[#B15A3C] transition-colors font-semibold text-[#B15A3C]">Proposer un bien</Link>
               <Link href="/a-propos" className="hover:text-[#B15A3C] transition-colors">À propos</Link>
               <Link href="/journal" className="hover:text-[#B15A3C] transition-colors">Blog & conseils</Link>
               <Link href="/contact" className="hover:text-[#B15A3C] transition-colors">Contact</Link>
