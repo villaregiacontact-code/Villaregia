@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
           <div>
             <div className="relative w-44 h-11 mb-3">
               <Image
-                src="/images/logo-dark.jpg"
+                src="/images/logo-dark.png"
                 alt="Villa Regia Real Estates Sfax"
                 fill
                 className="object-contain object-left rounded-xs"

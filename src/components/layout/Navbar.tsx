@@ -60,7 +60,7 @@ export const Navbar: React.FC = () => {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative w-36 sm:w-44 h-10 transition-transform duration-300 group-hover:scale-105">
                 <Image
-                  src="/images/logo-dark.jpg"
+                  src="/images/logo-dark.png"
                   alt="Villa Regia Real Estates Sfax"
                   fill
                   priority
