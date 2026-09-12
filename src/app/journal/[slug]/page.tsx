@@ -48,48 +48,48 @@ export default function ArticleDetailPage() {
   }
 
   return (
-    <div className="pt-28 pb-24 bg-brand-navy min-h-screen">
+    <div className="pt-28 pb-24 bg-[#FAF8F3] min-h-screen text-[#132339]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-brand-gold hover:underline mb-8"
+          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#B15A3C] hover:underline mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Retour au Journal</span>
         </button>
 
         <div className="space-y-6 mb-10">
-          <span className="text-xs font-mono tracking-widest text-brand-gold uppercase bg-brand-gold/10 px-3 py-1 rounded">
+          <span className="text-xs font-mono tracking-widest text-[#B15A3C] uppercase bg-[#B15A3C]/10 border border-[#B15A3C]/20 px-3 py-1 rounded-full">
             {article.category}
           </span>
 
-          <h1 className="font-editorial text-4xl sm:text-6xl font-light text-brand-travertine leading-tight">
+          <h1 className="font-editorial text-4xl sm:text-6xl font-light text-[#132339] leading-tight">
             {article.title[language]}
           </h1>
 
-          <div className="flex items-center gap-6 text-xs text-brand-travertine/60 font-mono border-y border-white/10 py-4">
+          <div className="flex items-center gap-6 text-xs text-[#132339]/70 font-mono border-y border-[#132339]/10 py-4">
             <span className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-brand-gold" />
+              <User className="w-3.5 h-3.5 text-[#B15A3C]" />
               {article.author}
             </span>
             <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-brand-gold" />
+              <Calendar className="w-3.5 h-3.5 text-[#B15A3C]" />
               {article.publishedAt}
             </span>
             <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-brand-gold" />
+              <Clock className="w-3.5 h-3.5 text-[#B15A3C]" />
               {article.readTime}
             </span>
           </div>
         </div>
 
-        <div className="relative w-full h-[450px] rounded-xl overflow-hidden mb-12 glass-card border border-brand-gold/20">
+        <div className="relative w-full h-[450px] rounded-2xl overflow-hidden mb-12 border border-[#132339]/10 shadow-md">
           <Image src={article.coverImage} alt={article.title[language]} fill className="object-cover" />
         </div>
 
-        <div className="prose prose-invert max-w-none space-y-6 text-brand-travertine/90 font-light text-sm sm:text-base leading-relaxed">
-          <p className="text-lg font-editorial italic text-brand-gold border-l-2 border-brand-gold pl-4 py-1">
+        <div className="prose max-w-none space-y-6 text-[#132339]/90 font-light text-sm sm:text-base leading-relaxed">
+          <p className="text-lg font-editorial italic text-[#B15A3C] border-l-2 border-[#B15A3C] pl-4 py-1">
             « {article.excerpt[language]} »
           </p>
 
@@ -97,7 +97,7 @@ export default function ArticleDetailPage() {
             L’architecture contemporaine à Sfax s’inscrit aujourd’hui dans une double dynamique : honorer l’héritage artisanal sfaxien tout en intégrant les principes d’isolation, de ventilation naturelle et de domotique de luxe.
           </p>
 
-          <h2 className="font-editorial text-3xl text-brand-travertine font-normal pt-4">
+          <h2 className="font-editorial text-3xl text-[#132339] font-normal pt-4">
             Une valorisation patrimoniale pérenne
           </h2>
 
@@ -106,8 +106,8 @@ export default function ArticleDetailPage() {
           </p>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-white/10 flex justify-between items-center">
-          <Link href="/properties" className="bg-brand-gold text-brand-navy px-6 py-3 rounded text-xs font-bold uppercase tracking-widest">
+        <div className="mt-16 pt-8 border-t border-[#132339]/10 flex justify-between items-center">
+          <Link href="/properties" className="bg-[#B15A3C] text-white hover:bg-[#96472e] px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest shadow-md transition-all">
             Explorer les propriétés associées
           </Link>
         </div>

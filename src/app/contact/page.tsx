@@ -80,14 +80,17 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="pt-28 pb-24 bg-brand-navy min-h-screen">
+    <div className="pt-28 pb-24 bg-[#FAF8F3] min-h-screen text-[#132339]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <h1 className="font-editorial text-4xl sm:text-6xl font-light text-brand-travertine">
+          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.25em] uppercase text-[#B15A3C] bg-[#B15A3C]/10 px-3 py-1 rounded-full border border-[#B15A3C]/20">
+            <span>Contact & Conseil Privé</span>
+          </div>
+          <h1 className="font-editorial text-4xl sm:text-6xl font-light text-[#132339]">
             Parler à Villa Regia
           </h1>
-          <p className="text-sm text-brand-travertine/80 font-light leading-relaxed">
+          <p className="text-sm text-[#132339]/80 font-light leading-relaxed">
             Notre équipe de conseillers privés est à votre entière disposition pour répondre à vos projets d’acquisition, de location ou de mise en valeur patrimoniale.
           </p>
         </div>
@@ -96,43 +99,43 @@ export default function ContactPage() {
           
           {/* Coordinates */}
           <div className="lg:col-span-5 space-y-8">
-            <div className="glass-card p-8 rounded-xl border border-brand-gold/20 space-y-6">
-              <h2 className="font-editorial text-2xl font-light text-brand-travertine">
+            <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl border border-[#132339]/10 shadow-sm space-y-6">
+              <h2 className="font-editorial text-2xl font-light text-[#132339]">
                 Siège Principal — Sfax
               </h2>
 
-              <div className="space-y-4 text-xs text-brand-travertine/80">
+              <div className="space-y-4 text-xs text-[#132339]/80">
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-brand-gold shrink-0 mt-0.5" />
+                  <MapPin className="w-5 h-5 text-[#B15A3C] shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-brand-travertine block">Adresse:</strong>
+                    <strong className="text-[#132339] block font-semibold">Adresse:</strong>
                     <span>Route de la Soukra, Km 2.5<br />3000 Sfax, Tunisie</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-brand-gold shrink-0" />
+                  <Phone className="w-5 h-5 text-[#B15A3C] shrink-0" />
                   <div>
-                    <strong className="text-brand-travertine block">Téléphone Privé:</strong>
-                    <a href="tel:+21627745403" className="hover:text-brand-gold font-mono">+216 27 745 403</a>
+                    <strong className="text-[#132339] block font-semibold">Téléphone Privé:</strong>
+                    <a href="tel:+21627745403" className="hover:text-[#B15A3C] font-mono text-[#132339] font-medium">+216 27 745 403</a>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-brand-gold shrink-0" />
+                  <Mail className="w-5 h-5 text-[#B15A3C] shrink-0" />
                   <div>
-                    <strong className="text-brand-travertine block">Email:</strong>
-                    <a href="mailto:villaregia.contact@gmail.com" className="hover:text-brand-gold">villaregia.contact@gmail.com</a>
+                    <strong className="text-[#132339] block font-semibold">Email:</strong>
+                    <a href="mailto:villaregia.contact@gmail.com" className="hover:text-[#B15A3C] text-[#132339] font-medium">villaregia.contact@gmail.com</a>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-white/10 space-y-3">
+              <div className="pt-4 border-t border-[#132339]/10 space-y-3">
                 <a
                   href="https://wa.me/21627745403?text=Bonjour%20Villa%20Regia%2C%20je%20souhaite%20%C3%A9changer%20avec%20un%20conseiller%20concernant%20vos%20services%20immobiliers."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-95 shadow-lg transition-all font-mono"
+                  className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-95 shadow-md transition-all font-mono"
                   title="Ouvrir le compte WhatsApp Business de Villa Regia (+216 27 745 403)"
                 >
                   <MessageCircle className="w-4 h-4 fill-current" />
@@ -141,7 +144,7 @@ export default function ContactPage() {
 
                 {/* Official Social Media Channels */}
                 <div className="pt-2">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-brand-travertine/60 text-center mb-2">
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#132339]/60 text-center mb-2">
                     Réseaux Officiels
                   </div>
                   <div className="grid grid-cols-3 gap-2">
@@ -149,7 +152,7 @@ export default function ContactPage() {
                       href="https://www.instagram.com/villaregia_/?hl=fr"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-white/5 hover:bg-gradient-to-tr hover:from-amber-600 hover:via-pink-600 hover:to-purple-600 text-brand-travertine hover:text-white border border-white/10 transition-all text-[11px]"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[#132339]/5 hover:bg-gradient-to-tr hover:from-amber-600 hover:via-pink-600 hover:to-purple-600 text-[#132339] hover:text-white border border-[#132339]/10 transition-all text-[11px]"
                       title="Instagram @villaregia_"
                     >
                       <Instagram className="w-3.5 h-3.5" />
@@ -159,7 +162,7 @@ export default function ContactPage() {
                       href="https://www.facebook.com/profile.php?id=61572363513663"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-white/5 hover:bg-[#1877F2] text-brand-travertine hover:text-white border border-white/10 transition-all text-[11px]"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[#132339]/5 hover:bg-[#1877F2] text-[#132339] hover:text-white border border-[#132339]/10 transition-all text-[11px]"
                       title="Facebook Villa Regia"
                     >
                       <Facebook className="w-3.5 h-3.5" />
@@ -169,7 +172,7 @@ export default function ContactPage() {
                       href="https://www.tiktok.com/@villaregia.tn"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-white/5 hover:bg-black text-brand-travertine hover:text-white border border-white/10 transition-all text-[11px]"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[#132339]/5 hover:bg-black text-[#132339] hover:text-white border border-[#132339]/10 transition-all text-[11px]"
                       title="TikTok @villaregia.tn"
                     >
                       <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -185,48 +188,48 @@ export default function ContactPage() {
 
           {/* Contact Form */}
           <div className="lg:col-span-7">
-            <div className="glass-navy p-8 rounded-xl border border-brand-gold/30 shadow-2xl">
+            <div className="bg-white/90 backdrop-blur-md p-8 rounded-2xl border border-[#132339]/10 shadow-lg">
               {submitted ? (
                 <div className="text-center py-12 space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-600 flex items-center justify-center mx-auto">
                     <Check className="w-8 h-8" />
                   </div>
-                  <h3 className="font-editorial text-2xl text-brand-travertine">Message Transmis</h3>
-                  <p className="text-xs text-brand-travertine/80 max-w-sm mx-auto">
+                  <h3 className="font-editorial text-2xl text-[#132339]">Message Transmis</h3>
+                  <p className="text-xs text-[#132339]/80 max-w-sm mx-auto">
                     Nous avons bien reçu votre message. Un conseiller Villa Regia vous recontactera très prochainement.
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
-                    className="bg-brand-gold text-brand-navy px-6 py-2.5 rounded text-xs font-bold uppercase tracking-widest"
+                    className="bg-[#B15A3C] text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#96472e] transition-all"
                   >
                     Envoyer un autre message
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <h3 className="font-editorial text-2xl font-light text-brand-travertine mb-4">
+                  <h3 className="font-editorial text-2xl font-light text-[#132339] mb-4">
                     Formulaire de Contact
                   </h3>
 
                   <div>
-                    <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Nom & Prénom</label>
-                    <input required value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="ex: Sonia Masmoudi" className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold" />
+                    <label className="text-[10px] font-mono uppercase text-[#B15A3C] font-semibold block mb-1">Nom & Prénom</label>
+                    <input required value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="ex: Sonia Masmoudi" className="w-full bg-[#FAF8F3] border border-[#132339]/15 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B15A3C]" />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Téléphone</label>
-                      <input required value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" placeholder="+216 20 000 000" className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold" />
+                      <label className="text-[10px] font-mono uppercase text-[#B15A3C] font-semibold block mb-1">Téléphone</label>
+                      <input required value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" placeholder="+216 20 000 000" className="w-full bg-[#FAF8F3] border border-[#132339]/15 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B15A3C]" />
                     </div>
                     <div>
-                      <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Email</label>
-                      <input required value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="client@exemple.tn" className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold" />
+                      <label className="text-[10px] font-mono uppercase text-[#B15A3C] font-semibold block mb-1">Email</label>
+                      <input required value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="client@exemple.tn" className="w-full bg-[#FAF8F3] border border-[#132339]/15 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B15A3C]" />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Sujet de votre demande</label>
-                    <select value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold">
+                    <label className="text-[10px] font-mono uppercase text-[#B15A3C] font-semibold block mb-1">Sujet de votre demande</label>
+                    <select value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full bg-[#FAF8F3] border border-[#132339]/15 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B15A3C]">
                       <option>Acquisition d’un bien</option>
                       <option>Location Résidence ou Villa de luxe</option>
                       <option>Proposer mon bien</option>
@@ -236,12 +239,12 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Votre message</label>
-                    <textarea required value={message} onChange={(e) => setMessage(e.target.value)} rows={4} placeholder="Détaillez votre projet ou votre question..." className="w-full bg-brand-navy border border-white/20 rounded px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-gold" />
+                    <label className="text-[10px] font-mono uppercase text-[#B15A3C] font-semibold block mb-1">Votre message</label>
+                    <textarea required value={message} onChange={(e) => setMessage(e.target.value)} rows={4} placeholder="Détaillez votre projet ou votre question..." className="w-full bg-[#FAF8F3] border border-[#132339]/15 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B15A3C]" />
                   </div>
 
                   {formError && (
-                    <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono">
+                    <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-700 text-xs font-mono">
                       ⚠️ {formError}
                     </div>
                   )}
@@ -249,7 +252,7 @@ export default function ContactPage() {
                   <button
                     disabled={isSending}
                     type="submit"
-                    className="w-full bg-brand-gold text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded shadow-xl flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
+                    className="w-full bg-[#B15A3C] hover:bg-[#96472e] text-white font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-md flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />
                     <span>{isSending ? 'Envoi...' : 'Envoyer mon message'}</span>

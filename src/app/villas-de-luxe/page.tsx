@@ -133,20 +133,19 @@ export default function LuxuryVillasPage() {
   };
 
   return (
-    <div className="pt-28 pb-24 bg-brand-navy min-h-screen">
+    <div className="pt-28 pb-24 bg-[#FAF8F3] text-[#132339] min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-[0.25em] uppercase text-[#B8912E] bg-[#B8912E]/10 border border-[#B8912E]/30 px-3.5 py-1.5 rounded-full">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-[#B8912E] bg-[#B8912E]/10 border border-[#B8912E]/30 px-3.5 py-1.5 rounded-full shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-[#B8912E]" />
             <span>Univers Hospitality & Court Séjour</span>
           </div>
-          <h1 className="font-editorial text-4xl sm:text-6xl font-light text-brand-travertine">
+          <h1 className="font-serif text-4xl sm:text-6xl font-semibold text-[#132339]">
             Villas de Luxe & Conciergerie Privée
           </h1>
-
-          <p className="text-sm text-brand-travertine/80 font-light leading-relaxed">
+          <p className="text-base text-[#2c3f57] font-normal leading-relaxed">
             Passez quelques jours dans un lieu hors du commun. Profitez d’un service d’hospitalité haut de gamme, d’un chef cuisinier sur demande et de piscines à débordement privées à Sfax.
           </p>
         </div>
@@ -156,7 +155,7 @@ export default function LuxuryVillasPage() {
           
           {/* Left Column: Select Villa */}
           <div className="lg:col-span-7 space-y-6">
-            <h2 className="font-editorial text-2xl font-light text-brand-travertine">
+            <h2 className="font-serif text-2xl font-semibold text-[#132339]">
               Choisissez votre Demeure
             </h2>
 
@@ -165,24 +164,24 @@ export default function LuxuryVillasPage() {
                 <div
                   key={villa.id}
                   onClick={() => setSelectedVilla(villa)}
-                  className={`cursor-pointer rounded-xl overflow-hidden glass-card border transition-all p-4 flex flex-col sm:flex-row gap-4 ${
+                  className={`cursor-pointer rounded-xs overflow-hidden bg-[#FAF8F3] border transition-all p-4 flex flex-col sm:flex-row gap-4 shadow-sm ${
                     selectedVilla.id === villa.id
-                      ? 'border-brand-gold bg-brand-navy-light/80 shadow-2xl ring-1 ring-brand-gold'
-                      : 'border-white/10 opacity-70 hover:opacity-100'
+                      ? 'border-[#B8912E] shadow-xl ring-1 ring-[#B8912E]'
+                      : 'border-[rgba(19,35,57,0.14)] opacity-85 hover:opacity-100 hover:border-[#132339]'
                   }`}
                 >
-                  <div className="relative w-full sm:w-48 h-36 rounded-lg overflow-hidden shrink-0">
+                  <div className="relative w-full sm:w-48 h-36 rounded-xs overflow-hidden shrink-0">
                     <Image src={villa.images[0].url} alt={villa.title[language]} fill className="object-cover" />
                   </div>
                   <div className="flex-1 flex flex-col justify-between space-y-2">
                     <div>
-                      <span className="text-[10px] font-mono uppercase text-brand-gold block">{villa.location.district}, {villa.location.city}</span>
-                      <h3 className="font-editorial text-xl text-brand-travertine">{villa.title[language]}</h3>
-                      <p className="text-xs text-brand-travertine/70 line-clamp-2 mt-1">{villa.description[language]}</p>
+                      <span className="text-[10px] font-semibold uppercase text-[#B8912E] block">{villa.location.district}, {villa.location.city}</span>
+                      <h3 className="font-serif text-xl font-semibold text-[#132339]">{villa.title[language]}</h3>
+                      <p className="text-xs text-[#2c3f57] line-clamp-2 mt-1">{villa.description[language]}</p>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                      <span className="text-xs text-brand-travertine/60">{villa.specs.bedrooms} ch. • Jusqu’à {villa.specs.guestCapacity || 8} invités</span>
-                      <span className="font-editorial text-lg text-brand-gold font-normal">
+                    <div className="flex justify-between items-center pt-2 border-t border-[rgba(19,35,57,0.1)]">
+                      <span className="text-xs text-[#2c3f57]">{villa.specs.bedrooms} ch. • Jusqu’à {villa.specs.guestCapacity || 8} invités</span>
+                      <span className="font-serif text-lg text-[#132339] font-semibold">
                         {villa.price.amount} TND / nuit
                       </span>
                     </div>
@@ -194,11 +193,11 @@ export default function LuxuryVillasPage() {
 
           {/* Right Column: Custom Luxury Booking Engine */}
           <div className="lg:col-span-5">
-            <div className="sticky top-28 glass-navy p-8 rounded-xl border border-brand-gold/30 shadow-2xl space-y-6">
+            <div className="sticky top-28 bg-[#FAF8F3] p-8 rounded-xs border border-[rgba(19,35,57,0.14)] shadow-xl space-y-6">
               
-              <div className="border-b border-white/10 pb-4">
-                <span className="text-xs font-mono uppercase text-brand-gold">Moteur de Réservation En Ligne</span>
-                <h3 className="font-editorial text-2xl font-light text-brand-travertine mt-1">
+              <div className="border-b border-[rgba(19,35,57,0.1)] pb-4">
+                <span className="text-xs font-semibold uppercase text-[#B8912E]">Moteur de Réservation En Ligne</span>
+                <h3 className="font-serif text-2xl font-semibold text-[#132339] mt-1">
                   {selectedVilla.title[language]}
                 </h3>
               </div>
@@ -206,31 +205,31 @@ export default function LuxuryVillasPage() {
               <form onSubmit={handleBookingSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Check-in</label>
+                    <label className="text-[10px] font-semibold uppercase text-[#B8912E] block mb-1">Check-in</label>
                     <input
                       type="date"
                       value={checkIn}
                       onChange={(e) => setCheckIn(e.target.value)}
-                      className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2.5 text-xs text-white"
+                      className="w-full bg-[#FAF8F3] border border-[rgba(19,35,57,0.18)] rounded-xs px-3 py-2.5 text-xs text-[#132339]"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Check-out</label>
+                    <label className="text-[10px] font-semibold uppercase text-[#B8912E] block mb-1">Check-out</label>
                     <input
                       type="date"
                       value={checkOut}
                       onChange={(e) => setCheckOut(e.target.value)}
-                      className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2.5 text-xs text-white"
+                      className="w-full bg-[#FAF8F3] border border-[rgba(19,35,57,0.18)] rounded-xs px-3 py-2.5 text-xs text-[#132339]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block mb-1">Nombre d’invités</label>
+                  <label className="text-[10px] font-semibold uppercase text-[#B8912E] block mb-1">Nombre d’invités</label>
                   <select
                     value={guests}
                     onChange={(e) => setGuests(Number(e.target.value))}
-                    className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2.5 text-xs text-white"
+                    className="w-full bg-[#FAF8F3] border border-[rgba(19,35,57,0.18)] rounded-xs px-3 py-2.5 text-xs text-[#132339]"
                   >
                     {[1, 2, 4, 6, 8, 10, 12].map((g) => (
                       <option key={g} value={g}>{g} Invité(s)</option>
@@ -239,38 +238,38 @@ export default function LuxuryVillasPage() {
                 </div>
 
                 {/* Real-time Pricing Summary */}
-                <div className="p-4 rounded bg-brand-navy-dark border border-white/10 space-y-2 text-xs">
-                  <div className="flex justify-between text-brand-travertine/70">
+                <div className="p-4 rounded-xs bg-[#EFE8D8] border border-[rgba(19,35,57,0.14)] space-y-2 text-xs">
+                  <div className="flex justify-between text-[#2c3f57]">
                     <span>{selectedVilla.price.amount} TND x {nights} nuit(s)</span>
                     <span>{subtotal} TND</span>
                   </div>
-                  <div className="flex justify-between text-brand-gold font-mono font-bold pt-2 border-t border-white/10">
+                  <div className="flex justify-between text-[#B15A3C] font-semibold pt-2 border-t border-[rgba(19,35,57,0.1)]">
                     <span>Acompte de confirmation (30%)</span>
                     <span>{deposit} TND</span>
                   </div>
-                  <div className="flex justify-between text-brand-travertine font-editorial text-xl pt-1">
+                  <div className="flex justify-between text-[#132339] font-serif text-xl pt-1 font-bold">
                     <span>Total du Séjour</span>
-                    <span className="text-brand-gold">{total} TND</span>
+                    <span className="text-[#132339]">{total} TND</span>
                   </div>
                 </div>
 
                 {dateError && (
-                  <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono">
+                  <div className="p-3 rounded-xs bg-red-500/10 border border-red-500/30 text-red-700 text-xs">
                     ⚠️ {dateError}
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-brand-gold to-brand-gold-dark text-brand-navy font-bold text-xs uppercase tracking-widest py-3.5 rounded shadow-xl hover:opacity-90 transition-all"
+                  className="w-full bg-[#B15A3C] hover:bg-[#97492e] text-[#FAF8F3] font-semibold text-xs uppercase tracking-wider py-3.5 rounded-xs shadow-md transition-all"
                 >
                   Calculer & Continuer la Réservation
                 </button>
               </form>
 
-              <div className="flex items-center gap-2 text-[11px] text-brand-travertine/60">
-                <Shield className="w-4 h-4 text-brand-gold shrink-0" />
-                <span>Paiement de l’acompte sécurisé en ligne via Konnect / ClicToPay</span>
+              <div className="flex items-center gap-2 text-[11px] text-[#2c3f57]">
+                <Shield className="w-4 h-4 text-[#B8912E] shrink-0" />
+                <span>Paiement de l’acompte sécurisé en ligne</span>
               </div>
 
             </div>

@@ -116,13 +116,13 @@ type SpecificDetails = {
   isNew?: boolean;
 };
 
-const inputCls = 'w-full bg-brand-navy/60 border border-white/15 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-brand-gold/60 focus:ring-1 focus:ring-brand-gold/20 transition-all';
-const labelCls = 'text-[10px] font-mono font-bold uppercase tracking-wider text-brand-gold block mb-1.5';
+const inputCls = 'w-full bg-white border border-[#132339]/15 rounded-xl px-4 py-3 text-sm text-[#132339] placeholder:text-[#132339]/40 focus:outline-none focus:border-[#B15A3C] transition-all';
+const labelCls = 'text-[10px] font-mono font-bold uppercase tracking-wider text-[#B15A3C] block mb-1.5';
 const toggleCls = (active: boolean) =>
-  `px-4 py-2.5 rounded-lg border text-xs font-semibold uppercase tracking-wider text-center transition-all cursor-pointer select-none ${
+  `px-4 py-2.5 rounded-xl border text-xs font-semibold uppercase tracking-wider text-center transition-all cursor-pointer select-none ${
     active
-      ? 'bg-brand-gold text-brand-navy border-brand-gold shadow-lg shadow-brand-gold/20'
-      : 'bg-brand-navy/50 border-white/10 text-white/60 hover:border-brand-gold/30 hover:text-white/80'
+      ? 'bg-[#B15A3C] text-white border-[#B15A3C] shadow-md'
+      : 'bg-white border-[#132339]/15 text-[#132339]/70 hover:border-[#B15A3C]/40 hover:text-[#132339]'
   }`;
 
 // ─────────────────────────────────────────────
@@ -1190,20 +1190,20 @@ export default function SubmitPropertyPage() {
   const TypeIcon = PROPERTY_ICONS[propertyType] || Home;
 
   return (
-    <div className="pt-24 pb-20 bg-brand-navy min-h-screen">
+    <div className="pt-24 pb-20 bg-[#FAF8F3] text-[#132339] min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Header ── */}
         <div className="text-center mb-10 space-y-3">
-          <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-[0.25em] uppercase text-brand-gold">
+          <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-[0.25em] uppercase text-[#B15A3C] bg-[#B15A3C]/10 px-3 py-1 rounded-full border border-[#B15A3C]/20">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Service Propriétaires Prestige</span>
           </div>
-          <h1 className="font-editorial text-3xl sm:text-5xl font-light text-brand-travertine leading-tight">
+          <h1 className="font-editorial text-3xl sm:text-5xl font-light text-[#132339] leading-tight">
             Proposer un Patrimoine<br />
-            <span className="text-brand-gold">à Villa Regia</span>
+            <span className="text-[#B15A3C]">à Villa Regia</span>
           </h1>
-          <p className="text-sm text-white/50 max-w-lg mx-auto font-light leading-relaxed">
+          <p className="text-sm text-[#132339]/70 max-w-lg mx-auto font-light leading-relaxed">
             Confiez-nous l'estimation, la sélection et la mise en valeur confidentielle de votre bien à Sfax.
           </p>
         </div>
