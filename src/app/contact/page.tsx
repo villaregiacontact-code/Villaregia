@@ -109,7 +109,7 @@ export default function ContactPage() {
                   <MapPin className="w-5 h-5 text-[#B15A3C] shrink-0 mt-0.5" />
                   <div>
                     <strong className="text-[#132339] block font-semibold">Adresse:</strong>
-                    <span>Route de la Soukra, Km 2.5<br />3000 Sfax, Tunisie</span>
+                    <span>Route Manzel Chaker Km 1.5<br />3000 Sfax, Tunisie</span>
                   </div>
                 </div>
 

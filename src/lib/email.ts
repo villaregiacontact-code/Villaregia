@@ -260,7 +260,7 @@ export async function sendWelcomeEmail({ to, name }: SendWelcomeEmailParams) {
         <div class="signature">
           Bien cordialement,<br>
           <strong>La Direction & Les Conseillers de la Maison Villa Regia</strong><br>
-          <span style="color: rgba(250, 248, 245, 0.5); font-size: 11px;">Route de la Soukra, Km 2.5 • Sfax, Tunisie</span>
+          <span style="color: rgba(250, 248, 245, 0.5); font-size: 11px;">Route Manzel Chaker Km 1.5 • Sfax, Tunisie</span>
         </div>
 
         <div class="footer">
@@ -445,7 +445,7 @@ export async function sendOwnerSubmissionEmails(data: OwnerSubmissionEmailData) 
           <div style="margin-top: 32px; text-align: left; font-size: 12px; color: rgba(250,248,245,0.6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
             Bien cordialement,<br>
             <strong style="color: #C5A059;">La Direction de la Maison Villa Regia</strong><br>
-            <span>Route de la Soukra, Km 2.5 • 3000 Sfax, Tunisie</span><br>
+            <span>Route Manzel Chaker Km 1.5 • 3000 Sfax, Tunisie</span><br>
             <span>Tél / WhatsApp : +216 27 745 403 • Email : villaregia.contact@gmail.com</span>
           </div>
         </div>

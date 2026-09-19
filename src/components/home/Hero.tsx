@@ -124,7 +124,7 @@ export const Hero: React.FC = () => {
                   Demeure d'Exception
                 </span>
                 <span className="font-serif text-base font-semibold text-[#132339]">
-                  Villa Les Oliviers — Route de la Soukra
+                  Villa Les Oliviers — Route Manzel Chaker Km 1.5
                 </span>
               </div>
               <span className="text-xs font-semibold text-[#B15A3C] bg-[#B15A3C]/10 px-2.5 py-1 rounded-xs border border-[#B15A3C]/20">

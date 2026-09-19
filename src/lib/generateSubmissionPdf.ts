@@ -424,7 +424,7 @@ export function generateSubmissionPdf(sub: OwnerSubmission) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(215, 218, 225);
-  doc.text('Villa Regia Real Estates • Route de la Soukra Km 3.5, Sfax (Tunisie) • Téléphone / WhatsApp : +216 27 745 403 • contact@villaregiarealestates.com', pageWidth / 2, pageHeight - 7.5, { align: 'center' });
+  doc.text('Villa Regia Real Estates • Route Manzel Chaker Km 1.5, Sfax (Tunisie) • Téléphone / WhatsApp : +216 27 745 403 • contact@villaregiarealestates.com', pageWidth / 2, pageHeight - 7.5, { align: 'center' });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(6);

@@ -17,7 +17,7 @@ export const INITIAL_PROPERTIES: Property[] = [
     },
     location: {
       city: 'Sfax',
-      district: 'Route de la Soukra',
+      district: 'Route Manzel Chaker Km 1.5',
       country: 'Tunisie',
       lat: 34.7431,
       lng: 10.7412,

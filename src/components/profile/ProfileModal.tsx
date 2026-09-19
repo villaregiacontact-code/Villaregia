@@ -228,12 +228,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="glass-navy p-4 sm:p-8 rounded-2xl max-w-3xl w-full border border-brand-gold/30 shadow-2xl relative space-y-5 sm:space-y-6 max-h-[94vh] overflow-y-auto"
+        className="bg-[#FAF8F3] text-[#132339] p-4 sm:p-8 rounded-2xl max-w-3xl w-full border border-[rgba(19,35,57,0.14)] shadow-2xl relative space-y-5 sm:space-y-6 max-h-[94vh] overflow-y-auto"
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 sm:top-6 right-4 sm:right-6 text-brand-travertine/60 hover:text-brand-gold transition-colors p-1"
+          className="absolute top-4 sm:top-6 right-4 sm:right-6 text-[#2c3f57] hover:text-[#132339] transition-colors p-1"
           aria-label="Fermer"
         >
           <X className="w-5 h-5" />

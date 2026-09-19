@@ -45,12 +45,12 @@ export const FeaturedProperties: React.FC = () => {
       id: 'mock-1',
       title: { fr: 'Villa Les Oliviers', ar: 'فيلا الزيتون', en: 'Villa Les Oliviers' },
       universe: 'À VENDRE',
-      location: { district: 'Route de la Soukra', city: 'Sfax' },
+      location: { district: 'Route Manzel Chaker Km 1.5', city: 'Sfax' },
       specs: { surfaceM2: 420, bedrooms: 4 },
       price: { amount: 890000, currency: 'DT' },
       images: [{ url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80' }],
       tag: 'À vendre',
-      meta: 'Sfax, Route de la Soukra · 420 m² · 4 chambres',
+      meta: 'Sfax, Route Manzel Chaker Km 1.5 · 420 m² · 4 chambres',
       subPrice: 'Vue jardin & piscine'
     },
     {
@@ -84,11 +84,11 @@ export const FeaturedProperties: React.FC = () => {
     if (val.includes('VENDRE') || val.includes('VENTE')) return 'bg-[#B15A3C] text-white';
     if (val.includes('LUXE') || val.includes('PRESTIGE')) return 'bg-[#B8912E] text-white';
     if (val.includes('EVENT') || val.includes('ÉVÉNEMENT')) return 'bg-[#6E7A52] text-white';
-    return 'bg-[#FAF8F3] text-[#132339]';
+    return 'bg-[#FAF8F3] text-[#132339] border border-[rgba(19,35,57,0.14)]';
   };
 
   return (
-    <section className="bg-[#132339] text-[#FAF8F3] py-20 sm:py-24 overflow-hidden">
+    <section className="bg-[#FAF8F3] text-[#132339] py-20 sm:py-24 overflow-hidden">
       <div className="max-w-[1180px] mx-auto px-4 sm:px-8">
         
         {/* Header */}
@@ -100,14 +100,14 @@ export const FeaturedProperties: React.FC = () => {
           className="flex justify-between items-end mb-11"
         >
           <div>
-            <span className="text-xs uppercase tracking-widest text-[#B8912E] font-medium block mb-1">Prestige & Exclusivités</span>
-            <h2 className="font-serif text-3xl sm:text-4xl text-[#FAF8F3] font-semibold max-w-[14ch]">
+            <span className="text-xs uppercase tracking-widest text-[#B15A3C] font-semibold block mb-1">Prestige & Exclusivités</span>
+            <h2 className="font-serif text-3xl sm:text-4xl text-[#132339] font-semibold max-w-[14ch]">
               Sélection du moment
             </h2>
           </div>
           <Link
             href="/properties"
-            className="text-sm font-medium text-[#B8912E] border-b border-[#B8912E] pb-0.5 hover:opacity-80 transition-opacity"
+            className="text-sm font-semibold text-[#B15A3C] border-b border-[#B15A3C] pb-0.5 hover:opacity-80 transition-opacity"
           >
             Voir tous les biens
           </Link>
@@ -126,11 +126,11 @@ export const FeaturedProperties: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: idx * 0.15 }}
-                className="bg-[#2c3f57] rounded-xs overflow-hidden flex flex-col group border border-white/5 hover:border-[#B8912E]/40 transition-all duration-300 shadow-lg hover:shadow-2xl hover:-translate-y-1"
+                className="bg-[#FAF8F3] rounded-xs overflow-hidden flex flex-col group border border-[rgba(19,35,57,0.14)] hover:border-[#B15A3C]/50 transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1"
               >
                 
                 {/* Image & Tag */}
-                <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-gradient-to-tr from-[#16273f] via-[#2c3f57] to-[#B15A3C]">
+                <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-[#EFE8D8]">
                   {prop.images?.[0]?.url && (
                     <Image
                       src={prop.images[0].url}
@@ -149,7 +149,7 @@ export const FeaturedProperties: React.FC = () => {
                     className={`absolute top-3.5 right-3.5 p-2 rounded-full backdrop-blur transition-all shadow-md ${
                       isFavorite(prop.id)
                         ? 'bg-[#B15A3C] text-white scale-110'
-                        : 'bg-[#132339]/60 text-white hover:text-[#B8912E] hover:bg-[#132339]/90'
+                        : 'bg-[#FAF8F3]/90 text-[#132339] hover:text-[#B15A3C]'
                     }`}
                   >
                     <Heart className={`w-3.5 h-3.5 ${isFavorite(prop.id) ? 'fill-current' : ''}`} />
@@ -159,19 +159,19 @@ export const FeaturedProperties: React.FC = () => {
                 {/* Body */}
                 <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                   <div>
-                    <h4 className="font-serif text-lg font-semibold text-[#FAF8F3] mb-1.5 line-clamp-1 group-hover:text-[#B8912E] transition-colors">
+                    <h4 className="font-serif text-lg font-semibold text-[#132339] mb-1.5 line-clamp-1 group-hover:text-[#B15A3C] transition-colors">
                       {prop.title[language] || prop.title.fr}
                     </h4>
-                    <div className="text-xs text-[#c7cedb] mb-4 line-clamp-2">
+                    <div className="text-xs text-[#2c3f57] mb-4 line-clamp-2">
                       {prop.meta || `${prop.location?.city || ''}, ${prop.location?.district || ''} · ${prop.specs?.surfaceM2 || ''} m²`}
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center border-t border-white/12 pt-3.5 mt-2">
-                    <b className="font-serif text-base sm:text-lg text-[#FAF8F3]">
+                  <div className="flex justify-between items-center border-t border-[rgba(19,35,57,0.1)] pt-3.5 mt-2">
+                    <b className="font-serif text-base sm:text-lg text-[#132339]">
                       {prop.price.amount > 0 ? `${prop.price.amount.toLocaleString()} ${prop.price.currency}` : prop.price.currency}
                     </b>
-                    <span className="text-[12.5px] text-[#c7cedb]">
+                    <span className="text-[12.5px] text-[#2c3f57] font-medium">
                       {prop.subPrice || `${prop.specs?.bedrooms ? `${prop.specs.bedrooms} ch.` : 'Disponible'}`}
                     </span>
                   </div>
@@ -186,4 +186,3 @@ export const FeaturedProperties: React.FC = () => {
     </section>
   );
 };
-

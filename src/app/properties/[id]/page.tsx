@@ -205,30 +205,30 @@ export default function PropertyDetailPage() {
         <div className="absolute top-24 left-6 right-6 z-20 flex justify-between items-center max-w-7xl mx-auto">
           <button
             onClick={() => router.back()}
-            className="glass-navy text-brand-travertine px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 border border-brand-gold/30 hover:border-brand-gold"
+            className="glass-navy text-[#132339] px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 border border-[rgba(19,35,57,0.18)] hover:border-[#132339] shadow-md"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-[#132339]" />
             <span>{t('btn.back')}</span>
           </button>
 
           <div className="flex gap-3">
             <button
               onClick={handleShare}
-              className="glass-navy p-3 rounded-full text-brand-travertine hover:text-brand-gold border border-white/20 transition-all"
+              className="glass-navy p-3 rounded-full text-[#132339] hover:text-[#B15A3C] border border-[rgba(19,35,57,0.18)] transition-all shadow-md"
               title="Partager"
             >
               <Share2 className="w-4 h-4" />
             </button>
             <button
               onClick={() => toggleFavorite(property.id)}
-              className={`glass-navy p-3 rounded-full border transition-all ${
+              className={`glass-navy p-3 rounded-full border transition-all shadow-md ${
                 isFavorite(property.id)
-                  ? 'bg-brand-gold text-brand-navy border-brand-gold'
-                  : 'text-brand-travertine border-white/20 hover:border-brand-gold'
+                  ? 'bg-[#B15A3C] text-[#FAF8F3] border-[#B15A3C]'
+                  : 'text-[#132339] border-[rgba(19,35,57,0.18)] hover:border-[#B15A3C]'
               }`}
               title="Favoris"
             >
-              <Heart className={`w-4 h-4 ${isFavorite(property.id) ? 'fill-current' : ''}`} />
+              <Heart className={`w-4 h-4 ${isFavorite(property.id) ? 'fill-current text-[#FAF8F3]' : ''}`} />
             </button>
           </div>
         </div>
@@ -238,32 +238,32 @@ export default function PropertyDetailPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <span className={`px-3 py-1 text-[10px] font-bold font-mono uppercase tracking-widest rounded-full shadow-sm ${
-                property.universe === 'VENTE' ? 'bg-[#B15A3C] text-white' :
-                property.universe === 'LUXE' ? 'bg-[#B8912E] text-white' :
-                property.universe === 'EVENT' ? 'bg-[#6E7A52] text-white' :
+                property.universe === 'VENTE' ? 'bg-[#B15A3C] text-[#FAF8F3]' :
+                property.universe === 'LUXE' ? 'bg-[#B8912E] text-[#132339]' :
+                property.universe === 'EVENT' ? 'bg-[#6E7A52] text-[#FAF8F3]' :
                 'bg-[#132339] text-[#FAF8F3] border border-white/20'
               }`}>
                 {property.universe}
               </span>
-              <span className="text-xs font-mono text-brand-travertine/80 uppercase">
+              <span className="text-xs font-mono text-[#FAF8F3] uppercase font-bold drop-shadow">
                 {property.category}
               </span>
             </div>
 
-            <h1 className="font-editorial text-3xl sm:text-5xl text-brand-travertine font-light max-w-3xl">
+            <h1 className="font-editorial text-3xl sm:text-5xl text-[#FAF8F3] font-semibold max-w-3xl drop-shadow-md">
               {property.title[language]}
             </h1>
-            <p className="flex items-center gap-2 text-xs text-brand-travertine/80 font-light">
-              <MapPin className="w-4 h-4 text-brand-gold" />
+            <p className="flex items-center gap-2 text-xs text-[#FAF8F3] font-semibold drop-shadow">
+              <MapPin className="w-4 h-4 text-[#B8912E]" />
               <span>{property.location.district}, {property.location.city} — {property.location.country}</span>
             </p>
           </div>
 
-          <div className="glass-navy p-6 rounded-xl border border-brand-gold/40 space-y-1 text-right">
-            <span className="text-[10px] font-mono uppercase text-brand-gold block">Prix de présentation</span>
-            <div className="font-editorial text-3xl text-brand-travertine font-normal">
+          <div className="glass-navy p-6 rounded-xl border border-[rgba(19,35,57,0.18)] space-y-1 text-right shadow-xl">
+            <span className="text-[10px] font-mono uppercase text-[#B15A3C] font-bold block">Prix de présentation</span>
+            <div className="font-editorial text-3xl text-[#132339] font-bold">
               {property.price.amount.toLocaleString('fr-FR')} {property.price.currency}
-              {property.price.period ? <span className="text-sm font-sans text-brand-travertine/60"> / {property.price.period}</span> : ''}
+              {property.price.period ? <span className="text-sm font-sans text-[#2c3f57]"> / {property.price.period}</span> : ''}
             </div>
           </div>
         </div>
@@ -278,7 +278,7 @@ export default function PropertyDetailPage() {
           {/* Gallery Thumbnails */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <h3 className="font-editorial text-2xl text-brand-travertine font-light">Galerie Privée</h3>
+              <h3 className="font-editorial text-2xl text-[#132339] font-semibold">Galerie Privée</h3>
               <button
                 onClick={() => setLightboxOpen(true)}
                 className="text-xs font-mono uppercase text-brand-gold hover:underline flex items-center gap-1"

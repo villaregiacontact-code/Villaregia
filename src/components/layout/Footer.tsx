@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
               Agence immobilière basée à Sfax, active dans toute la Tunisie.
             </p>
             <p className="text-sm text-[#2c3f57]">
-              Route de la Soukra, Sfax
+              Route Manzel Chaker Km 1.5, Sfax
             </p>
           </div>
 
