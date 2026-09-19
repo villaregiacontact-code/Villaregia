@@ -228,12 +228,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-[#FAF8F3] text-[#132339] p-4 sm:p-8 rounded-2xl max-w-3xl w-full border border-[rgba(19,35,57,0.14)] shadow-2xl relative space-y-5 sm:space-y-6 max-h-[94vh] overflow-y-auto"
+        className="bg-[#FAF8F3] text-[#1A1615] p-4 sm:p-8 rounded-2xl max-w-3xl w-full border border-[rgba(26,22,21,0.14)] shadow-2xl relative space-y-5 sm:space-y-6 max-h-[94vh] overflow-y-auto"
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 sm:top-6 right-4 sm:right-6 text-[#2c3f57] hover:text-[#132339] transition-colors p-1"
+          className="absolute top-4 sm:top-6 right-4 sm:right-6 text-[#443E3B] hover:text-[#1A1615] transition-colors p-1"
           aria-label="Fermer"
         >
           <X className="w-5 h-5" />
@@ -241,12 +241,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         {/* Modal Header & User Badge */}
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#B8912E]/30 to-[#B8912E] text-[#132339] flex items-center justify-center font-bold text-xl border border-[#B8912E]/50 shadow-lg shrink-0">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#B8912E]/30 to-[#B8912E] text-[#1A1615] flex items-center justify-center font-bold text-xl border border-[#B8912E]/50 shadow-lg shrink-0">
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className="font-editorial text-2xl font-light text-[#132339]">
+                <h2 className="font-editorial text-2xl font-light text-[#1A1615]">
                   {user.name}
                 </h2>
                 <span className={`text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-0.5 rounded border ${
@@ -254,12 +254,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                     ? 'bg-amber-500/15 text-amber-800 border-amber-500/30'
                     : user.role === 'ADMIN'
                     ? 'bg-sky-500/15 text-sky-800 border-sky-500/30'
-                    : 'bg-[#132339] text-[#B8912E] border-[#B8912E]/30'
+                    : 'bg-[#1A1615] text-[#B8912E] border-[#B8912E]/30'
                 }`}>
                   {user.role === 'SUPER_ADMIN' ? 'Direction Générale (Super Admin)' : user.role === 'ADMIN' ? 'Administrateur' : user.role === 'AGENT' ? 'Conseiller Immobilier' : 'Membre Club Villa Regia'}
                 </span>
               </div>
-              <p className="text-xs text-[#2c3f57] font-mono flex items-center gap-2 flex-wrap">
+              <p className="text-xs text-[#443E3B] font-mono flex items-center gap-2 flex-wrap">
                 <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-[#B8912E]" /> {user.email}</span>
                 <span className="text-[10px] bg-emerald-500/15 text-emerald-800 px-2 py-0.2 rounded border border-emerald-500/20 font-bold flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Compte Vérifié
@@ -269,7 +269,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
           </div>
           <button
             onClick={onClose}
-            className="text-[#2c3f57] hover:text-[#132339] p-1 transition-colors"
+            className="text-[#443E3B] hover:text-[#1A1615] p-1 transition-colors"
             aria-label="Fermer"
           >
             <X className="w-5 h-5" />
@@ -278,7 +278,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
 
         {/* Executive Staff Access Banner (If Admin / Staff) */}
         {isStaff && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-[#132339] to-[#1c3250] text-[#FAF8F3] border border-[#B8912E]/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-[#1A1615] to-[#2D2623] text-[#FAF8F3] border border-[#B8912E]/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#B8912E] uppercase tracking-wider">
                 <ShieldCheck className="w-4 h-4 text-[#B8912E]" />
@@ -293,7 +293,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 onClose();
                 window.location.href = '/admin';
               }}
-              className="px-4 py-2.5 rounded-xl bg-[#B8912E] hover:bg-amber-500 text-[#132339] font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 shrink-0 shadow-md"
+              className="px-4 py-2.5 rounded-xl bg-[#B8912E] hover:bg-amber-500 text-[#1A1615] font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 shrink-0 shadow-md"
             >
               <span>Accéder à l'Espace Admin</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -302,7 +302,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         )}
 
         {/* Tab Navigation Header */}
-        <div className="flex border-b border-[rgba(19,35,57,0.12)] gap-1.5 overflow-x-auto pb-1.5 scrollbar-none snap-x -mx-2 px-2 sm:mx-0 sm:px-0">
+        <div className="flex border-b border-[rgba(26,22,21,0.12)] gap-1.5 overflow-x-auto pb-1.5 scrollbar-none snap-x -mx-2 px-2 sm:mx-0 sm:px-0">
           {[
             { id: 'profile', label: 'Mon Profil', icon: User },
             { id: 'bookings', label: `Mes Séjours (${userBookings.length})`, icon: Calendar },
@@ -318,8 +318,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider transition-all whitespace-nowrap snap-start shrink-0 ${
                   isActive
-                    ? 'bg-[#132339] text-[#FAF8F3] shadow-md font-bold'
-                    : 'text-[#2c3f57] hover:bg-[#132339]/5 hover:text-[#132339]'
+                    ? 'bg-[#1A1615] text-[#FAF8F3] shadow-md font-bold'
+                    : 'text-[#443E3B] hover:bg-[#1A1615]/5 hover:text-[#1A1615]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -333,7 +333,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         {activeTab === 'profile' && (
           <div className="space-y-6">
             {/* VIP Card */}
-            <div className="p-5 rounded-xl bg-gradient-to-br from-[#132339] via-[#1c3250] to-[#132339] border border-[#B8912E]/40 text-white relative overflow-hidden shadow-xl">
+            <div className="p-5 rounded-xl bg-gradient-to-br from-[#1A1615] via-[#2D2623] to-[#1A1615] border border-[#B8912E]/40 text-white relative overflow-hidden shadow-xl">
               <div className="absolute top-0 right-0 w-48 h-48 bg-[#B8912E]/10 rounded-full blur-2xl pointer-events-none" />
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -369,7 +369,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
 
             {/* Editable Info Form */}
             <form onSubmit={handleSaveProfile} className="space-y-4">
-              <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-[#132339]">
+              <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-[#1A1615]">
                 Coordonnées Personnelles
               </h4>
 
@@ -388,35 +388,35 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-mono text-[#132339] font-semibold mb-1">Nom Complet</label>
+                  <label className="block text-xs font-mono text-[#1A1615] font-semibold mb-1">Nom Complet</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] shadow-sm"
+                    className="w-full bg-white border border-[#1A1615]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1615] focus:outline-none focus:border-[#B8912E] shadow-sm"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono text-[#132339] font-semibold mb-1">Téléphone de Contact</label>
+                  <label className="block text-xs font-mono text-[#1A1615] font-semibold mb-1">Téléphone de Contact</label>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+216 27 745 403"
-                    className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] shadow-sm"
+                    className="w-full bg-white border border-[#1A1615]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1615] focus:outline-none focus:border-[#B8912E] shadow-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-[#132339] font-semibold mb-1">Adresse Email (Identifiant de Sécurité)</label>
+                <label className="block text-xs font-mono text-[#1A1615] font-semibold mb-1">Adresse Email (Identifiant de Sécurité)</label>
                 <input
                   type="email"
                   value={user.email}
                   disabled
-                  className="w-full bg-[#EFE8D8] border border-[#132339]/15 rounded-xl px-3.5 py-2.5 text-xs text-[#132339]/70 cursor-not-allowed font-mono"
+                  className="w-full bg-[#EFE8D8] border border-[#1A1615]/15 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1615]/70 cursor-not-allowed font-mono"
                 />
               </div>
 
@@ -424,7 +424,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 <button
                   type="submit"
                   disabled={profileLoading}
-                  className="bg-[#132339] hover:bg-[#1c3250] text-[#FAF8F3] px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50 shadow-md"
+                  className="bg-[#1A1615] hover:bg-[#2D2623] text-[#FAF8F3] px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50 shadow-md"
                 >
                   {profileLoading ? 'Enregistrement...' : 'Enregistrer les Modifications'}
                 </button>
@@ -438,15 +438,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-[#132339]">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-[#1A1615]">
                   Mes Réservations de Séjours & Villas
                 </h3>
-                <span className="text-[11px] text-[#2c3f57]">Données synchronisées en temps réel avec le planning des concierges.</span>
+                <span className="text-[11px] text-[#443E3B]">Données synchronisées en temps réel avec le planning des concierges.</span>
               </div>
               <Link
                 href="/villas-de-luxe"
                 onClick={onClose}
-                className="text-xs text-[#132339] hover:text-[#B8912E] font-mono font-bold flex items-center gap-1"
+                className="text-xs text-[#1A1615] hover:text-[#B8912E] font-mono font-bold flex items-center gap-1"
               >
                 <span>Nouvelle réservation</span>
                 <ArrowRight className="w-3 h-3 text-[#B8912E]" />
@@ -454,19 +454,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
             </div>
 
             {isLoadingRealData ? (
-              <div className="py-12 text-center text-xs font-mono text-[#2c3f57] space-y-2">
-                <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#132339]" />
+              <div className="py-12 text-center text-xs font-mono text-[#443E3B] space-y-2">
+                <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#1A1615]" />
                 <p>Chargement de vos réservations...</p>
               </div>
             ) : userBookings.length === 0 ? (
-              <div className="p-8 rounded-2xl bg-white border border-[rgba(19,35,57,0.12)] shadow-sm text-center space-y-3">
-                <Calendar className="w-10 h-10 text-[#132339]/30 mx-auto" />
-                <p className="text-sm text-[#132339] font-editorial font-medium">Vous n'avez aucune réservation de séjour pour le moment.</p>
-                <p className="text-xs text-[#2c3f57]">Découvrez nos villas d'exception avec conciergerie privée à Sfax et réservez votre séjour.</p>
+              <div className="p-8 rounded-2xl bg-white border border-[rgba(26,22,21,0.12)] shadow-sm text-center space-y-3">
+                <Calendar className="w-10 h-10 text-[#1A1615]/30 mx-auto" />
+                <p className="text-sm text-[#1A1615] font-editorial font-medium">Vous n'avez aucune réservation de séjour pour le moment.</p>
+                <p className="text-xs text-[#443E3B]">Découvrez nos villas d'exception avec conciergerie privée à Sfax et réservez votre séjour.</p>
                 <Link
                   href="/villas-de-luxe"
                   onClick={onClose}
-                  className="inline-block px-5 py-2.5 rounded-xl bg-[#132339] text-[#FAF8F3] text-xs font-bold uppercase tracking-widest hover:bg-[#1c3250] transition-all mt-2 shadow-md"
+                  className="inline-block px-5 py-2.5 rounded-xl bg-[#1A1615] text-[#FAF8F3] text-xs font-bold uppercase tracking-widest hover:bg-[#2D2623] transition-all mt-2 shadow-md"
                 >
                   Explorer les Demeures de Prestige
                 </Link>
@@ -476,15 +476,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 {userBookings.map((b) => (
                   <div
                     key={b.id}
-                    className="p-4 rounded-xl bg-white border border-[rgba(19,35,57,0.12)] space-y-3 hover:border-[#B8912E]/50 transition-all shadow-sm"
+                    className="p-4 rounded-xl bg-white border border-[rgba(26,22,21,0.12)] space-y-3 hover:border-[#B8912E]/50 transition-all shadow-sm"
                   >
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[#132339] font-bold text-sm">{b.propertyTitle || 'Villa de Luxe Villa Regia'}</span>
-                          <span className="text-[10px] font-mono text-[#2c3f57]">#{b.id}</span>
+                          <span className="text-[#1A1615] font-bold text-sm">{b.propertyTitle || 'Villa de Luxe Villa Regia'}</span>
+                          <span className="text-[10px] font-mono text-[#443E3B]">#{b.id}</span>
                         </div>
-                        <span className="text-xs text-[#2c3f57] font-mono flex items-center gap-1 mt-0.5">
+                        <span className="text-xs text-[#443E3B] font-mono flex items-center gap-1 mt-0.5">
                           <Clock className="w-3 h-3 text-[#B8912E]" /> Du {b.checkIn} au {b.checkOut} ({b.totalNights || 1} nuit{b.totalNights > 1 ? 's' : ''})
                         </span>
                       </div>
@@ -499,9 +499,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center pt-3 border-t border-[rgba(19,35,57,0.08)] text-xs font-mono">
-                      <span className="text-[#2c3f57]">{b.guestsCount || b.guests || 2} Voyageur{(b.guestsCount || b.guests) > 1 ? 's' : ''}</span>
-                      <span className="text-[#132339] font-bold">{(b.totalAmount || b.price || 0).toLocaleString()} TND</span>
+                    <div className="flex justify-between items-center pt-3 border-t border-[rgba(26,22,21,0.08)] text-xs font-mono">
+                      <span className="text-[#443E3B]">{b.guestsCount || b.guests || 2} Voyageur{(b.guestsCount || b.guests) > 1 ? 's' : ''}</span>
+                      <span className="text-[#1A1615] font-bold">{(b.totalAmount || b.price || 0).toLocaleString()} TND</span>
                     </div>
                   </div>
                 ))}
@@ -515,15 +515,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-[#132339]">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-[#1A1615]">
                   Mes Dossiers Propriétaire Déposés
                 </h3>
-                <span className="text-[11px] text-[#2c3f57]">Suivez l'avancement juridique et commercial de vos biens soumis.</span>
+                <span className="text-[11px] text-[#443E3B]">Suivez l'avancement juridique et commercial de vos biens soumis.</span>
               </div>
               <Link
                 href="/proposer-un-bien"
                 onClick={onClose}
-                className="text-xs text-[#132339] hover:text-[#B8912E] font-mono font-bold flex items-center gap-1"
+                className="text-xs text-[#1A1615] hover:text-[#B8912E] font-mono font-bold flex items-center gap-1"
               >
                 <span>Nouveau bien</span>
                 <ArrowRight className="w-3 h-3 text-[#B8912E]" />
@@ -531,19 +531,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
             </div>
 
             {isLoadingRealData ? (
-              <div className="py-12 text-center text-xs font-mono text-[#2c3f57] space-y-2">
-                <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#132339]" />
+              <div className="py-12 text-center text-xs font-mono text-[#443E3B] space-y-2">
+                <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#1A1615]" />
                 <p>Chargement de vos dossiers...</p>
               </div>
             ) : userSubmissions.length === 0 ? (
-              <div className="p-8 rounded-2xl bg-white border border-[rgba(19,35,57,0.12)] shadow-sm text-center space-y-3">
-                <Building2 className="w-10 h-10 text-[#132339]/30 mx-auto" />
-                <p className="text-sm text-[#132339] font-editorial font-medium">Aucun dossier propriétaire soumis avec cette adresse email.</p>
-                <p className="text-xs text-[#2c3f57]">Vous possédez une villa, un domaine ou un duplex d'exception à Sfax ou Tunis ? Confiez-nous sa valorisation.</p>
+              <div className="p-8 rounded-2xl bg-white border border-[rgba(26,22,21,0.12)] shadow-sm text-center space-y-3">
+                <Building2 className="w-10 h-10 text-[#1A1615]/30 mx-auto" />
+                <p className="text-sm text-[#1A1615] font-editorial font-medium">Aucun dossier propriétaire soumis avec cette adresse email.</p>
+                <p className="text-xs text-[#443E3B]">Vous possédez une villa, un domaine ou un duplex d'exception à Sfax ou Tunis ? Confiez-nous sa valorisation.</p>
                 <Link
                   href="/proposer-un-bien"
                   onClick={onClose}
-                  className="inline-block px-5 py-2.5 rounded-xl bg-[#132339] text-[#FAF8F3] text-xs font-bold uppercase tracking-widest hover:bg-[#1c3250] transition-all mt-2 shadow-md"
+                  className="inline-block px-5 py-2.5 rounded-xl bg-[#1A1615] text-[#FAF8F3] text-xs font-bold uppercase tracking-widest hover:bg-[#2D2623] transition-all mt-2 shadow-md"
                 >
                   Proposer un Bien à la Vente ou Location
                 </Link>
@@ -553,15 +553,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 {userSubmissions.map((s) => (
                   <div
                     key={s.id}
-                    className="p-4 rounded-xl bg-white border border-[rgba(19,35,57,0.12)] space-y-3 hover:border-[#B8912E]/50 transition-all shadow-sm"
+                    className="p-4 rounded-xl bg-white border border-[rgba(26,22,21,0.12)] space-y-3 hover:border-[#B8912E]/50 transition-all shadow-sm"
                   >
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[#132339] font-bold text-sm">{s.propertyType} — {s.district || s.city || 'Sfax'}</span>
-                          <span className="text-[10px] font-mono text-[#2c3f57]">Dossier #{s.refCode || s.id}</span>
+                          <span className="text-[#1A1615] font-bold text-sm">{s.propertyType} — {s.district || s.city || 'Sfax'}</span>
+                          <span className="text-[10px] font-mono text-[#443E3B]">Dossier #{s.refCode || s.id}</span>
                         </div>
-                        <span className="text-xs text-[#2c3f57] font-mono block mt-0.5">
+                        <span className="text-xs text-[#443E3B] font-mono block mt-0.5">
                           Objectif: {s.objective} • Surface: {s.surfaceM2 || 'Non précisée'} m² • Titre: {s.titleType || 'En vérification'}
                         </span>
                       </div>
@@ -576,8 +576,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center pt-3 border-t border-[rgba(19,35,57,0.08)] text-xs font-mono">
-                      <span className="text-[#2c3f57]">Prix estimé: {(s.estimatedPrice || s.estimatedValue || 0).toLocaleString()} TND</span>
+                    <div className="flex justify-between items-center pt-3 border-t border-[rgba(26,22,21,0.08)] text-xs font-mono">
+                      <span className="text-[#443E3B]">Prix estimé: {(s.estimatedPrice || s.estimatedValue || 0).toLocaleString()} TND</span>
                       <a
                         href="https://wa.me/21627745403"
                         target="_blank"
@@ -599,13 +599,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         {activeTab === 'favorites' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-[#132339]">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-[#1A1615]">
                 Mes Demeures Enregistrées ({favorites.length})
               </h3>
               <Link
                 href="/properties"
                 onClick={onClose}
-                className="text-xs text-[#132339] hover:text-[#B8912E] font-mono font-bold flex items-center gap-1"
+                className="text-xs text-[#1A1615] hover:text-[#B8912E] font-mono font-bold flex items-center gap-1"
               >
                 <span>Catalogue complet</span>
                 <ArrowRight className="w-3 h-3 text-[#B8912E]" />
@@ -613,14 +613,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
             </div>
 
             {favorites.length === 0 ? (
-              <div className="text-center py-10 space-y-3 bg-white rounded-2xl border border-[rgba(19,35,57,0.12)] shadow-sm">
-                <Heart className="w-10 h-10 text-[#132339]/30 mx-auto" />
-                <p className="text-sm text-[#132339] font-editorial font-medium">Aucun bien immobilier enregistré dans vos favoris.</p>
-                <p className="text-xs text-[#2c3f57]">Cliquez sur le cœur d'une propriété pour la retrouver ici en un clin d'œil.</p>
+              <div className="text-center py-10 space-y-3 bg-white rounded-2xl border border-[rgba(26,22,21,0.12)] shadow-sm">
+                <Heart className="w-10 h-10 text-[#1A1615]/30 mx-auto" />
+                <p className="text-sm text-[#1A1615] font-editorial font-medium">Aucun bien immobilier enregistré dans vos favoris.</p>
+                <p className="text-xs text-[#443E3B]">Cliquez sur le cœur d'une propriété pour la retrouver ici en un clin d'œil.</p>
                 <Link
                   href="/properties"
                   onClick={onClose}
-                  className="inline-block px-5 py-2.5 rounded-xl bg-[#132339] text-[#FAF8F3] text-xs font-bold uppercase tracking-widest hover:bg-[#1c3250] transition-all mt-2 shadow-md"
+                  className="inline-block px-5 py-2.5 rounded-xl bg-[#1A1615] text-[#FAF8F3] text-xs font-bold uppercase tracking-widest hover:bg-[#2D2623] transition-all mt-2 shadow-md"
                 >
                   Découvrir le Catalogue
                 </Link>
@@ -640,39 +640,39 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                   return (
                     <div
                       key={favId}
-                      className="p-3.5 rounded-xl bg-white border border-[rgba(19,35,57,0.12)] hover:border-[#B8912E]/50 transition-all flex flex-col justify-between gap-3 group shadow-sm"
+                      className="p-3.5 rounded-xl bg-white border border-[rgba(26,22,21,0.12)] hover:border-[#B8912E]/50 transition-all flex flex-col justify-between gap-3 group shadow-sm"
                     >
                       <div className="flex gap-3">
-                        <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-[rgba(19,35,57,0.1)]">
+                        <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-[rgba(26,22,21,0.1)]">
                           <Image src={coverImg} alt={titleStr} fill className="object-cover group-hover:scale-105 transition-transform" />
                         </div>
                         <div className="space-y-1 min-w-0 flex-1">
-                          <span className="text-xs font-bold text-[#132339] truncate block">
+                          <span className="text-xs font-bold text-[#1A1615] truncate block">
                             {titleStr}
                           </span>
-                          <span className="text-[11px] text-[#2c3f57] font-mono block">
+                          <span className="text-[11px] text-[#443E3B] font-mono block">
                             {property ? `${property.location.district}, ${property.location.city}` : 'Sfax, Tunisie'}
                           </span>
                           {property?.price && (
-                            <span className="text-xs font-bold text-[#132339] font-mono block">
+                            <span className="text-xs font-bold text-[#1A1615] font-mono block">
                               {property.price.amount.toLocaleString()} {property.price.currency}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-[rgba(19,35,57,0.08)] text-xs">
+                      <div className="flex items-center justify-between pt-2 border-t border-[rgba(26,22,21,0.08)] text-xs">
                         <Link
                           href={`/properties/${favId}`}
                           onClick={onClose}
-                          className="text-[#132339] hover:text-[#B8912E] font-mono font-bold flex items-center gap-1 text-[11px]"
+                          className="text-[#1A1615] hover:text-[#B8912E] font-mono font-bold flex items-center gap-1 text-[11px]"
                         >
                           <span>Voir la fiche</span>
                           <ExternalLink className="w-3 h-3 text-[#B8912E]" />
                         </Link>
                         <button
                           onClick={() => toggleFavorite(favId)}
-                          className="text-[#2c3f57] hover:text-red-600 p-1 transition-colors flex items-center gap-1 text-[11px]"
+                          className="text-[#443E3B] hover:text-red-600 p-1 transition-colors flex items-center gap-1 text-[11px]"
                           title="Retirer des favoris"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -691,7 +691,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         {activeTab === 'security' && (
           <div className="space-y-6">
             <form onSubmit={handleChangePassword} className="space-y-4">
-              <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-[#132339]">
+              <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-[#1A1615]">
                 Modifier mon Mot de Passe
               </h4>
 
@@ -709,19 +709,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
               )}
 
               <div>
-                <label className="block text-xs font-mono text-[#132339] font-semibold mb-1">Mot de Passe Actuel</label>
+                <label className="block text-xs font-mono text-[#1A1615] font-semibold mb-1">Mot de Passe Actuel</label>
                 <div className="relative">
                   <input
                     type={showCurrentPass ? 'text' : 'password'}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] pr-10 shadow-sm"
+                    className="w-full bg-white border border-[#1A1615]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1615] focus:outline-none focus:border-[#B8912E] pr-10 shadow-sm"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPass(!showCurrentPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#132339]/40 hover:text-[#132339]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1615]/40 hover:text-[#1A1615]"
                   >
                     {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -730,20 +730,20 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-mono text-[#132339] font-semibold mb-1">Nouveau Mot de Passe (min. 6 caractères)</label>
+                  <label className="block text-xs font-mono text-[#1A1615] font-semibold mb-1">Nouveau Mot de Passe (min. 6 caractères)</label>
                   <div className="relative">
                     <input
                       type={showNewPass ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] pr-10 shadow-sm"
+                      className="w-full bg-white border border-[#1A1615]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1615] focus:outline-none focus:border-[#B8912E] pr-10 shadow-sm"
                       required
                       minLength={6}
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPass(!showNewPass)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#132339]/40 hover:text-[#132339]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1A1615]/40 hover:text-[#1A1615]"
                     >
                       {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -751,12 +751,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono text-[#132339] font-semibold mb-1">Confirmer le Nouveau Mot de Passe</label>
+                  <label className="block text-xs font-mono text-[#1A1615] font-semibold mb-1">Confirmer le Nouveau Mot de Passe</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] shadow-sm"
+                    className="w-full bg-white border border-[#1A1615]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1615] focus:outline-none focus:border-[#B8912E] shadow-sm"
                     required
                     minLength={6}
                   />
@@ -767,7 +767,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 <button
                   type="submit"
                   disabled={passLoading}
-                  className="bg-[#132339] hover:bg-[#1c3250] text-[#FAF8F3] px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50 shadow-md"
+                  className="bg-[#1A1615] hover:bg-[#2D2623] text-[#FAF8F3] px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50 shadow-md"
                 >
                   {passLoading ? 'Mise à jour...' : 'Mettre à Jour le Mot de Passe'}
                 </button>
@@ -776,16 +776,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
 
             {/* Audit Logs */}
             {auditLogs.length > 0 && (
-              <div className="space-y-2 pt-4 border-t border-[rgba(19,35,57,0.12)]">
-                <span className="text-[10px] font-mono uppercase text-[#132339] font-bold block">Dernières Activités de Sécurité</span>
+              <div className="space-y-2 pt-4 border-t border-[rgba(26,22,21,0.12)]">
+                <span className="text-[10px] font-mono uppercase text-[#1A1615] font-bold block">Dernières Activités de Sécurité</span>
                 <div className="space-y-1.5 max-h-32 overflow-y-auto">
                   {auditLogs.slice(0, 4).map((log) => (
-                    <div key={log.id} className="p-2 rounded-lg bg-white border border-[rgba(19,35,57,0.12)] flex items-center justify-between text-[11px] font-mono shadow-sm">
+                    <div key={log.id} className="p-2 rounded-lg bg-white border border-[rgba(26,22,21,0.12)] flex items-center justify-between text-[11px] font-mono shadow-sm">
                       <div>
-                        <span className="text-[#132339] font-bold">{log.action}</span>
-                        <span className="text-[#2c3f57] block text-[10px]">{log.target}</span>
+                        <span className="text-[#1A1615] font-bold">{log.action}</span>
+                        <span className="text-[#443E3B] block text-[10px]">{log.target}</span>
                       </div>
-                      <span className="text-[#2c3f57]/60 text-[10px]">{log.timestamp}</span>
+                      <span className="text-[#443E3B]/60 text-[10px]">{log.timestamp}</span>
                     </div>
                   ))}
                 </div>
@@ -795,7 +795,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         )}
 
         {/* Modal Footer with Logout and Branding */}
-        <div className="pt-4 border-t border-[rgba(19,35,57,0.12)] flex justify-between items-center">
+        <div className="pt-4 border-t border-[rgba(26,22,21,0.12)] flex justify-between items-center">
           <button
             onClick={() => {
               logout();
@@ -806,7 +806,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
             <LogOut className="w-4 h-4" />
             <span>Se Déconnecter</span>
           </button>
-          <span className="text-[10px] text-[#2c3f57] font-mono font-medium">Villa Regia Real Estates • Sfax</span>
+          <span className="text-[10px] text-[#443E3B] font-mono font-medium">Villa Regia Real Estates • Sfax</span>
         </div>
       </motion.div>
     </div>

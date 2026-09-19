@@ -171,7 +171,7 @@ export default function PropertyDetailPage() {
     return (
       <div className="pt-40 pb-24 text-center space-y-6 min-h-[60vh] flex flex-col items-center justify-center bg-[#FAF8F3]">
         <div className="w-10 h-10 border-2 border-[#B15A3C] border-t-transparent rounded-full animate-spin" />
-        <p className="text-[#132339] text-xs uppercase tracking-widest font-mono">Chargement de la demeure d'exception...</p>
+        <p className="text-[#1A1615] text-xs uppercase tracking-widest font-mono">Chargement de la demeure d'exception...</p>
       </div>
     );
   }
@@ -179,7 +179,7 @@ export default function PropertyDetailPage() {
   if (!property) {
     return (
       <div className="pt-40 pb-24 text-center space-y-6 bg-[#FAF8F3] min-h-screen">
-        <h1 className="font-editorial text-4xl text-[#132339]">Cette adresse semble introuvable.</h1>
+        <h1 className="font-editorial text-4xl text-[#1A1615]">Cette adresse semble introuvable.</h1>
         <Link href="/properties" className="inline-block bg-[#B15A3C] text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest shadow-md">
           Retour au catalogue
         </Link>
@@ -188,7 +188,7 @@ export default function PropertyDetailPage() {
   }
 
   return (
-    <div className="bg-[#FAF8F3] text-[#132339] min-h-screen pb-24">
+    <div className="bg-[#FAF8F3] text-[#1A1615] min-h-screen pb-24">
       
       {/* Fullscreen Property Hero */}
       <section className="relative w-full h-[80vh] min-h-[600px] overflow-hidden">
@@ -199,22 +199,22 @@ export default function PropertyDetailPage() {
           priority
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-navy via-brand-navy/30 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1615] via-[#1A1615]/30 to-black/40" />
 
         {/* Floating Top Actions */}
         <div className="absolute top-24 left-6 right-6 z-20 flex justify-between items-center max-w-7xl mx-auto">
           <button
             onClick={() => router.back()}
-            className="glass-navy text-[#132339] px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 border border-[rgba(19,35,57,0.18)] hover:border-[#132339] shadow-md"
+            className="glass-navy text-[#1A1615] px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 border border-[rgba(26,22,21,0.18)] hover:border-[#1A1615] shadow-md"
           >
-            <ArrowLeft className="w-4 h-4 text-[#132339]" />
+            <ArrowLeft className="w-4 h-4 text-[#1A1615]" />
             <span>{t('btn.back')}</span>
           </button>
 
           <div className="flex gap-3">
             <button
               onClick={handleShare}
-              className="glass-navy p-3 rounded-full text-[#132339] hover:text-[#B15A3C] border border-[rgba(19,35,57,0.18)] transition-all shadow-md"
+              className="glass-navy p-3 rounded-full text-[#1A1615] hover:text-[#B15A3C] border border-[rgba(26,22,21,0.18)] transition-all shadow-md"
               title="Partager"
             >
               <Share2 className="w-4 h-4" />
@@ -224,7 +224,7 @@ export default function PropertyDetailPage() {
               className={`glass-navy p-3 rounded-full border transition-all shadow-md ${
                 isFavorite(property.id)
                   ? 'bg-[#B15A3C] text-[#FAF8F3] border-[#B15A3C]'
-                  : 'text-[#132339] border-[rgba(19,35,57,0.18)] hover:border-[#B15A3C]'
+                  : 'text-[#1A1615] border-[rgba(26,22,21,0.18)] hover:border-[#B15A3C]'
               }`}
               title="Favoris"
             >
@@ -239,9 +239,9 @@ export default function PropertyDetailPage() {
             <div className="flex items-center gap-3">
               <span className={`px-3 py-1 text-[10px] font-bold font-mono uppercase tracking-widest rounded-full shadow-sm ${
                 property.universe === 'VENTE' ? 'bg-[#B15A3C] text-[#FAF8F3]' :
-                property.universe === 'LUXE' ? 'bg-[#B8912E] text-[#132339]' :
+                property.universe === 'LUXE' ? 'bg-[#B8912E] text-[#1A1615]' :
                 property.universe === 'EVENT' ? 'bg-[#6E7A52] text-[#FAF8F3]' :
-                'bg-[#132339] text-[#FAF8F3] border border-white/20'
+                'bg-[#1A1615] text-[#FAF8F3] border border-white/20'
               }`}>
                 {property.universe}
               </span>
@@ -259,11 +259,11 @@ export default function PropertyDetailPage() {
             </p>
           </div>
 
-          <div className="glass-navy p-6 rounded-xl border border-[rgba(19,35,57,0.18)] space-y-1 text-right shadow-xl">
+          <div className="glass-navy p-6 rounded-xl border border-[rgba(26,22,21,0.18)] space-y-1 text-right shadow-xl">
             <span className="text-[10px] font-mono uppercase text-[#B15A3C] font-bold block">Prix de présentation</span>
-            <div className="font-editorial text-3xl text-[#132339] font-bold">
+            <div className="font-editorial text-3xl text-[#1A1615] font-bold">
               {property.price.amount.toLocaleString('fr-FR')} {property.price.currency}
-              {property.price.period ? <span className="text-sm font-sans text-[#2c3f57]"> / {property.price.period}</span> : ''}
+              {property.price.period ? <span className="text-sm font-sans text-[#443E3B]"> / {property.price.period}</span> : ''}
             </div>
           </div>
         </div>
@@ -408,51 +408,51 @@ export default function PropertyDetailPage() {
           )}
 
           {/* Key Specifications Grid */}
-          <div className="p-6 rounded-xs bg-[#FAF8F3] border border-[rgba(19,35,57,0.14)] shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+          <div className="p-6 rounded-xs bg-[#FAF8F3] border border-[rgba(26,22,21,0.14)] shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
             <div>
               <Maximize2 className="w-5 h-5 text-[#B8912E] mx-auto mb-2" />
-              <span className="text-[10px] font-semibold uppercase text-[#2c3f57] block">Surface</span>
-              <span className="font-serif text-2xl text-[#132339] font-semibold">{property.specs.surfaceM2} m²</span>
+              <span className="text-[10px] font-semibold uppercase text-[#443E3B] block">Surface</span>
+              <span className="font-serif text-2xl text-[#1A1615] font-semibold">{property.specs.surfaceM2} m²</span>
             </div>
 
             {property.specs.bedrooms !== undefined && (
               <div>
                 <Bed className="w-5 h-5 text-[#B8912E] mx-auto mb-2" />
-                <span className="text-[10px] font-semibold uppercase text-[#2c3f57] block">Chambres</span>
-                <span className="font-serif text-2xl text-[#132339] font-semibold">{property.specs.bedrooms}</span>
+                <span className="text-[10px] font-semibold uppercase text-[#443E3B] block">Chambres</span>
+                <span className="font-serif text-2xl text-[#1A1615] font-semibold">{property.specs.bedrooms}</span>
               </div>
             )}
 
             {property.specs.bathrooms !== undefined && (
               <div>
                 <Bath className="w-5 h-5 text-[#B8912E] mx-auto mb-2" />
-                <span className="text-[10px] font-semibold uppercase text-[#2c3f57] block">Salles d'eau</span>
-                <span className="font-serif text-2xl text-[#132339] font-semibold">{property.specs.bathrooms}</span>
+                <span className="text-[10px] font-semibold uppercase text-[#443E3B] block">Salles d'eau</span>
+                <span className="font-serif text-2xl text-[#1A1615] font-semibold">{property.specs.bathrooms}</span>
               </div>
             )}
 
             {property.specs.parkingSpaces !== undefined && (
               <div>
                 <Car className="w-5 h-5 text-[#B8912E] mx-auto mb-2" />
-                <span className="text-[10px] font-semibold uppercase text-[#2c3f57] block">Stationnements</span>
-                <span className="font-serif text-2xl text-[#132339] font-semibold">{property.specs.parkingSpaces}</span>
+                <span className="text-[10px] font-semibold uppercase text-[#443E3B] block">Stationnements</span>
+                <span className="font-serif text-2xl text-[#1A1615] font-semibold">{property.specs.parkingSpaces}</span>
               </div>
             )}
           </div>
 
           {/* Description & Editorial Story */}
           <div className="space-y-6">
-            <h3 className="font-serif text-3xl font-semibold text-[#132339] border-b border-[rgba(19,35,57,0.1)] pb-3">
+            <h3 className="font-serif text-3xl font-semibold text-[#1A1615] border-b border-[rgba(26,22,21,0.1)] pb-3">
               L'Architecture & L'Esprit du Lieu
             </h3>
-            <p className="text-base font-normal text-[#2c3f57] leading-relaxed whitespace-pre-line">
+            <p className="text-base font-normal text-[#443E3B] leading-relaxed whitespace-pre-line">
               {property.description[language]}
             </p>
 
             {property.story && (
               <div className="p-8 rounded-xs bg-[#EFE8D8] border-l-4 border-[#B8912E] space-y-3 my-6">
                 <span className="text-[10px] font-semibold uppercase text-[#B8912E] tracking-widest block">Le Récit Villa Regia</span>
-                <p className="font-serif text-xl italic text-[#132339] leading-relaxed">
+                <p className="font-serif text-xl italic text-[#1A1615] leading-relaxed">
                   "{property.story[language]}"
                 </p>
               </div>
@@ -461,12 +461,12 @@ export default function PropertyDetailPage() {
 
           {/* Amenities Matrix */}
           <div className="space-y-6">
-            <h3 className="font-serif text-2xl font-semibold text-[#132339] border-b border-[rgba(19,35,57,0.1)] pb-3">
+            <h3 className="font-serif text-2xl font-semibold text-[#1A1615] border-b border-[rgba(26,22,21,0.1)] pb-3">
               Prestations & Équipements Exclusifs
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {property.amenities.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-xs bg-[#FAF8F3] border border-[rgba(19,35,57,0.14)] text-xs font-medium text-[#132339]">
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-xs bg-[#FAF8F3] border border-[rgba(26,22,21,0.14)] text-xs font-medium text-[#1A1615]">
                   <CheckCircle2 className="w-4 h-4 text-[#B15A3C] shrink-0" />
                   <span>{item}</span>
                 </div>
@@ -478,11 +478,11 @@ export default function PropertyDetailPage() {
 
         {/* Right Sticky Inquiry Card */}
         <div className="lg:col-span-4">
-          <div className="sticky top-28 bg-[#FAF8F3] p-8 rounded-xs border border-[rgba(19,35,57,0.14)] shadow-xl space-y-6">
+          <div className="sticky top-28 bg-[#FAF8F3] p-8 rounded-xs border border-[rgba(26,22,21,0.14)] shadow-xl space-y-6">
             
-            <div className="border-b border-[rgba(19,35,57,0.1)] pb-4 text-center">
+            <div className="border-b border-[rgba(26,22,21,0.1)] pb-4 text-center">
               <span className="text-xs font-semibold uppercase text-[#B8912E] block mb-1">Conseil Privé & Visite</span>
-              <h4 className="font-serif text-2xl font-semibold text-[#132339]">
+              <h4 className="font-serif text-2xl font-semibold text-[#1A1615]">
                 Intéressé par ce Bien ?
               </h4>
             </div>
@@ -510,14 +510,14 @@ export default function PropertyDetailPage() {
               ) : (
                 <button
                   onClick={() => setInquiryModalOpen(true)}
-                  className="w-full bg-[#132339] text-[#FAF8F3] hover:bg-[#2c3f57] py-3.5 rounded-xs text-xs font-semibold uppercase tracking-widest transition-all shadow-xs"
+                  className="w-full bg-[#1A1615] text-[#FAF8F3] hover:bg-[#2D2623] py-3.5 rounded-xs text-xs font-semibold uppercase tracking-widest transition-all shadow-xs"
                 >
                   Formulaire de Demande
                 </button>
               )}
             </div>
 
-            <div className="pt-4 border-t border-[rgba(19,35,57,0.1)] space-y-2 text-[11px] text-[#2c3f57]">
+            <div className="pt-4 border-t border-[rgba(26,22,21,0.1)] space-y-2 text-[11px] text-[#443E3B]">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-[#B8912E]" />
                 <span>Transaction sécurisée & accompagnement juridique Villa Regia</span>
@@ -569,10 +569,10 @@ export default function PropertyDetailPage() {
       {/* Inquiry Form Modal */}
       {inquiryModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur flex items-center justify-center p-4">
-          <div className="bg-[#FAF8F3] text-[#132339] p-8 rounded-2xl max-w-md w-full border border-[#132339]/10 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-[#132339]/10 pb-3">
-              <h3 className="font-editorial text-2xl font-light text-[#132339]">Demande de Renseignements</h3>
-              <button onClick={() => setInquiryModalOpen(false)} className="text-[#132339]/60 hover:text-[#132339]">
+          <div className="bg-[#FAF8F3] text-[#1A1615] p-8 rounded-2xl max-w-md w-full border border-[#1A1615]/10 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-[#1A1615]/10 pb-3">
+              <h3 className="font-editorial text-2xl font-light text-[#1A1615]">Demande de Renseignements</h3>
+              <button onClick={() => setInquiryModalOpen(false)} className="text-[#1A1615]/60 hover:text-[#1A1615]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -580,26 +580,26 @@ export default function PropertyDetailPage() {
             {inquirySuccess ? (
               <div className="py-8 text-center space-y-3">
                 <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto animate-bounce" />
-                <h4 className="font-editorial text-xl text-[#132339]">Demande Transmise</h4>
-                <p className="text-xs text-[#132339]/70">Un conseiller privé Villa Regia vous recontacte dans les plus brefs délais.</p>
+                <h4 className="font-editorial text-xl text-[#1A1615]">Demande Transmise</h4>
+                <p className="text-xs text-[#1A1615]/70">Un conseiller privé Villa Regia vous recontacte dans les plus brefs délais.</p>
               </div>
             ) : (
               <form onSubmit={handleInquirySubmit} className="space-y-3">
                 <div>
                   <label className="text-[10px] font-mono uppercase text-[#B15A3C] font-semibold block mb-1">Nom complet</label>
-                  <input required value={inquiryName} onChange={(e) => setInquiryName(e.target.value)} type="text" placeholder="ex: Mohamed Triki" className="w-full bg-white border border-[#132339]/15 rounded-xl px-3 py-2 text-xs text-[#132339] focus:outline-none focus:border-[#B15A3C]" />
+                  <input required value={inquiryName} onChange={(e) => setInquiryName(e.target.value)} type="text" placeholder="ex: Mohamed Triki" className="w-full bg-white border border-[#1A1615]/15 rounded-xl px-3 py-2 text-xs text-[#1A1615] focus:outline-none focus:border-[#B15A3C]" />
                 </div>
                 <div>
                   <label className="text-[10px] font-mono uppercase text-[#B15A3C] font-semibold block mb-1">Téléphone</label>
-                  <input required value={inquiryPhone} onChange={(e) => setInquiryPhone(e.target.value)} type="tel" placeholder="+216 20 000 000" className="w-full bg-white border border-[#132339]/15 rounded-xl px-3 py-2 text-xs text-[#132339] focus:outline-none focus:border-[#B15A3C]" />
+                  <input required value={inquiryPhone} onChange={(e) => setInquiryPhone(e.target.value)} type="tel" placeholder="+216 20 000 000" className="w-full bg-white border border-[#1A1615]/15 rounded-xl px-3 py-2 text-xs text-[#1A1615] focus:outline-none focus:border-[#B15A3C]" />
                 </div>
                 <div>
                   <label className="text-[10px] font-mono uppercase text-[#B15A3C] font-semibold block mb-1">Email</label>
-                  <input required value={inquiryEmail} onChange={(e) => setInquiryEmail(e.target.value)} type="email" placeholder="client@exemple.tn" className="w-full bg-white border border-[#132339]/15 rounded-xl px-3 py-2 text-xs text-[#132339] focus:outline-none focus:border-[#B15A3C]" />
+                  <input required value={inquiryEmail} onChange={(e) => setInquiryEmail(e.target.value)} type="email" placeholder="client@exemple.tn" className="w-full bg-white border border-[#1A1615]/15 rounded-xl px-3 py-2 text-xs text-[#1A1615] focus:outline-none focus:border-[#B15A3C]" />
                 </div>
                 <div>
                   <label className="text-[10px] font-mono uppercase text-[#B15A3C] font-semibold block mb-1">Message</label>
-                  <textarea rows={3} value={inquiryMessage} onChange={(e) => setInquiryMessage(e.target.value)} placeholder={`Je souhaite réserver une visite privée pour : ${property?.title?.[language] || ''}`} className="w-full bg-white border border-[#132339]/15 rounded-xl px-3 py-2 text-xs text-[#132339] focus:outline-none focus:border-[#B15A3C]" />
+                  <textarea rows={3} value={inquiryMessage} onChange={(e) => setInquiryMessage(e.target.value)} placeholder={`Je souhaite réserver une visite privée pour : ${property?.title?.[language] || ''}`} className="w-full bg-white border border-[#1A1615]/15 rounded-xl px-3 py-2 text-xs text-[#1A1615] focus:outline-none focus:border-[#B15A3C]" />
                 </div>
 
                 {inquiryError && (

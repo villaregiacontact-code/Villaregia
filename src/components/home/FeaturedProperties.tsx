@@ -84,11 +84,11 @@ export const FeaturedProperties: React.FC = () => {
     if (val.includes('VENDRE') || val.includes('VENTE')) return 'bg-[#B15A3C] text-white';
     if (val.includes('LUXE') || val.includes('PRESTIGE')) return 'bg-[#B8912E] text-white';
     if (val.includes('EVENT') || val.includes('ÉVÉNEMENT')) return 'bg-[#6E7A52] text-white';
-    return 'bg-[#FAF8F3] text-[#132339] border border-[rgba(19,35,57,0.14)]';
+    return 'bg-[#FAF8F3] text-[#1A1615] border border-[rgba(26,22,21,0.14)]';
   };
 
   return (
-    <section className="bg-[#FAF8F3] text-[#132339] py-20 sm:py-24 overflow-hidden">
+    <section className="bg-[#FAF8F3] text-[#1A1615] py-20 sm:py-24 overflow-hidden">
       <div className="max-w-[1180px] mx-auto px-4 sm:px-8">
         
         {/* Header */}
@@ -101,7 +101,7 @@ export const FeaturedProperties: React.FC = () => {
         >
           <div>
             <span className="text-xs uppercase tracking-widest text-[#B15A3C] font-semibold block mb-1">Prestige & Exclusivités</span>
-            <h2 className="font-serif text-3xl sm:text-4xl text-[#132339] font-semibold max-w-[14ch]">
+            <h2 className="font-serif text-3xl sm:text-4xl text-[#1A1615] font-semibold max-w-[14ch]">
               Sélection du moment
             </h2>
           </div>
@@ -126,7 +126,7 @@ export const FeaturedProperties: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: idx * 0.15 }}
-                className="bg-[#FAF8F3] rounded-xs overflow-hidden flex flex-col group border border-[rgba(19,35,57,0.14)] hover:border-[#B15A3C]/50 transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1"
+                className="bg-[#FAF8F3] rounded-xs overflow-hidden flex flex-col group border border-[rgba(26,22,21,0.14)] hover:border-[#B15A3C]/50 transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1"
               >
                 
                 {/* Image & Tag */}
@@ -149,7 +149,7 @@ export const FeaturedProperties: React.FC = () => {
                     className={`absolute top-3.5 right-3.5 p-2 rounded-full backdrop-blur transition-all shadow-md ${
                       isFavorite(prop.id)
                         ? 'bg-[#B15A3C] text-white scale-110'
-                        : 'bg-[#FAF8F3]/90 text-[#132339] hover:text-[#B15A3C]'
+                        : 'bg-[#FAF8F3]/90 text-[#1A1615] hover:text-[#B15A3C]'
                     }`}
                   >
                     <Heart className={`w-3.5 h-3.5 ${isFavorite(prop.id) ? 'fill-current' : ''}`} />
@@ -159,19 +159,19 @@ export const FeaturedProperties: React.FC = () => {
                 {/* Body */}
                 <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
                   <div>
-                    <h4 className="font-serif text-lg font-semibold text-[#132339] mb-1.5 line-clamp-1 group-hover:text-[#B15A3C] transition-colors">
+                    <h4 className="font-serif text-lg font-semibold text-[#1A1615] mb-1.5 line-clamp-1 group-hover:text-[#B15A3C] transition-colors">
                       {prop.title[language] || prop.title.fr}
                     </h4>
-                    <div className="text-xs text-[#2c3f57] mb-4 line-clamp-2">
+                    <div className="text-xs text-[#443E3B] mb-4 line-clamp-2">
                       {prop.meta || `${prop.location?.city || ''}, ${prop.location?.district || ''} · ${prop.specs?.surfaceM2 || ''} m²`}
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center border-t border-[rgba(19,35,57,0.1)] pt-3.5 mt-2">
-                    <b className="font-serif text-base sm:text-lg text-[#132339]">
+                  <div className="flex justify-between items-center border-t border-[rgba(26,22,21,0.1)] pt-3.5 mt-2">
+                    <b className="font-serif text-base sm:text-lg text-[#1A1615]">
                       {prop.price.amount > 0 ? `${prop.price.amount.toLocaleString()} ${prop.price.currency}` : prop.price.currency}
                     </b>
-                    <span className="text-[12.5px] text-[#2c3f57] font-medium">
+                    <span className="text-[12.5px] text-[#443E3B] font-medium">
                       {prop.subPrice || `${prop.specs?.bedrooms ? `${prop.specs.bedrooms} ch.` : 'Disponible'}`}
                     </span>
                   </div>

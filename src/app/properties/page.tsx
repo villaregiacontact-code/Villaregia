@@ -173,7 +173,7 @@ function CatalogContent() {
   };
 
   return (
-    <div className="pt-28 pb-24 bg-[#FAF8F3] min-h-screen text-[#132339]">
+    <div className="pt-28 pb-24 bg-[#FAF8F3] min-h-screen text-[#1A1615]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Page Header ── */}
@@ -182,10 +182,10 @@ function CatalogContent() {
             <Sparkles className="w-3.5 h-3.5" />
             <span>{t('catalog.badge')}</span>
           </div>
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold text-[#132339]">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold text-[#1A1615]">
             {t('catalog.title')}
           </h1>
-          <p className="text-base text-[#2c3f57] mt-3 max-w-xl mx-auto font-normal leading-relaxed">
+          <p className="text-base text-[#443E3B] mt-3 max-w-xl mx-auto font-normal leading-relaxed">
             {t('catalog.subtitle')}
           </p>
         </div>
@@ -205,14 +205,14 @@ function CatalogContent() {
                     onClick={() => setCategoryFilter(value as PropertyCategory | 'ALL')}
                     className={`group relative flex items-center gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-xs border transition-all duration-200 shrink-0 snap-start ${
                       isActive
-                        ? 'bg-[#132339] text-[#FAF8F3] border-[#132339] shadow-md font-semibold'
-                        : 'bg-[#FAF8F3] border-[rgba(19,35,57,0.14)] text-[#2c3f57] hover:border-[#132339] hover:text-[#132339]'
+                        ? 'bg-[#1A1615] text-[#FAF8F3] border-[#1A1615] shadow-md font-semibold'
+                        : 'bg-[#FAF8F3] border-[rgba(26,22,21,0.14)] text-[#443E3B] hover:border-[#1A1615] hover:text-[#1A1615]'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#B8912E]' : 'group-hover:text-[#132339]'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#B8912E]' : 'group-hover:text-[#1A1615]'}`} />
                     <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>
                     {value !== 'ALL' && (
-                      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${isActive ? 'bg-[#FAF8F3]/20 text-[#FAF8F3]' : 'bg-[#132339]/10 text-[#132339]'}`}>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${isActive ? 'bg-[#FAF8F3]/20 text-[#FAF8F3]' : 'bg-[#1A1615]/10 text-[#1A1615]'}`}>
                         {count}
                       </span>
                     )}
@@ -234,8 +234,8 @@ function CatalogContent() {
                     onClick={() => setUniverseFilter(value as UniverseType | 'ALL')}
                     className={`px-3.5 py-1.5 rounded-full border text-[11px] font-semibold uppercase tracking-wider transition-all ${
                       isActive
-                        ? 'bg-[#132339] text-[#FAF8F3] border-[#132339] shadow-sm'
-                        : 'bg-[#FAF8F3] border-[rgba(19,35,57,0.14)] text-[#2c3f57] hover:border-[#132339]'
+                        ? 'bg-[#1A1615] text-[#FAF8F3] border-[#1A1615] shadow-sm'
+                        : 'bg-[#FAF8F3] border-[rgba(26,22,21,0.14)] text-[#443E3B] hover:border-[#1A1615]'
                     }`}
                   >
                     {label}
@@ -248,16 +248,16 @@ function CatalogContent() {
 
             {/* Search city */}
             <div className="relative w-full sm:w-52">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#2c3f57]/60" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#443E3B]/60" />
               <input
                 type="text"
                 value={searchCity}
                 onChange={e => setSearchCity(e.target.value)}
                 placeholder="Quartier, secteur…"
-                className="w-full bg-[#FAF8F3] border border-[rgba(19,35,57,0.18)] rounded-xs pl-9 pr-8 py-2 text-xs text-[#132339] placeholder:text-[#2c3f57]/50 focus:outline-none focus:border-[#B15A3C] transition-all"
+                className="w-full bg-[#FAF8F3] border border-[rgba(26,22,21,0.18)] rounded-xs pl-9 pr-8 py-2 text-xs text-[#1A1615] placeholder:text-[#443E3B]/50 focus:outline-none focus:border-[#B15A3C] transition-all"
               />
               {searchCity && (
-                <button onClick={() => setSearchCity('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#2c3f57]/60 hover:text-[#132339]">
+                <button onClick={() => setSearchCity('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#443E3B]/60 hover:text-[#1A1615]">
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -266,10 +266,10 @@ function CatalogContent() {
             {/* Sort */}
             <div className="relative">
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                className="appearance-none bg-[#FAF8F3] border border-[rgba(19,35,57,0.18)] rounded-xs pl-4 pr-9 py-2 text-xs text-[#132339] font-medium focus:outline-none focus:border-[#B15A3C] transition-all cursor-pointer">
+                className="appearance-none bg-[#FAF8F3] border border-[rgba(26,22,21,0.18)] rounded-xs pl-4 pr-9 py-2 text-xs text-[#1A1615] font-medium focus:outline-none focus:border-[#B15A3C] transition-all cursor-pointer">
                 {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#2c3f57]/60 pointer-events-none" />
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#443E3B]/60 pointer-events-none" />
             </div>
 
             {/* Advanced filters toggle */}
@@ -277,25 +277,25 @@ function CatalogContent() {
               className={`flex items-center gap-2 px-4 py-2 rounded-xs border text-xs font-semibold uppercase tracking-wider transition-all ${
                 showAdvanced || activeFiltersCount > 0
                   ? 'bg-[#B15A3C] border-[#B15A3C] text-white'
-                  : 'bg-[#FAF8F3] border-[rgba(19,35,57,0.18)] text-[#2c3f57] hover:border-[#132339]'
+                  : 'bg-[#FAF8F3] border-[rgba(26,22,21,0.18)] text-[#443E3B] hover:border-[#1A1615]'
               }`}>
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Filtres</span>
               {activeFiltersCount > 0 && (
-                <span className="bg-[#FAF8F3] text-[#132339] text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                <span className="bg-[#FAF8F3] text-[#1A1615] text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
                   {activeFiltersCount}
                 </span>
               )}
             </button>
 
             {/* View toggle */}
-            <div className="flex items-center gap-1 bg-[#FAF8F3] border border-[rgba(19,35,57,0.18)] rounded-xs p-1">
+            <div className="flex items-center gap-1 bg-[#FAF8F3] border border-[rgba(26,22,21,0.18)] rounded-xs p-1">
               <button onClick={() => setViewMode('grid')} title="Grille"
-                className={`p-1.5 rounded-xs transition-all ${viewMode === 'grid' ? 'bg-[#132339] text-[#FAF8F3]' : 'text-[#2c3f57]/60 hover:text-[#132339]'}`}>
+                className={`p-1.5 rounded-xs transition-all ${viewMode === 'grid' ? 'bg-[#1A1615] text-[#FAF8F3]' : 'text-[#443E3B]/60 hover:text-[#1A1615]'}`}>
                 <Grid className="w-3.5 h-3.5" />
               </button>
               <button onClick={() => setViewMode('list')} title="Liste"
-                className={`p-1.5 rounded-xs transition-all ${viewMode === 'list' ? 'bg-[#132339] text-[#FAF8F3]' : 'text-[#2c3f57]/60 hover:text-[#132339]'}`}>
+                className={`p-1.5 rounded-xs transition-all ${viewMode === 'list' ? 'bg-[#1A1615] text-[#FAF8F3]' : 'text-[#443E3B]/60 hover:text-[#1A1615]'}`}>
                 <List className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -303,7 +303,7 @@ function CatalogContent() {
 
           {/* ── Advanced Filters Drawer ── */}
           {showAdvanced && (
-            <div className="bg-[#EFE8D8] border border-[rgba(19,35,57,0.14)] rounded-xs p-5 space-y-5 animate-fade-in text-[#132339]">
+            <div className="bg-[#EFE8D8] border border-[rgba(26,22,21,0.14)] rounded-xs p-5 space-y-5 animate-fade-in text-[#1A1615]">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {/* Surface slider */}
                 <div>
@@ -313,7 +313,7 @@ function CatalogContent() {
                   <input type="range" min={0} max={1000} step={50} value={minSurface}
                     onChange={e => setMinSurface(Number(e.target.value))}
                     className="w-full accent-[#B15A3C] cursor-pointer h-1 rounded-full" />
-                  <div className="flex justify-between text-[10px] text-[#2c3f57] font-mono mt-1">
+                  <div className="flex justify-between text-[10px] text-[#443E3B] font-mono mt-1">
                     <span>0 m²</span><span>1000 m²</span>
                   </div>
                 </div>
@@ -325,7 +325,7 @@ function CatalogContent() {
                   <input type="range" min={500000} max={5000000} step={100000} value={maxPrice}
                     onChange={e => setMaxPrice(Number(e.target.value))}
                     className="w-full accent-[#B15A3C] cursor-pointer h-1 rounded-full" />
-                  <div className="flex justify-between text-[10px] text-[#2c3f57] font-mono mt-1">
+                  <div className="flex justify-between text-[10px] text-[#443E3B] font-mono mt-1">
                     <span>500K</span><span>5M TND</span>
                   </div>
                 </div>
@@ -338,7 +338,7 @@ function CatalogContent() {
                     className={`flex items-center gap-3 px-4 py-3 rounded-xs border transition-all ${
                       showSavedOnly
                         ? 'bg-[#B15A3C] border-[#B15A3C] text-white'
-                        : 'bg-[#FAF8F3] border-[rgba(19,35,57,0.14)] text-[#132339] hover:border-[#B15A3C]'
+                        : 'bg-[#FAF8F3] border-[rgba(26,22,21,0.14)] text-[#1A1615] hover:border-[#B15A3C]'
                     }`}>
                     <Heart className={`w-4 h-4 ${showSavedOnly ? 'fill-current' : ''}`} />
                     <span className="text-xs font-semibold uppercase tracking-wider">
@@ -350,7 +350,7 @@ function CatalogContent() {
 
               {activeFiltersCount > 0 && (
                 <button onClick={resetAll}
-                  className="flex items-center gap-2 text-[11px] font-mono text-[#2c3f57] hover:text-[#B15A3C] uppercase tracking-wider transition-colors">
+                  className="flex items-center gap-2 text-[11px] font-mono text-[#443E3B] hover:text-[#B15A3C] uppercase tracking-wider transition-colors">
                   <RotateCcw className="w-3.5 h-3.5" />
                   Réinitialiser tous les filtres
                 </button>
@@ -363,7 +363,7 @@ function CatalogContent() {
         {/* ── Active Filters Summary ── */}
         {activeFiltersCount > 0 && (
           <div className="mb-6 flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-mono text-[#2c3f57] uppercase tracking-wider">Filtres actifs :</span>
+            <span className="text-[10px] font-mono text-[#443E3B] uppercase tracking-wider">Filtres actifs :</span>
             {categoryFilter !== 'ALL' && (
               <span className="inline-flex items-center gap-1.5 bg-[#B15A3C]/10 border border-[#B15A3C]/30 text-[#B15A3C] text-[11px] font-semibold px-2.5 py-1 rounded-full">
                 {categoryFilter}
@@ -371,19 +371,19 @@ function CatalogContent() {
               </span>
             )}
             {universeFilter !== 'ALL' && (
-              <span className="inline-flex items-center gap-1.5 bg-[#132339]/10 border border-[#132339]/20 text-[#132339] text-[11px] font-semibold px-2.5 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 bg-[#1A1615]/10 border border-[#1A1615]/20 text-[#1A1615] text-[11px] font-semibold px-2.5 py-1 rounded-full">
                 {universeFilter}
                 <button onClick={() => setUniverseFilter('ALL')}><X className="w-3 h-3" /></button>
               </span>
             )}
             {searchCity && (
-              <span className="inline-flex items-center gap-1.5 bg-[#132339]/10 border border-[#132339]/20 text-[#132339] text-[11px] font-semibold px-2.5 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 bg-[#1A1615]/10 border border-[#1A1615]/20 text-[#1A1615] text-[11px] font-semibold px-2.5 py-1 rounded-full">
                 📍 {searchCity}
                 <button onClick={() => setSearchCity('')}><X className="w-3 h-3" /></button>
               </span>
             )}
             {minSurface > 0 && (
-              <span className="inline-flex items-center gap-1.5 bg-[#132339]/10 border border-[#132339]/20 text-[#132339] text-[11px] font-semibold px-2.5 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 bg-[#1A1615]/10 border border-[#1A1615]/20 text-[#1A1615] text-[11px] font-semibold px-2.5 py-1 rounded-full">
                 ≥ {minSurface}m²
                 <button onClick={() => setMinSurface(0)}><X className="w-3 h-3" /></button>
               </span>
@@ -393,7 +393,7 @@ function CatalogContent() {
 
         {/* ── Results Counter ── */}
         <div className="mb-6 flex justify-between items-center">
-          <p className="text-xs text-[#2c3f57] font-mono">
+          <p className="text-xs text-[#443E3B] font-mono">
             <span className="text-[#B15A3C] font-bold">{filteredAndSorted.length}</span> propriété{filteredAndSorted.length !== 1 ? 's' : ''} trouvée{filteredAndSorted.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -402,18 +402,18 @@ function CatalogContent() {
         {loadingProperties && propertiesList.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((idx) => (
-              <div key={idx} className="rounded-xs overflow-hidden bg-[#EFE8D8] border border-[rgba(19,35,57,0.14)] p-4 space-y-4 animate-pulse">
-                <div className="w-full h-56 bg-[rgba(19,35,57,0.1)] rounded-xs" />
-                <div className="h-4 bg-[rgba(19,35,57,0.1)] rounded w-1/3" />
-                <div className="h-6 bg-[rgba(19,35,57,0.1)] rounded w-3/4" />
-                <div className="h-4 bg-[rgba(19,35,57,0.1)] rounded w-1/2" />
+              <div key={idx} className="rounded-xs overflow-hidden bg-[#EFE8D8] border border-[rgba(26,22,21,0.14)] p-4 space-y-4 animate-pulse">
+                <div className="w-full h-56 bg-[rgba(26,22,21,0.1)] rounded-xs" />
+                <div className="h-4 bg-[rgba(26,22,21,0.1)] rounded w-1/3" />
+                <div className="h-6 bg-[rgba(26,22,21,0.1)] rounded w-3/4" />
+                <div className="h-4 bg-[rgba(26,22,21,0.1)] rounded w-1/2" />
               </div>
             ))}
           </div>
         ) : filteredAndSorted.length === 0 ? (
-          <div className="rounded-xs p-16 text-center space-y-4 bg-[#EFE8D8] border border-[rgba(19,35,57,0.14)]">
-            <p className="font-serif text-2xl text-[#132339]">{t('catalog.empty_title')}</p>
-            <p className="text-xs text-[#2c3f57]">{t('catalog.empty_desc')}</p>
+          <div className="rounded-xs p-16 text-center space-y-4 bg-[#EFE8D8] border border-[rgba(26,22,21,0.14)]">
+            <p className="font-serif text-2xl text-[#1A1615]">{t('catalog.empty_title')}</p>
+            <p className="text-xs text-[#443E3B]">{t('catalog.empty_desc')}</p>
             <button onClick={resetAll}
               className="mt-2 bg-[#B15A3C] text-[#FAF8F3] px-6 py-2.5 rounded-xs text-xs font-semibold uppercase tracking-widest hover:bg-[#97492e] transition-all">
               {t('btn.reset')}
@@ -427,7 +427,7 @@ function CatalogContent() {
               const CatIcon = CATEGORIES.find(c => c.value === prop.category)?.icon || Home;
               return (
                 <div key={prop.id}
-                  className={`group rounded-xs overflow-hidden bg-[#FAF8F3] border border-[rgba(19,35,57,0.14)] hover:border-[#B8912E]/50 hover:shadow-xl transition-all duration-300 flex ${
+                  className={`group rounded-xs overflow-hidden bg-[#FAF8F3] border border-[rgba(26,22,21,0.14)] hover:border-[#B8912E]/50 hover:shadow-xl transition-all duration-300 flex ${
                     viewMode === 'grid' ? 'flex-col' : 'flex-col sm:flex-row'
                   }`}>
 
@@ -455,7 +455,7 @@ function CatalogContent() {
                       className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all ${
                         isFavorite(prop.id)
                           ? 'bg-[#B15A3C] text-white shadow-md'
-                          : 'bg-[#132339]/60 text-white hover:text-[#B8912E]'
+                          : 'bg-[#1A1615]/60 text-white hover:text-[#B8912E]'
                       }`}
                     >
                       <Heart className={`w-4 h-4 ${isFavorite(prop.id) ? 'fill-current' : ''}`} />
@@ -469,17 +469,17 @@ function CatalogContent() {
                         <MapPin className="w-3.5 h-3.5 shrink-0" />
                         <span>{prop.location.district}, {prop.location.city}</span>
                       </div>
-                      <h3 className="font-serif text-xl font-semibold text-[#132339] group-hover:text-[#B15A3C] transition-colors leading-tight">
+                      <h3 className="font-serif text-xl font-semibold text-[#1A1615] group-hover:text-[#B15A3C] transition-colors leading-tight">
                         {prop.title[language]}
                       </h3>
-                      <p className="text-xs text-[#2c3f57] font-normal mt-1.5 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-[#443E3B] font-normal mt-1.5 line-clamp-2 leading-relaxed">
                         {prop.description[language]}
                       </p>
                     </div>
 
                     <div className="space-y-3">
                       {/* Specs row */}
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-[#2c3f57]">
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-[#443E3B]">
                         <span className="flex items-center gap-1">
                           <Maximize2 className="w-3.5 h-3.5 text-[#B8912E]" />
                           {prop.specs.surfaceM2} m²
@@ -499,13 +499,13 @@ function CatalogContent() {
                       </div>
 
                       {/* Price + CTA */}
-                      <div className="flex items-center justify-between pt-3 border-t border-[rgba(19,35,57,0.1)]">
+                      <div className="flex items-center justify-between pt-3 border-t border-[rgba(26,22,21,0.1)]">
                         <div>
-                          <span className="font-serif text-xl font-semibold text-[#132339]">
+                          <span className="font-serif text-xl font-semibold text-[#1A1615]">
                             {prop.price.amount.toLocaleString('fr-TN')} TND
                           </span>
                           {prop.price.period && prop.price.period !== 'total' && (
-                            <span className="text-[10px] text-[#2c3f57] block font-mono uppercase">/ {prop.price.period}</span>
+                            <span className="text-[10px] text-[#443E3B] block font-mono uppercase">/ {prop.price.period}</span>
                           )}
                         </div>
                         <Link href={`/properties/${prop.id}`}

@@ -5,22 +5,22 @@
 @tailwind utilities;
 
 :root {
-  --ink: #132339;
-  --ink-soft: #2c3f57;
+  --ink: #1A1615;
+  --ink-soft: #443E3B;
   --sand: #EFE8D8;
   --sand-deep: #E1D6BC;
   --clay: #B15A3C;
   --olive: #6E7A52;
   --brass: #B8912E;
   --paper: #FAF8F3;
-  --line: rgba(19, 35, 57, 0.14);
+  --line: rgba(26, 22, 21, 0.14);
   --radius-arch: 400px 400px 12px 12px;
 
   --font-serif: 'Fraunces', 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'IBM Plex Sans', sans-serif;
   --font-arabic: 'Amiri', serif;
   
-  --color-navy: #132339;
+  --color-navy: #1A1615;
   --color-gold: #B8912E;
   --color-travertine: #FAF8F3;
 }

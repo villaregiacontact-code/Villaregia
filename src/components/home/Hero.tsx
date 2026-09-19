@@ -14,7 +14,7 @@ export const Hero: React.FC = () => {
     { label: t('nav.sale'), href: '/properties?universe=VENTE', color: 'border-[#B15A3C]/40 text-[#B15A3C] bg-[#B15A3C]/8 hover:bg-[#B15A3C] hover:text-white', icon: Home },
     { label: t('nav.luxe'), href: '/villas-de-luxe', color: 'border-[#B8912E]/40 text-[#B8912E] bg-[#B8912E]/8 hover:bg-[#B8912E] hover:text-white', icon: Crown },
     { label: t('nav.event'), href: '/evenementiel', color: 'border-[#6E7A52]/40 text-[#6E7A52] bg-[#6E7A52]/8 hover:bg-[#6E7A52] hover:text-white', icon: Calendar },
-    { label: t('footer.land'), href: '/properties?category=Terrain', color: 'border-[#132339]/30 text-[#132339] bg-[#132339]/8 hover:bg-[#132339] hover:text-white', icon: Compass },
+    { label: t('footer.land'), href: '/properties?category=Terrain', color: 'border-[#1A1615]/30 text-[#1A1615] bg-[#1A1615]/8 hover:bg-[#1A1615] hover:text-white', icon: Compass },
   ];
 
   return (
@@ -37,11 +37,11 @@ export const Hero: React.FC = () => {
             <span>{t('hero.badge_sfax')}</span>
           </motion.div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[60px] text-[#132339] font-semibold leading-[1.04] tracking-tight max-w-[14ch]">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-[60px] text-[#1A1615] font-semibold leading-[1.04] tracking-tight max-w-[14ch]">
             {t('hero.title')}
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg text-[#2c3f57] max-w-[44ch] leading-relaxed font-normal">
+          <p className="mt-6 text-base sm:text-lg text-[#443E3B] max-w-[44ch] leading-relaxed font-normal">
             {t('hero.description')}
           </p>
 
@@ -73,25 +73,25 @@ export const Hero: React.FC = () => {
             </Link>
             <Link
               href="/villas-de-luxe"
-              className="inline-flex items-center justify-center border border-[#132339] text-[#132339] hover:bg-[#132339] hover:text-[#FAF8F3] px-8 py-4 text-sm sm:text-base font-medium rounded-xs transition-all duration-300 hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center border border-[#1A1615] text-[#1A1615] hover:bg-[#1A1615] hover:text-[#FAF8F3] px-8 py-4 text-sm sm:text-base font-medium rounded-xs transition-all duration-300 hover:-translate-y-0.5"
             >
               {t('hero.btn_book')}
             </Link>
           </div>
 
           {/* Stats Bar */}
-          <div className="flex gap-8 sm:gap-12 mt-12 pt-6 border-t border-[rgba(19,35,57,0.14)]">
+          <div className="flex gap-8 sm:gap-12 mt-12 pt-6 border-t border-[rgba(26,22,21,0.14)]">
             <div className="stat">
-              <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#132339]">240+</b>
-              <span className="text-xs sm:text-sm text-[#2c3f57]">{t('hero.stat1_label')}</span>
+              <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#1A1615]">240+</b>
+              <span className="text-xs sm:text-sm text-[#443E3B]">{t('hero.stat1_label')}</span>
             </div>
             <div className="stat">
-              <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#132339]">18</b>
-              <span className="text-xs sm:text-sm text-[#2c3f57]">{t('hero.stat2_label')}</span>
+              <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#1A1615]">18</b>
+              <span className="text-xs sm:text-sm text-[#443E3B]">{t('hero.stat2_label')}</span>
             </div>
             <div className="stat">
-              <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#132339]">4</b>
-              <span className="text-xs sm:text-sm text-[#2c3f57]">{t('hero.stat3_label')}</span>
+              <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#1A1615]">4</b>
+              <span className="text-xs sm:text-sm text-[#443E3B]">{t('hero.stat3_label')}</span>
             </div>
           </div>
         </motion.div>
@@ -113,20 +113,20 @@ export const Hero: React.FC = () => {
                 priority
                 className="object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#132339]/65 via-transparent to-black/10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1A1615]/65 via-transparent to-black/10" />
             </div>
 
             {/* Floating Luxury Glass Badge with Gentle Motion */}
             <motion.div
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute bottom-6 left-6 right-6 p-4 rounded-xs bg-[#FAF8F3]/95 backdrop-blur-md border border-[rgba(19,35,57,0.14)] shadow-xl flex items-center justify-between"
+              className="absolute bottom-6 left-6 right-6 p-4 rounded-xs bg-[#FAF8F3]/95 backdrop-blur-md border border-[rgba(26,22,21,0.14)] shadow-xl flex items-center justify-between"
             >
               <div>
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-[#B8912E] block">
                   Demeure d'Exception
                 </span>
-                <span className="font-serif text-base font-semibold text-[#132339]">
+                <span className="font-serif text-base font-semibold text-[#1A1615]">
                   Villa Les Oliviers — Route Manzel Chaker Km 1.5
                 </span>
               </div>

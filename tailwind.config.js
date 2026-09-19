@@ -10,8 +10,8 @@ module.exports = {
     extend: {
       colors: {
         ink: {
-          DEFAULT: '#132339',
-          soft: '#2c3f57',
+          DEFAULT: '#1A1615',
+          soft: '#443E3B',
         },
         paper: {
           DEFAULT: '#FAF8F3',
@@ -29,13 +29,13 @@ module.exports = {
         brass: {
           DEFAULT: '#B8912E',
         },
-        line: 'rgba(19, 35, 57, 0.14)',
+        line: 'rgba(26, 22, 21, 0.14)',
         brand: {
           navy: {
-            DEFAULT: '#132339',
-            dark: '#0B1523',
-            light: '#2c3f57',
-            muted: '#2c3f57',
+            DEFAULT: '#1A1615',
+            dark: '#120F0E',
+            light: '#443E3B',
+            muted: '#443E3B',
           },
           gold: {
             DEFAULT: '#B8912E',
@@ -50,7 +50,7 @@ module.exports = {
             dark: '#E1D6BC',
           },
           sand: '#EFE8D8',
-          charcoal: '#132339',
+          charcoal: '#1A1615',
           clay: '#B15A3C',
           olive: '#6E7A52',
         },

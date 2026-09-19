@@ -28,7 +28,7 @@ export const JournalSection: React.FC = () => {
   ];
 
   return (
-    <section className="bg-[#EFE8D8] py-20 sm:py-24 text-[#132339] overflow-hidden">
+    <section className="bg-[#EFE8D8] py-20 sm:py-24 text-[#1A1615] overflow-hidden">
       <div className="max-w-[1180px] mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-12 lg:gap-16">
         
         {/* Left Title */}
@@ -39,7 +39,7 @@ export const JournalSection: React.FC = () => {
           transition={{ duration: 0.7 }}
         >
           <span className="text-xs uppercase tracking-widest text-[#B15A3C] font-semibold block mb-2">Accompagnement Sur-Mesure</span>
-          <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-[#132339] max-w-[12ch] leading-tight">
+          <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-[#1A1615] max-w-[12ch] leading-tight">
             Comment ça se passe avec nous
           </h2>
         </motion.div>
@@ -61,10 +61,10 @@ export const JournalSection: React.FC = () => {
                 {step.num}
               </div>
               <div>
-                <h4 className="font-sans text-base sm:text-lg font-semibold text-[#132339] mb-1.5">
+                <h4 className="font-sans text-base sm:text-lg font-semibold text-[#1A1615] mb-1.5">
                   {step.title}
                 </h4>
-                <p className="text-sm text-[#2c3f57] max-w-[52ch] leading-relaxed">
+                <p className="text-sm text-[#443E3B] max-w-[52ch] leading-relaxed">
                   {step.desc}
                 </p>
               </div>

@@ -49,8 +49,8 @@ export const Navbar: React.FC = () => {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'py-3 bg-[#FAF8F3]/95 backdrop-blur-md shadow-sm border-b border-[rgba(19,35,57,0.14)]'
-            : 'py-4 bg-[#FAF8F3]/90 backdrop-blur-md border-b border-[rgba(19,35,57,0.14)]'
+            ? 'py-3 bg-[#FAF8F3]/95 backdrop-blur-md shadow-sm border-b border-[rgba(26,22,21,0.14)]'
+            : 'py-4 bg-[#FAF8F3]/90 backdrop-blur-md border-b border-[rgba(26,22,21,0.14)]'
         }`}
       >
         <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -67,7 +67,7 @@ export const Navbar: React.FC = () => {
                   className="object-contain object-left rounded-xs"
                 />
               </div>
-              <span className="text-xs text-[#2c3f57] tracking-wider hidden xl:inline border-l border-[#132339]/15 pl-3">
+              <span className="text-xs text-[#443E3B] tracking-wider hidden xl:inline border-l border-[#1A1615]/15 pl-3">
                 Sfax, Tunisie
               </span>
             </Link>
@@ -82,8 +82,8 @@ export const Navbar: React.FC = () => {
                     href={link.href}
                     className={`relative py-1.5 transition-colors duration-200 ${
                       isActive
-                        ? 'text-[#132339] font-semibold'
-                        : 'text-[#2c3f57] hover:text-[#132339]'
+                        ? 'text-[#1A1615] font-semibold'
+                        : 'text-[#443E3B] hover:text-[#1A1615]'
                     }`}
                   >
                     <span>{link.label}</span>
@@ -105,7 +105,7 @@ export const Navbar: React.FC = () => {
               {/* Favorites Counter */}
               <Link
                 href="/properties?saved=true"
-                className="relative p-2 text-[#2c3f57] hover:text-[#B15A3C] transition-colors"
+                className="relative p-2 text-[#443E3B] hover:text-[#B15A3C] transition-colors"
                 title={t('btn.favorites')}
               >
                 <Heart className="w-5 h-5" />
@@ -120,7 +120,7 @@ export const Navbar: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setLangMenuOpen(!langMenuOpen)}
-                  className="flex items-center gap-1 text-xs tracking-wider uppercase text-[#2c3f57] hover:text-[#132339] px-2.5 py-1.5 rounded border border-[rgba(19,35,57,0.14)] transition-all"
+                  className="flex items-center gap-1 text-xs tracking-wider uppercase text-[#443E3B] hover:text-[#1A1615] px-2.5 py-1.5 rounded border border-[rgba(26,22,21,0.14)] transition-all"
                 >
                   <Globe className="w-3.5 h-3.5 text-[#B8912E]" />
                   <span className="font-semibold">{language.toUpperCase()}</span>
@@ -133,7 +133,7 @@ export const Navbar: React.FC = () => {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
-                      className="absolute right-0 rtl:left-0 rtl:right-auto mt-2 w-28 bg-[#FAF8F3] rounded shadow-xl border border-[rgba(19,35,57,0.14)] py-1 overflow-hidden z-50"
+                      className="absolute right-0 rtl:left-0 rtl:right-auto mt-2 w-28 bg-[#FAF8F3] rounded shadow-xl border border-[rgba(26,22,21,0.14)] py-1 overflow-hidden z-50"
                     >
                       {(['fr', 'ar', 'en'] as Language[]).map((lang) => (
                         <button
@@ -144,8 +144,8 @@ export const Navbar: React.FC = () => {
                           }}
                           className={`w-full text-left rtl:text-right px-3 py-1.5 text-xs tracking-wider uppercase transition-colors ${
                             language === lang
-                              ? 'bg-[#EFE8D8] text-[#132339] font-bold'
-                              : 'text-[#2c3f57] hover:bg-[#EFE8D8]/50 hover:text-[#132339]'
+                              ? 'bg-[#EFE8D8] text-[#1A1615] font-bold'
+                              : 'text-[#443E3B] hover:bg-[#EFE8D8]/50 hover:text-[#1A1615]'
                           }`}
                         >
                           {lang === 'fr' ? 'Français' : lang === 'ar' ? 'العربية' : 'English'}
@@ -167,13 +167,13 @@ export const Navbar: React.FC = () => {
                     setAuthModalOpen(true);
                   }
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 rounded border border-[rgba(19,35,57,0.14)] hover:border-[#132339] text-xs text-[#132339] transition-all hover:bg-[#EFE8D8]/40"
+                className="flex items-center gap-2 px-3 py-1.5 rounded border border-[rgba(26,22,21,0.14)] hover:border-[#1A1615] text-xs text-[#1A1615] transition-all hover:bg-[#EFE8D8]/40"
               >
                 {user ? (
                   <>
                     <UserCheck className="w-4 h-4 text-emerald-600" />
-                    <span className="font-mono text-[11px] text-[#132339] uppercase font-bold">{user.name.split(' ')[0]}</span>
-                    <span className="text-[10px] text-[#2c3f57] font-mono">({user.role})</span>
+                    <span className="font-mono text-[11px] text-[#1A1615] uppercase font-bold">{user.name.split(' ')[0]}</span>
+                    <span className="text-[10px] text-[#443E3B] font-mono">({user.role})</span>
                   </>
                 ) : (
                   <>
@@ -187,7 +187,7 @@ export const Navbar: React.FC = () => {
               {user && ['SUPER_ADMIN', 'ADMIN', 'AGENT', 'CONTENT_MANAGER'].includes(user.role) && (
                 <Link
                   href="/admin"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#132339] text-[#FAF8F3] hover:bg-[#2c3f57] transition-all text-xs font-mono font-bold shadow"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1A1615] text-[#FAF8F3] hover:bg-[#443E3B] transition-all text-xs font-mono font-bold shadow"
                   title="Accéder au Tableau de Bord Admin"
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
@@ -216,7 +216,7 @@ export const Navbar: React.FC = () => {
                       window.location.href = '/account';
                     }
                   }}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-brand-gold/30 bg-white/5 text-brand-gold text-xs font-mono font-bold"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#B8912E]/30 bg-white/5 text-[#B8912E] text-xs font-mono font-bold"
                   title="Mon Compte"
                 >
                   <UserCheck className="w-4 h-4 text-emerald-400" />
@@ -225,7 +225,7 @@ export const Navbar: React.FC = () => {
               ) : (
                 <button
                   onClick={() => setAuthModalOpen(true)}
-                  className="p-1.5 text-brand-gold hover:text-amber-300"
+                  className="p-1.5 text-[#B8912E] hover:text-amber-300"
                   title="Connexion"
                 >
                   <LogIn className="w-5 h-5" />
@@ -234,7 +234,7 @@ export const Navbar: React.FC = () => {
               
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 text-[#132339] hover:text-[#B15A3C] focus:outline-none"
+                className="p-2 text-[#1A1615] hover:text-[#B15A3C] focus:outline-none"
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -340,7 +340,7 @@ export const Navbar: React.FC = () => {
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="text-sm uppercase tracking-widest text-[#132339] font-bold hover:text-[#B8912E] py-1.5 border-b border-[rgba(19,35,57,0.1)] transition-colors"
+                      className="text-sm uppercase tracking-widest text-[#1A1615] font-bold hover:text-[#B8912E] py-1.5 border-b border-[rgba(26,22,21,0.1)] transition-colors"
                     >
                       {link.label}
                     </Link>

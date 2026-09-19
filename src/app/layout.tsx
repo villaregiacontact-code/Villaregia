@@ -39,7 +39,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
       </head>
-      <body className="bg-[#FAF8F3] text-[#132339] antialiased selection:bg-[#B15A3C]/20">
+      <body className="bg-[#FAF8F3] text-[#1A1615] antialiased selection:bg-[#B15A3C]/20">
         <AuthProvider>
           <LanguageProvider>
             <FavoritesProvider>
