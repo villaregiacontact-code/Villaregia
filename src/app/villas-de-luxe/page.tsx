@@ -281,35 +281,35 @@ export default function LuxuryVillasPage() {
 
       {/* Booking Review & Payment Simulation Modal */}
       {bookingStep !== 'IDLE' && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur flex items-center justify-center p-4">
-          <div className="glass-navy p-8 rounded-xl max-w-lg w-full border border-brand-gold/40 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#FAF8F3] text-[#132339] p-8 rounded-2xl max-w-lg w-full border border-[rgba(19,35,57,0.15)] shadow-2xl space-y-6 relative">
             
             {bookingStep === 'REVIEW' && (
               <>
-                <div className="border-b border-white/10 pb-3">
-                  <span className="text-xs font-mono uppercase text-brand-gold">Étape 1/2 — Récapitulatif & Invité</span>
-                  <h3 className="font-editorial text-2xl text-brand-travertine">Confirmation de votre Séjour</h3>
+                <div className="border-b border-[rgba(19,35,57,0.12)] pb-3">
+                  <span className="text-xs font-mono uppercase text-[#132339] font-bold">Étape 1/2 — Récapitulatif & Invité</span>
+                  <h3 className="font-editorial text-2xl text-[#132339]">Confirmation de votre Séjour</h3>
                 </div>
 
-                <div className="space-y-3 text-xs text-brand-travertine/90">
-                  <p><strong>Villa:</strong> {selectedVilla.title[language]}</p>
-                  <p><strong>Dates:</strong> Du {checkIn} au {checkOut} ({nights} nuits)</p>
-                  <p><strong>Invités:</strong> {guests} personne(s)</p>
-                  <p><strong>Montant Total:</strong> {total} TND</p>
-                  <p className="text-brand-gold font-bold"><strong>Acompte à régler maintenant:</strong> {deposit} TND</p>
+                <div className="space-y-3 text-xs text-[#2c3f57] font-medium bg-white p-4 rounded-xl border border-[rgba(19,35,57,0.1)] shadow-sm">
+                  <p><strong className="text-[#132339]">Villa:</strong> {selectedVilla.title[language]}</p>
+                  <p><strong className="text-[#132339]">Dates:</strong> Du {checkIn} au {checkOut} ({nights} nuits)</p>
+                  <p><strong className="text-[#132339]">Invités:</strong> {guests} personne(s)</p>
+                  <p><strong className="text-[#132339]">Montant Total:</strong> {total} TND</p>
+                  <p className="text-[#132339] font-bold text-sm"><strong>Acompte à régler maintenant:</strong> {deposit} TND</p>
                 </div>
 
-                <div className="space-y-2 pt-2 border-t border-white/10">
-                  <label className="text-[10px] font-mono uppercase text-brand-gold block font-bold">Vos Coordonnées (Obligatoires * )</label>
-                  <input required value={guestName} onChange={(e) => setGuestName(e.target.value)} type="text" placeholder="Nom complet *" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" />
+                <div className="space-y-2 pt-2 border-t border-[rgba(19,35,57,0.1)]">
+                  <label className="text-[10px] font-mono uppercase text-[#132339] block font-bold">Vos Coordonnées (Obligatoires * )</label>
+                  <input required value={guestName} onChange={(e) => setGuestName(e.target.value)} type="text" placeholder="Nom complet *" className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] shadow-sm" />
                   <div className="grid grid-cols-2 gap-2">
-                    <input required value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} type="tel" placeholder="Téléphone *" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" />
-                    <input required value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} type="email" placeholder="Email *" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" />
+                    <input required value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} type="tel" placeholder="Téléphone *" className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] shadow-sm" />
+                    <input required value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} type="email" placeholder="Email *" className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] shadow-sm" />
                   </div>
                 </div>
 
                 {bookingError && (
-                  <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-mono">
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-700 text-xs font-mono">
                     ⚠️ {bookingError}
                   </div>
                 )}
@@ -320,7 +320,7 @@ export default function LuxuryVillasPage() {
                       setBookingError(null);
                       setBookingStep('IDLE');
                     }}
-                    className="w-1/2 bg-white/10 text-brand-travertine py-3 rounded text-xs font-bold uppercase tracking-wider"
+                    className="w-1/2 bg-[#EFE8D8] text-[#132339] py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#e0d6c3] transition-colors"
                   >
                     Modifier
                   </button>
@@ -341,7 +341,7 @@ export default function LuxuryVillasPage() {
                       }
                       setBookingStep('PAYMENT');
                     }}
-                    className="w-1/2 bg-brand-gold text-brand-navy py-3 rounded text-xs font-bold uppercase tracking-wider"
+                    className="w-1/2 bg-[#132339] hover:bg-[#1c3250] text-[#FAF8F3] py-3 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all"
                   >
                     Procéder au Paiement
                   </button>
@@ -351,24 +351,24 @@ export default function LuxuryVillasPage() {
 
             {bookingStep === 'PAYMENT' && (
               <>
-                <div className="border-b border-white/10 pb-3">
-                  <span className="text-xs font-mono uppercase text-brand-gold">Étape 2/2 — Passerelle Sécurisée</span>
-                  <h3 className="font-editorial text-2xl text-brand-travertine">Paiement de l’Acompte ({deposit} TND)</h3>
+                <div className="border-b border-[rgba(19,35,57,0.12)] pb-3">
+                  <span className="text-xs font-mono uppercase text-[#132339] font-bold">Étape 2/2 — Passerelle Sécurisée</span>
+                  <h3 className="font-editorial text-2xl text-[#132339]">Paiement de l’Acompte ({deposit} TND)</h3>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-4 rounded border border-brand-gold/30 bg-brand-navy-dark space-y-2">
-                    <span className="text-[10px] font-mono text-brand-gold uppercase block">Passerelle Konnect / Flouci</span>
-                    <p className="text-xs text-brand-travertine/70">Paiement crypté SSL par Carte Bancaire Tunisienne ou Internationale.</p>
+                  <div className="p-4 rounded-xl border border-[rgba(19,35,57,0.15)] bg-[#EFE8D8] space-y-2">
+                    <span className="text-[10px] font-mono text-[#132339] uppercase font-bold block">Passerelle Konnect / Flouci</span>
+                    <p className="text-xs text-[#2c3f57]">Paiement crypté SSL par Carte Bancaire Tunisienne ou Internationale.</p>
                   </div>
-                  <input type="text" placeholder="Nom sur la carte" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" defaultValue={guestName} />
-                  <input type="text" placeholder="Numéro de carte bancaire" className="w-full bg-brand-navy border border-white/20 rounded px-3 py-2 text-xs text-white" defaultValue="4000 1234 5678 9010" />
+                  <input type="text" placeholder="Nom sur la carte" className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] shadow-sm" defaultValue={guestName} />
+                  <input type="text" placeholder="Numéro de carte bancaire" className="w-full bg-white border border-[#132339]/20 rounded-xl px-3.5 py-2.5 text-xs text-[#132339] focus:outline-none focus:border-[#B8912E] shadow-sm" defaultValue="4000 1234 5678 9010" />
                 </div>
 
                 <button
                   disabled={isSavingBooking}
                   onClick={handleConfirmPayment}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest py-3.5 rounded shadow-xl transition-all disabled:opacity-50"
+                  className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-xl transition-all disabled:opacity-50"
                 >
                   {isSavingBooking ? 'Validation en cours...' : `Payer l’acompte (${deposit} TND) & Confirmer`}
                 </button>
@@ -377,21 +377,21 @@ export default function LuxuryVillasPage() {
 
             {bookingStep === 'CONFIRMED' && (
               <div className="text-center space-y-4 py-4">
-                <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/15 text-emerald-700 flex items-center justify-center mx-auto border border-emerald-500/30">
                   <Check className="w-8 h-8" />
                 </div>
-                <h3 className="font-editorial text-3xl text-brand-travertine">Réservation Enregistrée</h3>
+                <h3 className="font-editorial text-3xl text-[#132339]">Réservation Enregistrée</h3>
                 {confirmedBookingId && (
-                  <span className="inline-block px-3 py-1 bg-brand-gold/20 text-brand-gold text-xs font-mono rounded">
+                  <span className="inline-block px-3 py-1 bg-[#132339] text-[#B8912E] text-xs font-mono rounded-lg font-bold">
                     RÉF: {confirmedBookingId}
                   </span>
                 )}
-                <p className="text-xs text-brand-travertine/80 leading-relaxed max-w-sm mx-auto">
+                <p className="text-xs text-[#2c3f57] leading-relaxed max-w-sm mx-auto">
                   Votre réservation a été enregistrée avec succès. Notre concierge privé Villa Regia vous contactera sur le {guestPhone} pour valider les détails d'accueil.
                 </p>
                 <button
                   onClick={() => setBookingStep('IDLE')}
-                  className="bg-brand-gold text-brand-navy px-8 py-3 rounded text-xs font-bold uppercase tracking-widest"
+                  className="bg-[#132339] hover:bg-[#1c3250] text-[#FAF8F3] px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest shadow-md"
                 >
                   Fermer
                 </button>

@@ -340,7 +340,7 @@ export const Navbar: React.FC = () => {
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="text-sm uppercase tracking-widest text-brand-travertine hover:text-brand-gold py-1.5 border-b border-white/5"
+                      className="text-sm uppercase tracking-widest text-[#132339] font-bold hover:text-[#B8912E] py-1.5 border-b border-[rgba(19,35,57,0.1)] transition-colors"
                     >
                       {link.label}
                     </Link>

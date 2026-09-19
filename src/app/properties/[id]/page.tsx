@@ -314,8 +314,8 @@ export default function PropertyDetailPage() {
                     <Hammer className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-editorial text-xl text-brand-travertine font-light">Estimation d'Achèvement des Travaux</h4>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-white/50 block">Dossier technique & métré chiffré par expert</span>
+                    <h4 className="font-editorial text-xl text-white font-light">Estimation d'Achèvement des Travaux</h4>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-white/70 block">Dossier technique & métré chiffré par expert</span>
                   </div>
                 </div>
                 {property.specs.constructionStage && (
@@ -327,11 +327,11 @@ export default function PropertyDetailPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-1">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-mono uppercase text-brand-travertine/60 block">1. Prix d'Acquisition Actuel</span>
-                  <div className="font-editorial text-2xl sm:text-3xl text-brand-travertine">
+                  <span className="text-[10px] font-mono uppercase text-white/70 block font-semibold">1. Prix d'Acquisition Actuel</span>
+                  <div className="font-editorial text-2xl sm:text-3xl text-white font-bold">
                     {property.price.amount.toLocaleString('fr-FR')} {property.price.currency}
                   </div>
-                  <span className="text-[10px] text-white/40 block">Terrain + Gros œuvre réalisé</span>
+                  <span className="text-[10px] text-white/60 block">Terrain + Gros œuvre réalisé</span>
                 </div>
 
                 {property.specs.completionEstimate && (
@@ -366,8 +366,8 @@ export default function PropertyDetailPage() {
                     {property.category === 'Fonds de Commerce' ? <Briefcase className="w-5 h-5" /> : <Store className="w-5 h-5" />}
                   </div>
                   <div>
-                    <h4 className="font-editorial text-xl text-brand-travertine font-light">Actif Professionnel & Commercial</h4>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-sky-200/50 block">Investissement & Implantation Entreprise</span>
+                    <h4 className="font-editorial text-xl text-white font-light">Actif Professionnel & Commercial</h4>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-sky-200/70 block">Investissement & Implantation Entreprise</span>
                   </div>
                 </div>
                 <span className="px-3.5 py-1.5 bg-sky-500/20 text-sky-300 text-xs font-mono font-bold uppercase rounded-full border border-sky-500/40">
@@ -378,7 +378,7 @@ export default function PropertyDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-1">
                 {property.specs.businessActivity && (
                   <div className="space-y-1">
-                    <span className="text-[10px] font-mono uppercase text-brand-travertine/60 block">Vocation / Activité</span>
+                    <span className="text-[10px] font-mono uppercase text-sky-200/80 block font-semibold">Vocation / Activité</span>
                     <div className="font-editorial text-lg sm:text-xl text-white font-medium leading-snug">
                       {property.specs.businessActivity}
                     </div>
