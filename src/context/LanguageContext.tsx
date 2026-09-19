@@ -202,7 +202,6 @@ const translations: Record<Language, Record<string, string>> = {
     'hero.subhead': 'نحن نختار عقارات استثنائية ذات تاريخ، شخصية وقيمة استثمارية رفيعة.',
     'hero.description': 'ترافق فيلا ريجيا بيع وكراء العقارات الاستثنائية: فيلات، أراضي، شقق — وتجارب فريدة من الإقامة الفاخرة إلى الاستقبالات الحالمة.',
     'hero.cta_explore': 'استكشاف العقارات',
-    'hero.badge_sfax': 'دار أسست في صفاقس — تونس',
     'hero.cta_propose': 'تقديم عقار',
     'hero.btn_sale': 'عرض العقارات للبيع',
     'hero.btn_book': 'حجز فيلا فاخرة',
