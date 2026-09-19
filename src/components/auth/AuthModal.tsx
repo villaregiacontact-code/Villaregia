@@ -500,7 +500,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 user.role === 'SUPER_ADMIN'
                   ? 'bg-amber-500/15 text-amber-800 border border-amber-500/30'
                   : user.role === 'ADMIN'
-                  ? 'bg-sky-500/15 text-sky-800 border border-sky-500/30'
+                  ? 'bg-[#B15A3C]/15 text-[#B15A3C] border border-[#B15A3C]/30'
                   : 'bg-[#1A1615] text-[#B8912E] border border-[#B8912E]/40'
               }`}>
                 {user.role === 'SUPER_ADMIN' ? 'Directeur Général (Super Admin)' : `Membre : ${user.role}`}

@@ -253,7 +253,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                   user.role === 'SUPER_ADMIN'
                     ? 'bg-amber-500/15 text-amber-800 border-amber-500/30'
                     : user.role === 'ADMIN'
-                    ? 'bg-sky-500/15 text-sky-800 border-sky-500/30'
+                    ? 'bg-[#B15A3C]/15 text-[#B15A3C] border-[#B15A3C]/30'
                     : 'bg-[#1A1615] text-[#B8912E] border-[#B8912E]/30'
                 }`}>
                   {user.role === 'SUPER_ADMIN' ? 'Direction Générale (Super Admin)' : user.role === 'ADMIN' ? 'Administrateur' : user.role === 'AGENT' ? 'Conseiller Immobilier' : 'Membre Club Villa Regia'}

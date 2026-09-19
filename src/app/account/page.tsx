@@ -273,7 +273,7 @@ export default function AccountPage() {
                   user.role === 'SUPER_ADMIN'
                     ? 'bg-amber-500/20 text-[#8C6813] border-amber-500/30'
                     : user.role === 'ADMIN'
-                    ? 'bg-sky-500/20 text-[#1e3a8a] border-sky-500/30'
+                    ? 'bg-[#B15A3C]/15 text-[#B15A3C] border-[#B15A3C]/30'
                     : 'bg-[#B8912E]/15 text-[#8C6813] border-[#B8912E]/30'
                 }`}>
                   {user.role === 'SUPER_ADMIN' ? 'Direction Générale' : user.role === 'ADMIN' ? 'Administrateur' : user.role === 'AGENT' ? 'Conseiller' : 'Membre VIP'}

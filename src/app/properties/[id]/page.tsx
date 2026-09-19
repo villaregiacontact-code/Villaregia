@@ -359,18 +359,18 @@ export default function PropertyDetailPage() {
 
           {/* ── ESPACE COMMERCIAL & FONDS DE COMMERCE : SPÉCIFICITÉS INVESTISSEMENT ── */}
           {(property.category === 'Espace Commercial' || property.category === 'Fonds de Commerce') && (
-            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-sky-500/15 via-brand-navy-dark to-sky-600/10 border-2 border-sky-500/40 shadow-2xl space-y-5">
+            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-amber-500/15 via-[#1A1615] to-[#B15A3C]/10 border-2 border-amber-500/40 shadow-2xl space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
-                <div className="flex items-center gap-2.5 text-sky-300">
-                  <div className="p-2 rounded-lg bg-sky-500/15 border border-sky-500/30">
+                <div className="flex items-center gap-2.5 text-amber-300">
+                  <div className="p-2 rounded-lg bg-amber-500/15 border border-amber-500/30">
                     {property.category === 'Fonds de Commerce' ? <Briefcase className="w-5 h-5" /> : <Store className="w-5 h-5" />}
                   </div>
                   <div>
                     <h4 className="font-editorial text-xl text-white font-light">Actif Professionnel & Commercial</h4>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-sky-200/70 block">Investissement & Implantation Entreprise</span>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-amber-200/70 block">Investissement & Implantation Entreprise</span>
                   </div>
                 </div>
-                <span className="px-3.5 py-1.5 bg-sky-500/20 text-sky-300 text-xs font-mono font-bold uppercase rounded-full border border-sky-500/40">
+                <span className="px-3.5 py-1.5 bg-amber-500/20 text-amber-300 text-xs font-mono font-bold uppercase rounded-full border border-amber-500/40">
                   🏢 {property.category}
                 </span>
               </div>
@@ -378,7 +378,7 @@ export default function PropertyDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-1">
                 {property.specs.businessActivity && (
                   <div className="space-y-1">
-                    <span className="text-[10px] font-mono uppercase text-sky-200/80 block font-semibold">Vocation / Activité</span>
+                    <span className="text-[10px] font-mono uppercase text-amber-200/80 block font-semibold">Vocation / Activité</span>
                     <div className="font-editorial text-lg sm:text-xl text-white font-medium leading-snug">
                       {property.specs.businessActivity}
                     </div>
@@ -387,8 +387,8 @@ export default function PropertyDetailPage() {
 
                 {property.specs.monthlyRentTND !== undefined && (
                   <div className="space-y-1 border-t sm:border-t-0 sm:border-l border-white/10 sm:pl-6 pt-3 sm:pt-0">
-                    <span className="text-[10px] font-mono uppercase text-sky-400 block font-bold">Loyer Mensuel des Murs</span>
-                    <div className="font-editorial text-2xl sm:text-3xl text-sky-300 font-bold">
+                    <span className="text-[10px] font-mono uppercase text-amber-400 block font-bold">Loyer Mensuel des Murs</span>
+                    <div className="font-editorial text-2xl sm:text-3xl text-amber-300 font-bold">
                       {property.specs.monthlyRentTND.toLocaleString('fr-FR')} TND
                     </div>
                     <span className="text-[10px] text-white/40 block">Bail commercial protégé 3-6-9</span>

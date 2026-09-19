@@ -1522,7 +1522,7 @@ export default function AdminDashboardPage() {
             adminToast.type === 'error'
               ? 'bg-red-950/95 text-red-200 border-red-500/50 shadow-red-900/40'
               : adminToast.type === 'info'
-              ? 'bg-sky-950/95 text-sky-200 border-sky-500/50 shadow-sky-900/40'
+              ? 'bg-amber-950/95 text-amber-200 border-amber-500/50 shadow-amber-900/40'
               : 'bg-emerald-950/95 text-emerald-200 border-emerald-500/50 shadow-emerald-900/40'
           }`}>
             <span className="w-2 h-2 rounded-full bg-current animate-ping shrink-0" />
@@ -1785,7 +1785,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="mt-3 pt-3 border-t border-white/10 text-[11px] font-mono flex items-center justify-between">
                   <span className="text-amber-400 font-bold">{pendingSubmissionsCount} À expertiser</span>
-                  <span className="text-sky-300 font-bold">{approvedUnpublishedCount} Mandats privés</span>
+                  <span className="text-amber-300 font-bold">{approvedUnpublishedCount} Mandats privés</span>
                 </div>
               </div>
 
@@ -1870,20 +1870,20 @@ export default function AdminDashboardPage() {
                 {/* Typology 3: Commerces & Fonds de Commerce */}
                 <div 
                   onClick={() => jumpToPropertiesWithCategory('Espace Commercial')}
-                  className="glass-navy p-5 rounded-xl border border-sky-500/30 hover:border-sky-400 cursor-pointer transition-all space-y-3 group bg-sky-950/10"
+                  className="glass-navy p-5 rounded-xl border border-[#B15A3C]/30 hover:border-[#B15A3C] cursor-pointer transition-all space-y-3 group bg-[#B15A3C]/10"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-sky-300 uppercase tracking-wider group-hover:text-white transition-colors">
+                    <span className="text-xs font-bold text-[#B15A3C] uppercase tracking-wider group-hover:text-white transition-colors">
                       🏪 Commerces & Fonds de Commerce
                     </span>
-                    <span className="text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded border border-sky-500/40">
+                    <span className="text-[10px] font-mono font-bold bg-[#B15A3C]/20 text-[#B15A3C] px-2 py-0.5 rounded border border-[#B15A3C]/40">
                       {commercialProperties.length} Actifs
                     </span>
                   </div>
-                  <div className="text-xs text-sky-200/80 font-mono">
+                  <div className="text-xs text-[#B15A3C]/90 font-mono">
                     Loyers murs prévisionnels : {totalMonthlyWallRent.toLocaleString('fr-TN')} TND/mois
                   </div>
-                  <div className="text-[10px] font-mono text-sky-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                  <div className="text-[10px] font-mono text-[#B15A3C] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                     <span>Consulter les murs & fonds</span>
                     <ArrowRight className="w-3 h-3" />
                   </div>
@@ -2194,7 +2194,7 @@ export default function AdminDashboardPage() {
                 </button>
                 <button
                   onClick={openAddArticleModal}
-                  className="px-3 py-2 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-1.5"
+                  className="px-3 py-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold font-mono uppercase tracking-wider flex items-center gap-1.5"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>Rédiger Article</span>
@@ -2373,8 +2373,8 @@ export default function AdminDashboardPage() {
                     )}
                   <div className="flex items-center gap-1.5 flex-wrap pt-1">
                     {ownerUser && (
-                      <span className="text-[9px] font-mono font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded flex items-center gap-1">
-                        <Users className="w-3 h-3 text-blue-400" />
+                      <span className="text-[9px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded flex items-center gap-1">
+                        <Users className="w-3 h-3 text-amber-400" />
                         <span>Compte Client VIP</span>
                       </span>
                     )}
@@ -2423,7 +2423,7 @@ export default function AdminDashboardPage() {
                     <>
                       <button
                         onClick={() => handleApproveSubmission(sub, false)}
-                        className="bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 p-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1"
+                        className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 p-2.5 rounded-xl text-xs font-bold uppercase transition-all flex items-center justify-center gap-1"
                         title="Valider en interne sans publier au catalogue public"
                       >
                         <Check className="w-4 h-4" />
@@ -2512,7 +2512,7 @@ export default function AdminDashboardPage() {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-semibold text-white">{sub.ownerName}</span>
                         {ownerUser && (
-                          <span className="text-[8px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.2 rounded">VIP</span>
+                          <span className="text-[8px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.2 rounded">VIP</span>
                         )}
                         {ownerLead && (
                           <button
@@ -2564,7 +2564,7 @@ export default function AdminDashboardPage() {
                           sub.status === 'APPROVED' && sub.isPublished
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                             : sub.status === 'APPROVED' && !sub.isPublished
-                            ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                             : sub.status === 'REJECTED'
                             ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                             : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
@@ -2601,7 +2601,7 @@ export default function AdminDashboardPage() {
                           <>
                             <button
                               onClick={() => handleApproveSubmission(sub, false)}
-                              className="bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-500/30 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inline-flex items-center gap-1"
+                              className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all inline-flex items-center gap-1"
                               title="Valider en interne sans publier au catalogue"
                             >
                               <Check className="w-3.5 h-3.5" />
@@ -2842,7 +2842,7 @@ export default function AdminDashboardPage() {
                           </button>
                           <button
                             onClick={() => handleDuplicateProperty(p)}
-                            className="p-2 rounded-lg bg-white/5 text-sky-400 hover:bg-white/10"
+                            className="p-2 rounded-lg bg-white/5 text-brand-gold hover:bg-white/10"
                             title="Dupliquer"
                           >
                             <Copy className="w-3.5 h-3.5" />
@@ -2979,7 +2979,7 @@ export default function AdminDashboardPage() {
                         </button>
                         <button
                           onClick={() => handleDuplicateProperty(p)}
-                          className="p-1.5 rounded bg-white/5 text-brand-travertine hover:text-sky-400 hover:bg-white/10"
+                          className="p-1.5 rounded bg-white/5 text-brand-travertine hover:text-brand-gold hover:bg-white/10"
                           title="Dupliquer"
                         >
                           <Copy className="w-3.5 h-3.5" />
@@ -3611,7 +3611,7 @@ export default function AdminDashboardPage() {
                           <div className="font-bold text-sm text-white flex items-center gap-2 flex-wrap">
                             <span>{u.name}</span>
                             {u.role === 'CLIENT' ? (
-                              <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">
+                              <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-bold">
                                 Compte Client
                               </span>
                             ) : u.role === 'SUPER_ADMIN' ? (
@@ -3747,7 +3747,7 @@ export default function AdminDashboardPage() {
                             <div className="font-semibold text-white flex items-center gap-2 flex-wrap">
                               <span>{u.name}</span>
                               {u.role === 'CLIENT' && (
-                                <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">
+                                <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-bold">
                                   Client
                                 </span>
                               )}
@@ -3968,13 +3968,13 @@ export default function AdminDashboardPage() {
 
               {/* Spécifique Commercial & Fonds de Commerce */}
               {(propCategory === 'Espace Commercial' || propCategory === 'Fonds de Commerce') && (
-                <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/30 space-y-3">
-                  <div className="flex items-center gap-2 text-sky-400 text-xs font-mono font-bold uppercase">
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                  <div className="flex items-center gap-2 text-amber-400 text-xs font-mono font-bold uppercase">
                     <span>🏢 Paramètres Actif Commercial</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-[10px] font-mono uppercase text-sky-300 block mb-1 font-bold">
+                      <label className="text-[10px] font-mono uppercase text-amber-300 block mb-1 font-bold">
                         Vocation / Activité autorisée
                       </label>
                       <input
@@ -3982,11 +3982,11 @@ export default function AdminDashboardPage() {
                         value={propBusinessActivity}
                         onChange={(e) => setPropBusinessActivity(e.target.value)}
                         placeholder="ex: Showroom, Restauration..."
-                        className="w-full bg-brand-navy border border-sky-500/30 rounded-xl px-3 py-2 text-xs text-white"
+                        className="w-full bg-brand-navy border border-amber-500/30 rounded-xl px-3 py-2 text-xs text-white"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-mono uppercase text-sky-300 block mb-1 font-bold">
+                      <label className="text-[10px] font-mono uppercase text-amber-300 block mb-1 font-bold">
                         Loyer murs mensuel (TND/m)
                       </label>
                       <input
@@ -3995,11 +3995,11 @@ export default function AdminDashboardPage() {
                         value={propMonthlyRent || ''}
                         onChange={(e) => setPropMonthlyRent(e.target.value ? Number(e.target.value) : undefined)}
                         placeholder="ex: 2400"
-                        className="w-full bg-brand-navy border border-sky-500/30 rounded-xl px-3 py-2 text-xs text-white font-mono"
+                        className="w-full bg-brand-navy border border-amber-500/30 rounded-xl px-3 py-2 text-xs text-white font-mono"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-mono uppercase text-sky-300 block mb-1 font-bold">
+                      <label className="text-[10px] font-mono uppercase text-amber-300 block mb-1 font-bold">
                         Linéaire Vitrine (m)
                       </label>
                       <input
@@ -4008,7 +4008,7 @@ export default function AdminDashboardPage() {
                         value={propLinearFacade || ''}
                         onChange={(e) => setPropLinearFacade(e.target.value ? Number(e.target.value) : undefined)}
                         placeholder="ex: 16"
-                        className="w-full bg-brand-navy border border-sky-500/30 rounded-xl px-3 py-2 text-xs text-white font-mono"
+                        className="w-full bg-brand-navy border border-amber-500/30 rounded-xl px-3 py-2 text-xs text-white font-mono"
                       />
                     </div>
                   </div>
@@ -4753,15 +4753,15 @@ export default function AdminDashboardPage() {
                 )}
 
                 {(inspectingSubmission.businessActivity || inspectingSubmission.specificDetails?.businessActivity) && (
-                  <div className="pt-2 border-t border-sky-500/20 bg-sky-500/10 p-3 rounded-lg flex items-center justify-between text-sky-300">
+                  <div className="pt-2 border-t border-amber-500/20 bg-amber-500/10 p-3 rounded-lg flex items-center justify-between text-amber-300">
                     <div>
-                      <span className="text-[10px] font-mono uppercase block text-sky-400 font-bold">Vocation Commerciale :</span>
+                      <span className="text-[10px] font-mono uppercase block text-amber-400 font-bold">Vocation Commerciale :</span>
                       <span className="font-mono text-xs text-white/80">
                         {inspectingSubmission.businessActivity || inspectingSubmission.specificDetails?.businessActivity}
                       </span>
                     </div>
                     {(inspectingSubmission.monthlyRentTND || inspectingSubmission.specificDetails?.monthlyRentTND) && (
-                      <span className="text-xs font-bold font-mono text-sky-300">
+                      <span className="text-xs font-bold font-mono text-amber-300">
                         Loyer murs: {(inspectingSubmission.monthlyRentTND || inspectingSubmission.specificDetails?.monthlyRentTND || 0).toLocaleString('fr-FR')} TND/mois
                       </span>
                     )}
@@ -4874,7 +4874,7 @@ export default function AdminDashboardPage() {
                   <>
                     <button
                       onClick={() => handleApproveSubmission(inspectingSubmission, false)}
-                      className="px-5 py-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow"
+                      className="px-5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow"
                       title="Valider le mandat en interne sans le rendre visible sur le catalogue public"
                     >
                       <Check className="w-4 h-4" />
