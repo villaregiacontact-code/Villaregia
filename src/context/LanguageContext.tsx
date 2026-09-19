@@ -28,10 +28,18 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Hero
     'hero.badge': 'SFAX · TUNISIE',
+    'hero.badge_sfax': 'Maison fondée à Sfax — Tunisie',
     'hero.headline': 'Des lieux qui méritent d’être vécus.',
+    'hero.title': 'Chaque bien a sa propre histoire à vivre.',
     'hero.subhead': 'Nous sélectionnons des biens d’exception qui ont une histoire, un caractère et une valeur.',
+    'hero.description': 'Villa Regia accompagne la vente et la location de biens d\'exception : villas, terrains, appartements — et des expériences uniques, du séjour de luxe à la réception de rêve.',
     'hero.cta_explore': 'Explorations des Lieux',
     'hero.cta_propose': 'Proposer un Patrimoine',
+    'hero.btn_sale': 'Voir les biens à vendre',
+    'hero.btn_book': 'Réserver une villa',
+    'hero.stat1_label': 'biens gérés',
+    'hero.stat2_label': 'gouvernorats couverts',
+    'hero.stat3_label': 'métiers, une seule agence',
 
     // Four Worlds
     'worlds.title': 'LES QUATRE UNIVERS VILLA REGIA',
@@ -62,8 +70,21 @@ const translations: Record<Language, Record<string, string>> = {
     'btn.back': 'Retour',
 
     // Footer
+    'footer.tagline': 'Agence immobilière basée à Sfax, active dans toute la Tunisie.',
+    'footer.location': 'Route Manzel Chaker Km 1.5, Sfax',
     'footer.positioning': 'Villa Regia est la maison de sélection immobilière et d’hospitalité d’exception à Sfax et en Tunisie.',
     'footer.rights': 'Tous droits réservés.',
+    'footer.sale': 'Vente',
+    'footer.rent': 'Location',
+    'footer.agency': 'Agence',
+    'footer.villas': 'Villas',
+    'footer.land': 'Terrains',
+    'footer.farmland': 'Terrains agricoles',
+    'footer.apartments': 'Appartements & duplex',
+    'footer.residence_long': 'Résidence mensuelle/annuelle',
+    'footer.luxe_villas': 'Villas de luxe',
+    'footer.event_spaces': 'Espaces événementiels',
+    'footer.blog_advice': 'Blog & conseils',
   },
   ar: {
     // Navigation
@@ -81,10 +102,18 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Hero
     'hero.badge': 'صفاقس · تونس',
+    'hero.badge_sfax': 'دار أسست في صفاقس — تونس',
     'hero.headline': 'أماكن تستحق أن تُعاش.',
+    'hero.title': 'كل عقار له قصته الخاصة لتُعاش.',
     'hero.subhead': 'نحن نختار عقارات استثنائية ذات تاريخ، شخصية وقيمة استثمارية رفيعة.',
+    'hero.description': 'ترافق فيلا ريجيا بيع وكراء العقارات الاستثنائية: فيلات، أراضي، شقق — وتجارب فريدة من الإقامة الفاخرة إلى الاستقبالات الحالمة.',
     'hero.cta_explore': 'استكشاف العقارات',
     'hero.cta_propose': 'تقديم عقار',
+    'hero.btn_sale': 'عرض العقارات للبيع',
+    'hero.btn_book': 'حجز فيلا فاخرة',
+    'hero.stat1_label': 'عقار متاح',
+    'hero.stat2_label': 'ولاية مغطاة',
+    'hero.stat3_label': 'اختصاصات، وكالة واحدة',
 
     // Four Worlds
     'worlds.title': 'عوالم فيلا ريجيا الأربعة',
@@ -108,15 +137,28 @@ const translations: Record<Language, Record<string, string>> = {
     // Buttons & Labels
     'btn.discover': 'اكتشف العقار',
     'btn.book': 'التحقق من التوفر',
-    'btn.quote': 'طلب طلب أسعار',
+    'btn.quote': 'طلب أسعار',
     'btn.whatsapp': 'التواصل عبر واتساب',
     'btn.favorites': 'المفضلة',
     'btn.filter': 'تصفية',
     'btn.back': 'عودة',
 
     // Footer
+    'footer.tagline': 'وكالة عقارية مقرها صفاقس، تنشط في كامل التراب التونسي.',
+    'footer.location': 'طريق منزل شاكر كلم 1.5، صفاقس',
     'footer.positioning': 'فيلا ريجيا هي دار الاختيار العقاري والضيافة الاستثنائية بصفاقس وتونس.',
     'footer.rights': 'جميع الحقوق محفوظة.',
+    'footer.sale': 'بيع',
+    'footer.rent': 'كراء',
+    'footer.agency': 'الوكالة',
+    'footer.villas': 'فيلات',
+    'footer.land': 'أراضي',
+    'footer.farmland': 'أراضي فلاحية',
+    'footer.apartments': 'شقق ودوبلكس',
+    'footer.residence_long': 'إقامة شهرية / سنوية',
+    'footer.luxe_villas': 'فيلات فاخرة',
+    'footer.event_spaces': 'مساحات للمناسبات',
+    'footer.blog_advice': 'المدونة والنصائح',
   },
   en: {
     // Navigation
@@ -134,10 +176,18 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Hero
     'hero.badge': 'SFAX · TUNISIA',
+    'hero.badge_sfax': 'Founded in Sfax — Tunisia',
     'hero.headline': 'Places meant to be truly lived.',
+    'hero.title': 'Every property has a story waiting to be lived.',
     'hero.subhead': 'We curate exceptional properties with heritage, character, and lasting value.',
+    'hero.description': 'Villa Regia guides the sale and rental of premier properties: villas, land, apartments — and unique experiences, from luxury stays to dream event receptions.',
     'hero.cta_explore': 'Explore Properties',
     'hero.cta_propose': 'Submit Estate',
+    'hero.btn_sale': 'View Properties for Sale',
+    'hero.btn_book': 'Book a Villa',
+    'hero.stat1_label': 'curated estates',
+    'hero.stat2_label': 'governorates covered',
+    'hero.stat3_label': 'disciplines, one agency',
 
     // Four Worlds
     'worlds.title': 'THE FOUR VILLA REGIA UNIVERSES',
@@ -168,8 +218,21 @@ const translations: Record<Language, Record<string, string>> = {
     'btn.back': 'Back',
 
     // Footer
+    'footer.tagline': 'Real estate agency based in Sfax, active throughout Tunisia.',
+    'footer.location': 'Route Manzel Chaker Km 1.5, Sfax',
     'footer.positioning': 'Villa Regia is the curated luxury real estate and hospitality house based in Sfax, Tunisia.',
     'footer.rights': 'All rights reserved.',
+    'footer.sale': 'For Sale',
+    'footer.rent': 'Rentals',
+    'footer.agency': 'Agency',
+    'footer.villas': 'Villas',
+    'footer.land': 'Land Plots',
+    'footer.farmland': 'Agricultural Land',
+    'footer.apartments': 'Apartments & Duplexes',
+    'footer.residence_long': 'Monthly / Annual Residence',
+    'footer.luxe_villas': 'Luxury Villas',
+    'footer.event_spaces': 'Event Venues',
+    'footer.blog_advice': 'Blog & Advice',
   },
 };
 

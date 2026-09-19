@@ -2,10 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
-
 import Image from 'next/image';
+import { useLanguage } from '@/context/LanguageContext';
 
 export const Footer: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <footer className="border-t border-[rgba(19,35,57,0.14)] bg-[#FAF8F3] pt-14 pb-10 text-[#132339]">
       <div className="max-w-[1180px] mx-auto px-4 sm:px-8">
@@ -22,45 +24,45 @@ export const Footer: React.FC = () => {
               />
             </div>
             <p className="text-sm text-[#2c3f57] mb-2">
-              Agence immobilière basée à Sfax, active dans toute la Tunisie.
+              {t('footer.tagline')}
             </p>
             <p className="text-sm text-[#2c3f57]">
-              Route Manzel Chaker Km 1.5, Sfax
+              {t('footer.location')}
             </p>
           </div>
 
           <div>
             <h5 className="font-sans text-sm font-semibold mb-4 text-[#132339]">
-              Vente
+              {t('footer.sale')}
             </h5>
             <div className="flex flex-col space-y-2 text-sm text-[#2c3f57]">
-              <Link href="/properties?universe=VENTE" className="hover:text-[#B15A3C] transition-colors">Villas</Link>
-              <Link href="/properties?universe=VENTE" className="hover:text-[#B15A3C] transition-colors">Terrains</Link>
-              <Link href="/properties?universe=VENTE" className="hover:text-[#B15A3C] transition-colors">Terrains agricoles</Link>
-              <Link href="/properties?universe=VENTE" className="hover:text-[#B15A3C] transition-colors">Appartements & duplex</Link>
+              <Link href="/properties?universe=VENTE" className="hover:text-[#B15A3C] transition-colors">{t('footer.villas')}</Link>
+              <Link href="/properties?universe=VENTE" className="hover:text-[#B15A3C] transition-colors">{t('footer.land')}</Link>
+              <Link href="/properties?universe=VENTE" className="hover:text-[#B15A3C] transition-colors">{t('footer.farmland')}</Link>
+              <Link href="/properties?universe=VENTE" className="hover:text-[#B15A3C] transition-colors">{t('footer.apartments')}</Link>
             </div>
           </div>
 
           <div>
             <h5 className="font-sans text-sm font-semibold mb-4 text-[#132339]">
-              Location
+              {t('footer.rent')}
             </h5>
             <div className="flex flex-col space-y-2 text-sm text-[#2c3f57]">
-              <Link href="/properties?universe=RESIDENCE" className="hover:text-[#B15A3C] transition-colors">Résidence mensuelle/annuelle</Link>
-              <Link href="/villas-de-luxe" className="hover:text-[#B15A3C] transition-colors">Villas de luxe</Link>
-              <Link href="/evenementiel" className="hover:text-[#B15A3C] transition-colors">Espaces événementiels</Link>
+              <Link href="/properties?universe=RESIDENCE" className="hover:text-[#B15A3C] transition-colors">{t('footer.residence_long')}</Link>
+              <Link href="/villas-de-luxe" className="hover:text-[#B15A3C] transition-colors">{t('footer.luxe_villas')}</Link>
+              <Link href="/evenementiel" className="hover:text-[#B15A3C] transition-colors">{t('footer.event_spaces')}</Link>
             </div>
           </div>
 
           <div>
             <h5 className="font-sans text-sm font-semibold mb-4 text-[#132339]">
-              Agence
+              {t('footer.agency')}
             </h5>
             <div className="flex flex-col space-y-2 text-sm text-[#2c3f57]">
-              <Link href="/proposer-un-bien" className="hover:text-[#B15A3C] transition-colors font-semibold text-[#B15A3C]">Proposer un bien</Link>
-              <Link href="/a-propos" className="hover:text-[#B15A3C] transition-colors">À propos</Link>
-              <Link href="/journal" className="hover:text-[#B15A3C] transition-colors">Blog & conseils</Link>
-              <Link href="/contact" className="hover:text-[#B15A3C] transition-colors">Contact</Link>
+              <Link href="/proposer-un-bien" className="hover:text-[#B15A3C] transition-colors font-semibold text-[#B15A3C]">{t('nav.submit_property')}</Link>
+              <Link href="/a-propos" className="hover:text-[#B15A3C] transition-colors">{t('nav.about')}</Link>
+              <Link href="/journal" className="hover:text-[#B15A3C] transition-colors">{t('footer.blog_advice')}</Link>
+              <Link href="/contact" className="hover:text-[#B15A3C] transition-colors">{t('nav.contact')}</Link>
               <a href="tel:+21627745403" className="hover:text-[#B15A3C] transition-colors font-mono">+216 27 745 403</a>
             </div>
           </div>
@@ -68,7 +70,7 @@ export const Footer: React.FC = () => {
 
         {/* Foot Bottom */}
         <div className="flex flex-col sm:flex-row justify-between items-center pt-6 border-t border-[rgba(19,35,57,0.14)] text-xs text-[#2c3f57] gap-3">
-          <span>© {new Date().getFullYear()} Villa Regia. Tous droits réservés.</span>
+          <span>© {new Date().getFullYear()} Villa Regia. {t('footer.rights')}</span>
           <div className="flex gap-4">
             <a href="https://easyweb-growthagency.com" target="_blank" rel="noopener noreferrer" className="hover:underline font-mono">
               Powered By EASYWEB
@@ -81,4 +83,5 @@ export const Footer: React.FC = () => {
     </footer>
   );
 };
+
 

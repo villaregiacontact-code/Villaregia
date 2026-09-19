@@ -48,12 +48,12 @@ export const PropertyDiscoveryBar: React.FC = () => {
               {u === 'ALL'
                 ? t('search.all_universes')
                 : u === 'VENTE'
-                ? 'Vente'
+                ? t('nav.sale')
                 : u === 'RESIDENCE'
-                ? 'Résidence'
+                ? t('nav.residence')
                 : u === 'LUXE'
-                ? 'Villas Luxe'
-                : 'Événementiel'}
+                ? t('nav.luxe')
+                : t('nav.event')}
             </button>
           ))}
         </div>

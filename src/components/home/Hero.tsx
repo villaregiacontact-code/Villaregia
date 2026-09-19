@@ -5,13 +5,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Home, Crown, Calendar, Compass } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export const Hero: React.FC = () => {
+  const { t } = useLanguage();
+
   const quickPills = [
-    { label: 'À Vendre', href: '/properties?universe=VENTE', color: 'border-[#B15A3C]/40 text-[#B15A3C] bg-[#B15A3C]/8 hover:bg-[#B15A3C] hover:text-white', icon: Home },
-    { label: 'Location de Luxe', href: '/villas-de-luxe', color: 'border-[#B8912E]/40 text-[#B8912E] bg-[#B8912E]/8 hover:bg-[#B8912E] hover:text-white', icon: Crown },
-    { label: 'Événementiel', href: '/evenementiel', color: 'border-[#6E7A52]/40 text-[#6E7A52] bg-[#6E7A52]/8 hover:bg-[#6E7A52] hover:text-white', icon: Calendar },
-    { label: 'Terrains & Invest', href: '/properties?category=Terrain', color: 'border-[#132339]/30 text-[#132339] bg-[#132339]/8 hover:bg-[#132339] hover:text-white', icon: Compass },
+    { label: t('nav.sale'), href: '/properties?universe=VENTE', color: 'border-[#B15A3C]/40 text-[#B15A3C] bg-[#B15A3C]/8 hover:bg-[#B15A3C] hover:text-white', icon: Home },
+    { label: t('nav.luxe'), href: '/villas-de-luxe', color: 'border-[#B8912E]/40 text-[#B8912E] bg-[#B8912E]/8 hover:bg-[#B8912E] hover:text-white', icon: Crown },
+    { label: t('nav.event'), href: '/evenementiel', color: 'border-[#6E7A52]/40 text-[#6E7A52] bg-[#6E7A52]/8 hover:bg-[#6E7A52] hover:text-white', icon: Calendar },
+    { label: t('footer.land'), href: '/properties?category=Terrain', color: 'border-[#132339]/30 text-[#132339] bg-[#132339]/8 hover:bg-[#132339] hover:text-white', icon: Compass },
   ];
 
   return (
@@ -31,15 +34,15 @@ export const Hero: React.FC = () => {
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#B15A3C]/10 border border-[#B15A3C]/25 text-[#B15A3C] text-xs font-semibold uppercase tracking-wider mb-5 shadow-xs"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Maison fondée à Sfax — Tunisie</span>
+            <span>{t('hero.badge_sfax')}</span>
           </motion.div>
 
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-[60px] text-[#132339] font-semibold leading-[1.04] tracking-tight max-w-[14ch]">
-            Chaque bien a sa propre histoire à vivre.
+            {t('hero.title')}
           </h1>
 
           <p className="mt-6 text-base sm:text-lg text-[#2c3f57] max-w-[44ch] leading-relaxed font-normal">
-            Villa Regia accompagne la vente et la location de biens d'exception : villas, terrains, appartements — et des expériences uniques, du séjour de luxe à la réception de rêve.
+            {t('hero.description')}
           </p>
 
           {/* Color-Synced Universe Filter Pills */}
@@ -65,14 +68,14 @@ export const Hero: React.FC = () => {
               href="/properties?universe=VENTE"
               className="inline-flex items-center gap-2.5 bg-[#B15A3C] text-[#FAF8F3] hover:bg-[#97492e] px-8 py-4 text-sm sm:text-base font-medium rounded-xs transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-0.5 group"
             >
-              <span>Voir les biens à vendre</span>
+              <span>{t('hero.btn_sale')}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </Link>
             <Link
               href="/villas-de-luxe"
               className="inline-flex items-center justify-center border border-[#132339] text-[#132339] hover:bg-[#132339] hover:text-[#FAF8F3] px-8 py-4 text-sm sm:text-base font-medium rounded-xs transition-all duration-300 hover:-translate-y-0.5"
             >
-              Réserver une villa
+              {t('hero.btn_book')}
             </Link>
           </div>
 
@@ -80,15 +83,15 @@ export const Hero: React.FC = () => {
           <div className="flex gap-8 sm:gap-12 mt-12 pt-6 border-t border-[rgba(19,35,57,0.14)]">
             <div className="stat">
               <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#132339]">240+</b>
-              <span className="text-xs sm:text-sm text-[#2c3f57]">biens gérés</span>
+              <span className="text-xs sm:text-sm text-[#2c3f57]">{t('hero.stat1_label')}</span>
             </div>
             <div className="stat">
               <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#132339]">18</b>
-              <span className="text-xs sm:text-sm text-[#2c3f57]">gouvernorats couverts</span>
+              <span className="text-xs sm:text-sm text-[#2c3f57]">{t('hero.stat2_label')}</span>
             </div>
             <div className="stat">
               <b className="block font-serif text-2xl sm:text-3xl font-semibold text-[#132339]">4</b>
-              <span className="text-xs sm:text-sm text-[#2c3f57]">métiers, une seule agence</span>
+              <span className="text-xs sm:text-sm text-[#2c3f57]">{t('hero.stat3_label')}</span>
             </div>
           </div>
         </motion.div>
@@ -141,5 +144,6 @@ export const Hero: React.FC = () => {
     </section>
   );
 };
+
 
 
