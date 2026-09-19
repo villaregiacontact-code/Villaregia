@@ -140,13 +140,13 @@ export default function LuxuryVillasPage() {
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-[#B8912E] bg-[#B8912E]/10 border border-[#B8912E]/30 px-3.5 py-1.5 rounded-full shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-[#B8912E]" />
-            <span>Univers Hospitality & Court Séjour</span>
+            <span>{t('luxe.badge')}</span>
           </div>
           <h1 className="font-serif text-4xl sm:text-6xl font-semibold text-[#132339]">
-            Villas de Luxe & Conciergerie Privée
+            {t('luxe.page_title')}
           </h1>
           <p className="text-base text-[#2c3f57] font-normal leading-relaxed">
-            Passez quelques jours dans un lieu hors du commun. Profitez d’un service d’hospitalité haut de gamme, d’un chef cuisinier sur demande et de piscines à débordement privées à Sfax.
+            {t('luxe.subhead')}
           </p>
         </div>
 
@@ -156,7 +156,7 @@ export default function LuxuryVillasPage() {
           {/* Left Column: Select Villa */}
           <div className="lg:col-span-7 space-y-6">
             <h2 className="font-serif text-2xl font-semibold text-[#132339]">
-              Choisissez votre Demeure
+              {t('luxe.choose_villa')}
             </h2>
 
             <div className="space-y-4">

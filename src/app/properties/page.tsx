@@ -180,13 +180,13 @@ function CatalogContent() {
         <div className="mb-10 text-center">
           <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-[#B15A3C] bg-[#B15A3C]/10 border border-[#B15A3C]/20 px-3.5 py-1 rounded-full mb-3 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Catalogue Privé Villa Regia</span>
+            <span>{t('catalog.badge')}</span>
           </div>
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold text-[#132339]">
-            Exploration des Lieux
+            {t('catalog.title')}
           </h1>
           <p className="text-base text-[#2c3f57] mt-3 max-w-xl mx-auto font-normal leading-relaxed">
-            Villas, duplex, penthouses et domaines d'exception à Sfax et en Tunisie.
+            {t('catalog.subtitle')}
           </p>
         </div>
 
@@ -412,11 +412,11 @@ function CatalogContent() {
           </div>
         ) : filteredAndSorted.length === 0 ? (
           <div className="rounded-xs p-16 text-center space-y-4 bg-[#EFE8D8] border border-[rgba(19,35,57,0.14)]">
-            <p className="font-serif text-2xl text-[#132339]">Aucun bien ne correspond à ces critères.</p>
-            <p className="text-xs text-[#2c3f57]">Modifiez vos filtres ou réinitialisez la recherche.</p>
+            <p className="font-serif text-2xl text-[#132339]">{t('catalog.empty_title')}</p>
+            <p className="text-xs text-[#2c3f57]">{t('catalog.empty_desc')}</p>
             <button onClick={resetAll}
               className="mt-2 bg-[#B15A3C] text-[#FAF8F3] px-6 py-2.5 rounded-xs text-xs font-semibold uppercase tracking-widest hover:bg-[#97492e] transition-all">
-              Réinitialiser
+              {t('btn.reset')}
             </button>
           </div>
         ) : (

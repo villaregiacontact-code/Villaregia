@@ -4,8 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Phone, MessageCircle, ShieldCheck, Sparkles, Home, Building2, MapPin, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function SubmitPropertyPage() {
+  const { t } = useLanguage();
+
   const whatsappUrl = `https://wa.me/21627745403?text=${encodeURIComponent(
     "Bonjour Villa Regia, je souhaite vous proposer un bien immobilier (villa, terrain, appartement, local commercial) pour vente ou location."
   )}`;
@@ -18,15 +21,15 @@ export default function SubmitPropertyPage() {
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#B15A3C] bg-[#B15A3C]/10 border border-[#B15A3C]/25 px-4 py-1.5 rounded-full shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-[#B15A3C]" />
-            <span>Service Propriétaires Prestige & Discrétion</span>
+            <span>{t('submit.badge')}</span>
           </div>
           
           <h1 className="font-serif text-4xl sm:text-6xl font-semibold text-[#132339] leading-tight">
-            Proposer votre bien immobilier à Villa Regia
+            {t('submit.page_title')}
           </h1>
           
           <p className="text-base sm:text-lg text-[#2c3f57] font-normal leading-relaxed max-w-2xl mx-auto">
-            Vous souhaitez vendre ou louer une villa, un terrain, un appartement ou un espace commercial à Sfax ou en Tunisie ? Contactez directement nos conseillers privés par téléphone ou WhatsApp.
+            {t('submit.subhead')}
           </p>
         </div>
 
@@ -44,10 +47,10 @@ export default function SubmitPropertyPage() {
                   Contact Instantané
                 </span>
                 <h2 className="font-serif text-2xl font-semibold text-[#132339] mt-1">
-                  Discuter sur WhatsApp
+                  {t('submit.whatsapp_title')}
                 </h2>
                 <p className="text-xs text-[#2c3f57] mt-2 leading-relaxed">
-                  Envoyez les photos, détails ou localisation de votre bien directement à notre équipe de conciergerie privée.
+                  {t('submit.whatsapp_desc')}
                 </p>
               </div>
             </div>
@@ -59,7 +62,7 @@ export default function SubmitPropertyPage() {
               className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-[#132339] font-bold text-xs uppercase tracking-widest py-4 rounded-xl flex items-center justify-center gap-2.5 shadow-md transition-all text-center border border-[#1b4332]/20"
             >
               <MessageCircle className="w-4 h-4 fill-current text-[#132339]" />
-              <span>Ouvrir WhatsApp DM (+216 27 745 403)</span>
+              <span>{t('submit.whatsapp_btn')}</span>
             </a>
           </div>
 
@@ -74,10 +77,10 @@ export default function SubmitPropertyPage() {
                   Ligne Téléphonique Directe
                 </span>
                 <h2 className="font-serif text-2xl font-semibold text-[#132339] mt-1">
-                  Appeler un Conseiller
+                  {t('submit.call_title')}
                 </h2>
                 <p className="text-xs text-[#2c3f57] mt-2 leading-relaxed">
-                  Échangez immédiatement de vive voix avec un expert immobilier Villa Regia pour l'estimation de votre bien.
+                  {t('submit.call_desc')}
                 </p>
               </div>
             </div>
@@ -87,7 +90,7 @@ export default function SubmitPropertyPage() {
               className="w-full bg-[#B15A3C] hover:bg-[#96472e] text-[#FAF8F3] font-bold text-xs uppercase tracking-widest py-4 rounded-xl flex items-center justify-center gap-2.5 shadow-md transition-all text-center border border-[#132339]/20"
             >
               <Phone className="w-4 h-4 text-[#FAF8F3]" />
-              <span>Appeler le +216 27 745 403</span>
+              <span>{t('submit.call_btn')}</span>
             </a>
           </div>
 

@@ -52,13 +52,13 @@ export default function EventsPage() {
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-[#6E7A52] bg-[#6E7A52]/10 border border-[#6E7A52]/30 px-3.5 py-1.5 rounded-full shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-[#6E7A52]" />
-            <span>Univers Événementiel & Mariages</span>
+            <span>{t('events.badge')}</span>
           </div>
           <h1 className="font-serif text-4xl sm:text-6xl font-semibold text-[#132339]">
-            Des lieux pour créer des souvenirs.
+            {t('events.page_title')}
           </h1>
           <p className="text-base text-[#2c3f57] font-normal leading-relaxed">
-            Organisez vos mariages d’exception, soirées de gala, séminaires de prestige et shootings photo dans nos domaines privés à Sfax.
+            {t('events.subhead')}
           </p>
         </div>
 
